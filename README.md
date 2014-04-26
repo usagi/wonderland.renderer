@@ -1,7 +1,7 @@
 wonderland.renderer
 ===================
 
-[OGLplus](https://github.com/matus-chochlik/oglplus) (OpenGL) based rendering engine designed for [wonderland](https://github.com/usagi/wonderland) game engine.
+C++ header only library of OpenGL rendering engine designed for wonderland game engine.
 
 ## Caution
 
@@ -10,7 +10,7 @@ Please wait for stable release version if you avoid unfortunately troubles.
 
 ## Dependancy
 
-- [OGLplus](https://github.com/matus-chochlik/oglplus)
+- [GLEW](http://glew.sourceforge.net/)
 
 ### note
 
