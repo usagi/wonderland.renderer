@@ -12,22 +12,23 @@ namespace wonder_rabbit_project
       namespace glew
       {
 
-        struct glew;
+        struct glew_t;
         struct program;
 
         template<gl_type::GLuint SHADER_TYPE>
         struct shader
         {
-            friend glew;
+            friend glew_t;
             friend program;
             static constexpr SHADER shader_type = SHADER( SHADER_TYPE );
             using this_type = shader<SHADER_TYPE>;
 
             shader( this_type && o )
-              : shader_( std::move( o.shader_ ) )
+              : _shader( std::move( o._shader ) )
             {
               o.cancel();
             }
+            
             shader( const this_type& ) = delete;
 
             this_type& operator=( this_type && )     = delete;
@@ -35,12 +36,12 @@ namespace wonder_rabbit_project
 
             inline void cancel()
             {
-              finalizer_ = [] {};
+              _finalizer = [] {};
             }
 
-            inline void source( const std::string& v )
+            inline void source( const std::string& s )
             {
-              source_ = std::move( v );
+              _source = s;
             }
 
             inline void source( std::istream && s )
@@ -48,13 +49,13 @@ namespace wonder_rabbit_project
               s.seekg( 0, std::ios::end );
               auto size = s.tellg();
               s.seekg( 0, std::ios::beg );
-              source_.resize( size );
-              s.read( const_cast<char*>( source_.data() ), size );
+              _source.resize( size );
+              s.read( const_cast<char*>( _source.data() ), size );
             }
 
             inline const std::string& source() const
             {
-              return source_;
+              return _source;
             }
 
             inline void compile( const std::string& v )
@@ -73,26 +74,26 @@ namespace wonder_rabbit_project
             {
               {
                 constexpr c::GLsizei  count = 1;
-                const     c::GLchar*  str   = source_.data();
-                const     c::GLint    size  = source_.size();
-                c::glShaderSource( shader_, count, &str, &size );
+                const     c::GLchar*  str   = _source.data();
+                const     c::GLint    size  = _source.size();
+                c::glShaderSource( _shader, count, &str, &size );
               }
               
-              c::glCompileShader( shader_ );
+              c::glCompileShader( _shader );
               
               {
                 c::GLint result = false;
-                c::glGetShaderiv( shader_, GL_COMPILE_STATUS, &result );
+                c::glGetShaderiv( _shader, GL_COMPILE_STATUS, &result );
 
                 if ( ! result )
                 {
                   std::string error_log;
                   c::GLint size = 0;
-                  c::glGetShaderiv( shader_, GL_INFO_LOG_LENGTH, &size );
+                  c::glGetShaderiv( _shader, GL_INFO_LOG_LENGTH, &size );
                   error_log.resize( size );
                   c::GLint size_written = 0;
                   c::glGetShaderInfoLog(
-                    shader_, size, &size_written,
+                    _shader, size, &size_written,
                     const_cast<char*>( error_log.data() )
                   );
                   throw std::runtime_error( error_log );
@@ -103,23 +104,23 @@ namespace wonder_rabbit_project
 
             ~shader()
             {
-              finalizer_();
+              _finalizer();
             }
             
           private:
             shader()
-              : shader_( c::glCreateShader( gl_type::GLuint( shader_type ) ) )
-              , finalizer_
+              : _shader( c::glCreateShader( gl_type::GLuint( shader_type ) ) )
+              , _finalizer
                 ( [this]
                   {
-                    c::glDeleteShader( this->shader_ );
+                    c::glDeleteShader( this->_shader );
                   }
                 )
             { }
-
-            gl_type::GLuint shader_;
-            std::function<void()> finalizer_;
-            std::string source_;
+            
+            gl_type::GLuint _shader;
+            std::function<void()> _finalizer;
+            std::string _source;
         };
 
         using vertex_shader          = shader<gl_type::GLuint( SHADER::VERTEX )>;

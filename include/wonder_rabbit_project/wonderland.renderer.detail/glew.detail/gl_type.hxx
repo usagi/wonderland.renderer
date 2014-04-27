@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdint>
+#include <cstddef>
+
 namespace wonder_rabbit_project
 {
   namespace wonderland
@@ -11,22 +14,22 @@ namespace wonder_rabbit_project
         namespace gl_type
         {
           using GLboolean = bool;
-          using GLbyte    = int8_t;
-          using GLubyte   = uint8_t;
+          using GLbyte    = std::int8_t;
+          using GLubyte   = std::uint8_t;
           using GLchar    = char;
-          using GLshort   = int16_t;
-          using GLushort  = uint16_t;
-          using GLint     = int32_t;
-          using GLuint    = uint32_t;
+          using GLshort   = std::int16_t;
+          using GLushort  = std::uint16_t;
+          using GLint     = std::int32_t;
+          using GLuint    = std::uint32_t;
           //using GLfixed   = ?;
-          using GLint64   = int64_t;
-          using GLuint64  = uint64_t;
-          using GLsizei   = uint32_t;
-          using GLenum    = int32_t;
+          using GLint64   = std::int64_t;
+          using GLuint64  = std::uint64_t;
+          using GLsizei   = std::uint32_t;
+          using GLenum    = std::int32_t;
           //using GLintptr  = ?;
-          using GLsizeiptr= size_t;
+          using GLsizeiptr= std::size_t;
           using GLsync      = void*;
-          using GLbitfield= uint32_t;
+          using GLbitfield= std::uint32_t;
           //using GLhalf    = ?;
           using GLfloat   = float;
           using GLclampf  = float;

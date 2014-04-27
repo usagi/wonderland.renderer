@@ -9,10 +9,7 @@
   #include <emscripten/emscripten.h>
 #endif
 
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glext.h>
-
+#include <wonder_rabbit_project/wonderland.renderer.hxx>
 #include <wonder_rabbit_project/wonderland.subsystem.hxx>
 
 namespace
@@ -37,71 +34,8 @@ namespace
       "}"
       ;
   }
-
-  auto build_program(const std::string& vs_source, const std::string& fs_source)
-    -> GLuint
-  {
-    const auto assert_shader = [](GLuint shader, const std::string& message)
-    {
-      GLint status;
-      glGetShaderiv( shader, GL_COMPILE_STATUS, &status );
-      if ( not status )
-      {
-        GLsizei buffer_size;
-        glGetShaderiv( shader, GL_INFO_LOG_LENGTH, &buffer_size );
-        std::string log;
-        if ( buffer_size )
-        {
-          log.resize( buffer_size );
-          glGetShaderInfoLog( shader, buffer_size, nullptr, const_cast<char*>(log.data()) );
-        }
-        throw std::runtime_error( message + "\n" + log);
-      }
-    };
-    
-    const auto assert_program = [](GLuint program, const std::string& message)
-    {
-      GLint status;
-      glGetProgramiv( program, GL_LINK_STATUS, &status );
-      if ( not status )
-      {
-        GLsizei buffer_size;
-        glGetProgramiv( program, GL_INFO_LOG_LENGTH, &buffer_size );
-        std::string log;
-        if ( buffer_size )
-        {
-          log.resize( buffer_size );
-          glGetProgramInfoLog( program, buffer_size, nullptr, const_cast<char*>(log.data()) );
-        }
-        throw std::runtime_error( message + "\n" + log);
-      }
-    };
-    
-    auto vss = vs_source.data();
-    const auto vs = glCreateShader( GL_VERTEX_SHADER );
-    glShaderSource( vs, 1, &vss, nullptr );
-    glCompileShader( vs );
-    assert_shader( vs , "failed to compile vertex shader" );
-
-    auto fss = fs_source.data();
-    const auto fs = glCreateShader( GL_FRAGMENT_SHADER );
-    glShaderSource( fs, 1, &fss, nullptr );
-    glCompileShader( fs );
-    assert_shader( fs , "failed to compile fragment shader" );
-    
-    const auto program = glCreateProgram();
-    glAttachShader( program, vs );
-    glDeleteShader( vs );
-    glAttachShader( program, fs );
-    glDeleteShader( fs );
-    
-    glBindAttribLocation( program, 0, "position" );
-    glLinkProgram( program );
-    assert_program( program, "failed to link program" );
-    
-    return program;
-  }
   
+  /*
   auto build_vao(const std::vector<std::array<float, 2>>& vertices)
     -> GLuint
   {
@@ -121,14 +55,15 @@ namespace
     
     return vao;
   }
+  */
 }
 
 auto main()
   -> int
   try
 {
-  using wonder_rabbit_project::wonderland::subsystem::subsystem_t;
-  using wonder_rabbit_project::wonderland::subsystem::key;
+  using namespace wonder_rabbit_project::wonderland::subsystem;
+  using namespace wonder_rabbit_project::wonderland::renderer::glew;
   
   auto subsystem = std::make_shared<subsystem_t>();
   
@@ -136,16 +71,27 @@ auto main()
   ips.put( "title", "wonderland.subsystem example-2" );
   subsystem -> initialize( std::move(ips) );
   
-  std::vector<std::array<float, 2>>
-    vertices = 
-      { {{ -.5f, -.5f }}
-      , {{  .5f, -.5f }}
-      , {{  .5f,  .5f }}
-      , {{ -.5f,  .5f }}
-      };
+  auto renderer = glew::instance();
+  renderer -> initialize();
   
-  auto program = build_program( vs_source(), fs_source() );
-  auto vao     = build_vao( vertices );
+  auto vs = renderer -> create_shader<vertex_shader  >( vs_source() );
+  auto fs = renderer -> create_shader<fragment_shader>( fs_source() );
+  auto program = renderer -> create_program( vs, fs );
+  
+  using va_pos2f_tex2f = vertex
+  < std::array<float, 2> // position
+  , std::array<float, 2> // texcoord
+  >;
+  
+  auto model = renderer -> create_model< va_pos2f_tex2f, usage_static_draw, mode_line_loop >
+  ( { { {{ -.5f, -.5f }}, {{0, 0}} }
+    , { {{  .5f, -.5f }}, {{1, 0}} }
+    , { {{  .5f,  .5f }}, {{1, 1}} }
+    , { {{ -.5f,  .5f }}, {{0, 1}} }
+    }
+  );
+  
+  renderer -> clear_color( { 0.f, 0.f, 1.f, 0.f } );
   
   subsystem -> update_functors.emplace_front
   ( []
@@ -163,15 +109,14 @@ auto main()
     );
   
   subsystem -> render_functors.emplace_front
-  ( [ &vertices, &program, &vao ]
+  ( [ renderer, &program, &model /*&vertices, &vao*/ ]
     {
-      glClearColor( 0.f, 0.f, 0.f, 0.f );
-      glClear( GL_COLOR_BUFFER_BIT );
-      glUseProgram( program );
-      glBindVertexArray( vao );
-      glDrawArrays( GL_LINE_LOOP, 0, vertices.size() );
-      glBindVertexArray( 0 );
-      glUseProgram( 0 );
+      renderer -> clear();
+      auto flusher     = renderer -> flusher();
+      auto use_program = renderer -> use_program( program );
+      //glBindVertexArray( vao );
+      //glDrawArrays( GL_LINE_LOOP, 0, vertices.size() );
+      //glBindVertexArray( 0 );
     }
   );
   

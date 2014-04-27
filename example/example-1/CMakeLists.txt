@@ -115,6 +115,9 @@ if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Emscripten")
   find_package(Threads)
   target_link_libraries(${TARGET} ${CMAKE_THREAD_LIBS_INIT})
   
+  find_package(GLEW)
+  target_link_libraries(${TARGET} ${GLEW_LIBRARIES})
+
   if(SUBSYSTEM MATCHES GLFW3)
     find_package(PkgConfig REQUIRED)
     pkg_search_module(GLFW REQUIRED glfw3)

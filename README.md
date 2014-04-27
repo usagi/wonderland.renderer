@@ -11,6 +11,7 @@ Please wait for stable release version if you avoid unfortunately troubles.
 ## Dependancy
 
 - [GLEW](http://glew.sourceforge.net/)
+- [Open Asset Import Library](http://assimp.sourceforge.net/)
 
 ### note
 
@@ -29,6 +30,29 @@ library suggestion:
 - SDL2
 - EGLplus or EGL
 - OS native API directly
+
+## Emscripten tips
+
+Open Asset Import Library(assimp) can compile Emscripten-1.16.0.
+
+For example build assimp with Emscripten:
+
+```shell
+. pwd
+/home/you/repos
+. git clone git@github.com:assimp/assimp.git
+. cd assimp
+. mkdir build.em
+. cd build.em
+. cmake -D Ninja .. -DCMAKE_CXX_COMPILER=em++ -DCMAKE_C_COMPILER=emcc -DCMAKE_BUILD_TYPE=Release
+. ninja
+```
+
+Then, you can build your-app with link libassimp.so:
+
+```shell
+em++ -std=c++11 -O2 your-app.cxx /home/you/repos/assimp/build.em/code/libassimp.so -I/home/you/repos/assimp/include -o your-app.html
+```
 
 ## License
 
