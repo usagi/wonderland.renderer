@@ -61,6 +61,9 @@ namespace wonder_rabbit_project
           inline auto cancel() -> void
           { _finalizer = []{}; }
 
+          inline auto program_id() -> glew::gl_type::GLuint
+          { return _program; }
+          
           template<class T>
           inline void attach( const T& shader_ ) const
           {

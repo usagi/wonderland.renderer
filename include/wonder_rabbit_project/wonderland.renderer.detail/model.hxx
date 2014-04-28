@@ -37,11 +37,6 @@ namespace wonder_rabbit_project
         glew::gl_type::GLuint  _triangle_vao_id;
         glew::gl_type::GLuint  _quad_vao_id;
         
-        glew::gl_type::GLuint  _location_of_vs_position = 0;
-        glew::gl_type::GLuint  _location_of_vs_texcoord = 2;
-        glew::gl_type::GLuint  _location_of_vs_normal   = 1;
-        glew::gl_type::GLuint  _location_of_vs_tangent  = 3;
-        
       public:
         
         struct vertex_buffer_t
@@ -205,19 +200,41 @@ namespace wonder_rabbit_project
           
           const auto set_vertex_attribute = [ this ]
           {
-            // http://www.opengl.org/sdk/docs/man/html/glVertexAttribPointer.xhtml
-            //  glew::gl_type::GLuint index, GLint size, GLenum type, GLboolean normalized, glew::gl_type::GLsizei stride, const GLvoid* pointer
-            glew::c::glVertexAttribPointer( _location_of_vs_position, vertex_buffer_t::count_of_position_elements, attribute, normalize_off, vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_position ) );
-            glew::c::glVertexAttribPointer( _location_of_vs_texcoord, vertex_buffer_t::count_of_texcoord_elements, attribute, normalize_off, vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_texcorrd ) );
-            glew::c::glVertexAttribPointer( _location_of_vs_normal  , vertex_buffer_t::count_of_normal_elements  , attribute, normalize_on , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_normal   ) );
-            glew::c::glVertexAttribPointer( _location_of_vs_tangent , vertex_buffer_t::count_of_tangent_elements , attribute, normalize_on , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_tangent  ) );
+            glew::gl_type::GLint program_id;
+            glew::c::glGetIntegerv( GL_CURRENT_PROGRAM, &program_id );
             
-            // http://www.opengl.org/sdk/docs/man/html/glEnableVertexAttribArray.xhtml
-            //  glew::gl_type::GLuint index
-            glew::c::glEnableVertexAttribArray( _location_of_vs_position );
-            glew::c::glEnableVertexAttribArray( _location_of_vs_texcoord );
-            glew::c::glEnableVertexAttribArray( _location_of_vs_normal   );
-            glew::c::glEnableVertexAttribArray( _location_of_vs_tangent  );
+            const auto location_of_vs_position = glew::c::glGetAttribLocation( program_id, "position" );
+            const auto location_of_vs_texcoord = glew::c::glGetAttribLocation( program_id, "texcoord" );
+            const auto location_of_vs_normal   = glew::c::glGetAttribLocation( program_id, "normal"   );
+            const auto location_of_vs_tangent  = glew::c::glGetAttribLocation( program_id, "tangent"  );
+            
+            if ( location_of_vs_position not_eq -1 )
+            {
+              // http://www.opengl.org/sdk/docs/man/html/glVertexAttribPointer.xhtml
+              //  glew::gl_type::GLuint index, GLint size, GLenum type, GLboolean normalized, glew::gl_type::GLsizei stride, const GLvoid* pointer
+              glew::c::glVertexAttribPointer( location_of_vs_position, vertex_buffer_t::count_of_position_elements, attribute, normalize_off, vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_position ) );
+              // http://www.opengl.org/sdk/docs/man/html/glEnableVertexAttribArray.xhtml
+              //  glew::gl_type::GLuint index
+              glew::c::glEnableVertexAttribArray( location_of_vs_position );
+            }
+            
+            if ( location_of_vs_texcoord not_eq -1 )
+            { 
+              glew::c::glVertexAttribPointer( location_of_vs_texcoord, vertex_buffer_t::count_of_texcoord_elements, attribute, normalize_off, vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_texcorrd ) );
+              glew::c::glEnableVertexAttribArray( location_of_vs_texcoord );
+            }
+            
+            if ( location_of_vs_normal not_eq -1 )
+            {
+              glew::c::glVertexAttribPointer( location_of_vs_normal  , vertex_buffer_t::count_of_normal_elements  , attribute, normalize_on , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_normal   ) );
+              glew::c::glEnableVertexAttribArray( location_of_vs_normal   );
+            }
+            
+            if ( location_of_vs_tangent not_eq -1 )
+            {
+              glew::c::glVertexAttribPointer( location_of_vs_tangent , vertex_buffer_t::count_of_tangent_elements , attribute, normalize_on , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_tangent  ) );
+              glew::c::glEnableVertexAttribArray( location_of_vs_tangent  );
+            }
           };
           
           // 三角群描画
