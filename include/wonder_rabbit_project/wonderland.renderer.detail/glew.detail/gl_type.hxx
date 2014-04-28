@@ -36,7 +36,7 @@ namespace wonder_rabbit_project
           using GLdouble  = double;
           using GLclampd  = double;
         }
-        
+        /*
         #undef GLboolean
         #undef GLbyte
         #undef GLubyte
@@ -56,7 +56,7 @@ namespace wonder_rabbit_project
         #undef GLclampf
         #undef GLdouble
         #undef GLclampd
-        
+        */
       }
     }
   }
