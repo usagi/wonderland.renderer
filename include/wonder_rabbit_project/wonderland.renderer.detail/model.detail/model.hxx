@@ -71,6 +71,7 @@ namespace wonder_rabbit_project
           | aiProcess_FindInstances
           | aiProcess_OptimizeMeshes
           | aiProcess_OptimizeGraph
+          | aiProcess_FlipUVs
           ;
           
           // ファイルからモデルデータを生成

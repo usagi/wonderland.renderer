@@ -32,6 +32,7 @@ namespace wonder_rabbit_project
           , _projection_transformation( glm::mat4() )
         {
           glew::glew_init();
+          cull_face();
           depth_test();
           if ( multisample_capability() )
             multisample();
