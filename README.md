@@ -34,6 +34,13 @@ library suggestion:
 - EGLplus or EGL
 - OS native API directly
 
+### special thanks
+
+the library included a part of public domain [stblib](https://code.google.com/p/stblib/) library to
+ [include/wonder_rabbit_project/wonderland.renderer.detail/stblib.detail](include/wonder_rabbit_project/wonderland.renderer.detail/stblib.detail).
+
+thanks.
+
 ## Emscripten tips
 
 Open Asset Import Library(assimp) can compile Emscripten-1.16.0.
