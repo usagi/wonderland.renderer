@@ -139,7 +139,6 @@ namespace wonder_rabbit_project
         -> glew::gl_type::GLuint
         {
           const auto location = glew::c::glGetUniformLocation( program_id, name.data() );
-          glew::test_error();
           return location;
         }
         
@@ -256,15 +255,15 @@ namespace wonder_rabbit_project
           glew::c::glGetIntegerv( GL_CURRENT_PROGRAM, &program_id );
           
           if ( program_id )
-            try
-            {
-              const auto location_of_world_view_projection_transformation = uniform( program_id, "world_view_projection_transformation" );
-              const auto location_of_world_transformation = uniform( program_id, "world_transformation" );
-            
+          {
+            const auto location_of_world_view_projection_transformation = uniform( program_id, "world_view_projection_transformation" );
+            const auto location_of_world_transformation = uniform( program_id, "world_transformation" );
+          
+            if ( location_of_world_view_projection_transformation not_eq -1 )
               uniform( location_of_world_view_projection_transformation, wvp );
+            if ( location_of_world_transformation not_eq -1 )
               uniform( location_of_world_transformation, world_transformation );
-            }
-            catch( ... ) { }
+          }
           
           m.draw();
         }

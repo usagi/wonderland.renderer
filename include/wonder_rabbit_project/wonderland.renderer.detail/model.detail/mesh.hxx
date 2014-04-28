@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/gil/gil_all.hpp>
+#include <boost/optional.hpp>
 
 // assimp::Importer
 #include <assimp/Importer.hpp>
@@ -31,6 +32,8 @@ namespace wonder_rabbit_project
           
           glew::gl_type::GLuint  _triangle_vao_id;
           glew::gl_type::GLuint  _quad_vao_id;
+          
+          const material_t& _material;
           
         public:
           
@@ -95,8 +98,10 @@ namespace wonder_rabbit_project
             glew::c::glDeleteVertexArrays( 1, &_quad_vao_id );
           }
           
-          mesh_t( const aiMesh* mesh )
+          mesh_t( const aiMesh* mesh, const std::vector<material_t>& materials_ )
+            : _material( materials_.at( mesh -> mMaterialIndex ) )
           {
+            
             // 頂点バッファー生成のための準備用バッファー型
             using prepare_vertex_buffer_t = std::vector< vertex_buffer_t >;
             
@@ -230,6 +235,9 @@ namespace wonder_rabbit_project
                 glew::c::glVertexAttribPointer( location_of_vs_tangent , vertex_buffer_t::count_of_tangent_elements , attribute, normalize_on , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_tangent  ) );
                 glew::c::glEnableVertexAttribArray( location_of_vs_tangent  );
               }
+              
+              // マテリアルの有効化
+              _material.draw();
             };
             
             // 三角群描画

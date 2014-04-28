@@ -12,6 +12,9 @@ Please wait for stable release version if you avoid unfortunately troubles.
 
 - [GLEW](http://glew.sourceforge.net/)
 - [Open Asset Import Library](http://assimp.sourceforge.net/)
+- Boost
+    - optional
+    - gil
 
 ### note
 

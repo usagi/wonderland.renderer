@@ -39,28 +39,15 @@ namespace wonder_rabbit_project
           explicit model_t( const aiScene* scene, const std::string& path_prefix = "" )
           : _node( scene -> mRootNode )
           {
-            // シーンからメッシュサイズを予約確保
-            _meshes.reserve( scene -> mNumMeshes );
+            // シーンからマテリアル群を _materials に生成
+            _materials.reserve( scene -> mNumMaterials );
+            for( auto n = 0; n < scene -> mNumMaterials; ++n )
+              _materials.emplace_back( scene -> mMaterials[ n ], path_prefix );
             
             // シーンからメッシュ群を _meshes に生成
+            _meshes.reserve( scene -> mNumMeshes );
             for( auto n = 0; n < scene -> mNumMeshes; ++n )
-              _meshes.emplace_back( scene -> mMeshes[ n ] );
-            
-            // マテリアル群
-            for( auto n = 0; n < scene -> mNumMaterials; ++n )
-            {
-              std::cerr << "material[" << n << "]:\n";
-              
-              const auto material = scene -> mMaterials[ n ];
-              const auto count_of_textures = material -> GetTextureCount(aiTextureType_DIFFUSE);
-              for ( auto number_of_texture = 0u; number_of_texture < count_of_textures; ++number_of_texture )
-              {
-                
-                aiString path;
-                material -> GetTexture(aiTextureType_DIFFUSE, number_of_texture, &path, nullptr, nullptr, nullptr, nullptr, nullptr );
-                std::cerr << "texture[" << number_of_texture << "]: " << path.C_Str() << "\n";
-              }
-            }
+              _meshes.emplace_back( scene -> mMeshes[ n ], _materials );
           }
           
           // 描画
