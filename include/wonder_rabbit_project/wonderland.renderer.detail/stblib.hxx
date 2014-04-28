@@ -23,7 +23,9 @@ namespace wonder_rabbit_project
         {
           int _width, _height, _count_of_pixel_elements;
           std::vector<std::uint8_t> _data;
+          
         public:
+          
           explicit image_loader_t( const std::string& file_path )
           {
             auto data = c::stbi_load( file_path.data(), &_width, &_height, &_count_of_pixel_elements, 0 );
@@ -35,6 +37,18 @@ namespace wonder_rabbit_project
             
             c::stbi_image_free( data );
           }
+          
+          auto width() -> int { return _width; }
+          auto height() -> int { return _height; }
+          auto count_of_pixel_elements() -> int { return _count_of_pixel_elements; }
+          
+          auto begin() -> decltype( _data.begin() ) { return _data.begin(); }
+          auto end() -> decltype( _data.end() ) { return _data.end(); }
+          
+          auto cbegin() -> decltype( _data.cbegin() ) { return _data.cbegin(); }
+          auto cend() -> decltype( _data.cend() ) { return _data.cend(); }
+          
+          auto data() -> decltype( _data.data() ) { return _data.data(); }
         };
         
       }
