@@ -12,6 +12,7 @@
 //#include "glew.detail/c.hxx"
 //#include "glew.detail/gl_type.hxx"
 
+#include "helper.hxx"
 #include "material.hxx"
 #include "mesh.hxx"
 #include "node.hxx"
@@ -120,11 +121,7 @@ namespace wonder_rabbit_project
             //  このポストプロセスは ApplyPostProcessing() を後で呼んで行う事もできる。
             auto scene = i.ReadFile( file_path, importer_readfile_flags );
             
-#if defined(_WIN64) or defined(_WIN32) or defined(_WIN16)
-            return model_t( scene, file_path.substr(0, file_path.find_last_of('\\')) );
-#else
             return model_t( scene, file_path.substr(0, file_path.find_last_of('/')) );
-#endif
             
           }
           
