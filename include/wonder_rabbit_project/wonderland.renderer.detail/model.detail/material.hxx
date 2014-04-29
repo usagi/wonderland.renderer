@@ -111,7 +111,7 @@ namespace wonder_rabbit_project
               // step.2: generate storage and load image
 #if defined( GL_VERSION_4_2 )
               
-              constexpr glew::gl_type::GLsizei level = 8;
+              const glew::gl_type::GLsizei level = glm::log2<float>( std::min( width, height ) );
               // glTexStorage2D / GL_4_2
               //  http://www.opengl.org/wiki/GLAPI/glTexStorage2D
               //static auto counter = 0;
