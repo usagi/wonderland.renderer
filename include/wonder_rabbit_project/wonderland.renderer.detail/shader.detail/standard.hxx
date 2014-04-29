@@ -36,11 +36,19 @@ namespace wonder_rabbit_project
             "uniform mat4 bones[128];\n"
             "void main(void)\n"
             "{\n"
-              "  gl_Position = world_view_projection_transformation * position;\n"
-              "  var_color = vec4( diffuse, transparent );\n"
-              "  var_texcoord = texcoord;\n"
-              "}"
-              ;
+            "  mat4 local_transformation\n"
+            "    = mat4( 1.0 ) * ( 1.0 - bone_weights[ 0 ] + bone_weights[ 1 ] + bone_weights[ 2 ] + bone_weights[ 3 ] )\n"
+            "    + bones[ int( bone_ids[ 0 ] ) ] * bone_weights[ 0 ]\n"
+            "    + bones[ int( bone_ids[ 1 ] ) ] * bone_weights[ 1 ]\n"
+            "    + bones[ int( bone_ids[ 2 ] ) ] * bone_weights[ 2 ]\n"
+            "    + bones[ int( bone_ids[ 3 ] ) ] * bone_weights[ 3 ]\n"
+            "    ;\n"
+            "  vec4 local_position = local_transformation * position;\n"
+            "  gl_Position = world_view_projection_transformation * local_position;\n"
+            "  var_color = vec4( diffuse, transparent );\n"
+            "  var_texcoord = texcoord;\n"
+            "}"
+            ;
           }
           
           auto fs_source() -> std::string
