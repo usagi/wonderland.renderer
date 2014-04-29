@@ -13,6 +13,8 @@
 #include "wonderland.renderer.detail/program.hxx"
 #include "wonderland.renderer.detail/model.hxx"
 
+#include "wonderland.renderer.detail/shader.detail/all.hxx"
+
 namespace wonder_rabbit_project
 {
   namespace wonderland
@@ -38,6 +40,15 @@ namespace wonder_rabbit_project
             multisample();
         }
         
+        inline auto create_shader_standard_vs() -> vertex_shader_t
+        { return create_shader< vertex_shader_t >( shader::standard::vs_source() ); }
+        
+        inline auto create_shader_standard_fs() -> fragment_shader_t
+        { return create_shader< fragment_shader_t >( shader::standard::fs_source() ); }
+        
+        inline auto create_program_standard() -> program_t
+        { return create_program( create_shader_standard_vs(), create_shader_standard_fs() ); }
+        
         inline auto view_projection_transformation() -> glm::mat4
         { return _projection_transformation * _camera.view_transformation(); }
         
@@ -61,7 +72,15 @@ namespace wonder_rabbit_project
         inline T_shader create_shader( const std::string& source ) const
         {
           T_shader s;
-          s.compile(source);
+          s.compile( source );
+          return s;
+        }
+        
+        template<class T_shader>
+        inline T_shader create_shader( std::string&& source ) const
+        {
+          T_shader s;
+          s.compile( std::forward< std::string >( source ) );
           return s;
         }
         
@@ -69,7 +88,7 @@ namespace wonder_rabbit_project
         inline T_shader create_shader( std::istream&& source ) const
         {
           T_shader s;
-          s.compile( std::forward<std::istream>(source) );
+          s.compile( std::forward< std::istream >( source ) );
           return s;
         }
         
@@ -79,7 +98,7 @@ namespace wonder_rabbit_project
         }
         
         template< class ... T_shaders >
-        inline program_t create_program( T_shaders& ... shaders ) const
+        inline program_t create_program( T_shaders&& ... shaders ) const
         {
           program_t pg;
           pg.attach( shaders ... );
