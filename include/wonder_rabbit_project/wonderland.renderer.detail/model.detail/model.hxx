@@ -37,17 +37,19 @@ namespace wonder_rabbit_project
           
           // const aiScene* からモデルデータ（メッシュ群、ノードグラフ）を生成
           explicit model_t( const aiScene* scene, const std::string& path_prefix = "" )
-          : _node( scene -> mRootNode )
+            : _node( scene -> mRootNode )
           {
+            
             // シーンからマテリアル群を _materials に生成
             _materials.reserve( scene -> mNumMaterials );
             for( auto n = 0; n < scene -> mNumMaterials; ++n )
               _materials.emplace_back( scene -> mMaterials[ n ], path_prefix );
-            
+
             // シーンからメッシュ群を _meshes に生成
             _meshes.reserve( scene -> mNumMeshes );
             for( auto n = 0; n < scene -> mNumMeshes; ++n )
               _meshes.emplace_back( scene -> mMeshes[ n ], _materials );
+            
           }
           
           // 描画
@@ -65,13 +67,14 @@ namespace wonder_rabbit_project
           | aiProcess_ImproveCacheLocality
           | aiProcess_RemoveRedundantMaterials
           | aiProcess_FixInfacingNormals
-          | aiProcess_SortByPType
+          //| aiProcess_SortByPType
           | aiProcess_FindInvalidData
           | aiProcess_GenUVCoords
           | aiProcess_FindInstances
           | aiProcess_OptimizeMeshes
           | aiProcess_OptimizeGraph
           | aiProcess_FlipUVs
+          | aiProcess_Triangulate
           ;
           
           // ファイルからモデルデータを生成

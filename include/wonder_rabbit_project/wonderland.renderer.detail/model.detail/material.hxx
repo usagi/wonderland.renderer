@@ -75,88 +75,142 @@ namespace wonder_rabbit_project
               
               stblib::image_loader_t loader( path_prefix.size() ? path_prefix + "/" + path.C_Str() : path.C_Str() );
               
-              glew::gl_type::GLint internal_format;
+              glew::gl_type::GLenum internal_format;
+              glew::gl_type::GLenum format;
               switch( loader.count_of_pixel_elements() )
               {
-                case 4: internal_format = GL_RGBA; break;
-                case 3: internal_format = GL_RGB; break;
-                case 2: internal_format = GL_RG; break;
-                case 1: internal_format = GL_RED; break;
+                case 4: internal_format = GL_RGBA8; format = GL_RGBA; break;
+                case 3: internal_format = GL_RGB8;  format = GL_RGB;  break;
+                case 2: internal_format = GL_RG8;   format = GL_RG;   break;
+                case 1: internal_format = GL_R8;    format = GL_R;    break;
                 default: throw std::runtime_error( "unsupported count_of_pixel_elements" );
               }
               const glew::gl_type::GLsizei width = loader.width();
               const glew::gl_type::GLsizei height = loader.height();
               constexpr glew::gl_type::GLint border = 0; // this value must be 0: http://www.opengl.org/sdk/docs/man/html/glTexImage2D.xhtml
-              const glew::gl_type::GLenum format = internal_format;
               constexpr glew::gl_type::GLenum type = GL_UNSIGNED_BYTE;
               const void* data = loader.data();
               
               glew::c::glPixelStorei( GL_UNPACK_ALIGNMENT, loader.count_of_pixel_elements() == 4 ? 4 : 1 );
               
+              glew::test_error( __FILE__, __LINE__ );
+              
               // step.1: generate texture buffer
               // glGenTextures / GL_1_1
               //  http://www.opengl.org/wiki/GLAPI/glGenTextures
               glew::c::glGenTextures( 1, &_texture_id );
+
+              glew::test_error( __FILE__, __LINE__ );
+              
               // glBindTexture / GL_1_1
               //  http://www.opengl.org/wiki/GLAPI/glBindTexture
               glew::c::glBindTexture( GL_TEXTURE_2D, _texture_id );
 
+              glew::test_error( __FILE__, __LINE__ );
+              
               // step.2: generate storage and load image
 #if defined( GL_VERSION_4_2 )
+              
               constexpr glew::gl_type::GLsizei level = 8;
               // glTexStorage2D / GL_4_2
               //  http://www.opengl.org/wiki/GLAPI/glTexStorage2D
-              glew::c::glTexStorage2D( GL_TEXTURE_2D, level, GL_RGBA8, width, height );
+              //static auto counter = 0;
+              //if ( counter++ == 0 ) internal_format = GL_RGB8; else internal_format = GL_RGB8;
+              glew::c::glTexStorage2D( GL_TEXTURE_2D, level, internal_format, width, height );
+              
+              glew::test_error( __FILE__, __LINE__ );
+              
               // glTexSubImage2D / GL_1_0
               //  http://www.opengl.org/wiki/GLAPI/glTexSubImage2D
               glew::c::glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, width, height, format, type, data );
+              
+              glew::test_error( __FILE__, __LINE__ );
+              
 #elif defined( GL_VERSION_3_0 )
+              
               constexpr glew::gl_type::GLint level = 0;
+  #if EMSCRIPTEN
+              internal_format = format;
+  #endif
               glew::c::glTexImage2D( GL_TEXTURE_2D, level, internal_format, width, height, border, format, type, data );
+              glew::test_error( __FILE__, __LINE__ );
+              
 #elif defined( GL_VERSION_1_4 )
+              
               // warning: these medhod is deprecated in GL_3_0, removed in GL_3_1.
               //  within throught step.3 and step.4.
               glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+              glew::test_error( __FILE__, __LINE__ );
               glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+              glew::test_error( __FILE__, __LINE__ );
               glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+              glew::test_error( __FILE__, __LINE__ );
               glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+              glew::test_error( __FILE__, __LINE__ );
               glew::c::glTexParameteri( GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE );
+              glew::test_error( __FILE__, __LINE__ );
               glew::c::glTexImage2D( GL_TEXTURE_2D, level, internal_format, width, height, border, format, type, data );
+              glew::test_error( __FILE__, __LINE__ );
+              
 #else
+              
               // no mipmap
               constexpr glew::gl_type::GLint level = 0;
               glew::c::glTexImage2D( GL_TEXTURE_2D, level, internal_format, width, height, border, format, type, data );
+              
+              glew::test_error( __FILE__, __LINE__ );
+              
 #endif
               
               // step.3: generate mipmaps
 #if defined( GL_VERSION_3_0 )
+              
               // glGenerateMipmap / GL_3_0
               //  http://www.opengl.org/wiki/GLAPI/glGenerateMipmap
-              glew::c::glGenerateMipmap(GL_TEXTURE_2D);
-              // mipmaptexutre / GL_3_0
-              glew::c::glGenSamplers( 1, &_sampler_id );
+              glew::c::glGenerateMipmap( GL_TEXTURE_2D );
+              
+              glew::test_error( __FILE__, __LINE__ );
+              
 #endif
               
               // step.4: set sampler params
 #if defined( GL_VERSION_3_3 )
+              // glGenSamplers / GL_3_3
+              //  http://www.opengl.org/wiki/GLAPI/glGenSamplers
+              glew::c::glGenSamplers( 1, &_sampler_id );
+              
               glew::c::glSamplerParameteri( _sampler_id, GL_TEXTURE_WRAP_S, GL_REPEAT );
+              glew::test_error( __FILE__, __LINE__ );
               glew::c::glSamplerParameteri( _sampler_id, GL_TEXTURE_WRAP_T, GL_REPEAT );
-              glew::c::glSamplerParameteri( _sampler_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-              glew::c::glSamplerParameteri( _sampler_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+              glew::test_error( __FILE__, __LINE__ );
+              glew::c::glSamplerParameteri( _sampler_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+              glew::test_error( __FILE__, __LINE__ );
+              glew::c::glSamplerParameteri( _sampler_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+              glew::test_error( __FILE__, __LINE__ );
+              
 #elif defined( GL_VERSION_3_0 )
               glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+              glew::test_error( __FILE__, __LINE__ );
               glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+              glew::test_error( __FILE__, __LINE__ );
               glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+              glew::test_error( __FILE__, __LINE__ );
               glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-#elif defined( GL_VERSION_1_4 )
+              glew::test_error( __FILE__, __LINE__ );
+              #elif defined( GL_VERSION_1_4 )
               // nothing to do. this step done before at this version.
 #else
               // no mipmap
               glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+              glew::test_error( __FILE__, __LINE__ );
               glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+              glew::test_error( __FILE__, __LINE__ );
               glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+              glew::test_error( __FILE__, __LINE__ );
               glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+              glew::test_error( __FILE__, __LINE__ );
 #endif
+              
             }
           }
           

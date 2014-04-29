@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdexcept>
-#include <string>
+#include <sstream>
 
 #include "c.hxx"
 #include "gl_type.hxx"
@@ -28,14 +28,24 @@ namespace wonder_rabbit_project
         { return not is_no_error( v ); }
         
         template < class = void >
-        inline auto test_error() -> void
+        inline auto test_error( const std::string& file = "?", const unsigned line = 0 ) -> void
         {
           auto e = get_error();
           
           if ( is_error( e ) )
           {
-            auto message = std::string( "glGetError: " + std::to_string( e ) );
-            throw std::runtime_error( message );
+            std::stringstream message;
+            message << "glGetError ( from " << file << " +" << line << " ) : " << e << " ";
+            switch ( e )
+            {
+              case GL_INVALID_ENUM     : message << "GL_INVALID_ENUM";      break;
+              case GL_INVALID_VALUE    : message << "GL_INVALID_VALUE";     break;
+              case GL_INVALID_OPERATION: message << "GL_INVALID_OPERATION"; break;
+              case GL_STACK_OVERFLOW   : message << "GL_STACK_OVERFLOW";    break;
+              case GL_STACK_UNDERFLOW  : message << "GL_STACK_UNDERFLOW";   break;
+              case GL_OUT_OF_MEMORY    : message << "GL_OUT_OF_MEMORY";     break;
+            }
+            throw std::runtime_error( message.str() );
           }
         }
         

@@ -27,11 +27,8 @@ namespace wonder_rabbit_project
         {
           glew::gl_type::GLuint  _triangle_buffer_id;
           glew::gl_type::GLsizei _count_of_triangles;
-          glew::gl_type::GLuint  _quad_buffer_id;
-          glew::gl_type::GLsizei _count_of_quads;
           
           glew::gl_type::GLuint  _triangle_vao_id;
-          glew::gl_type::GLuint  _quad_vao_id;
           
           const material_t& _material;
           
@@ -42,18 +39,18 @@ namespace wonder_rabbit_project
             using float_t = float;
             
             struct position_t { float_t x, y, z, w; } position;
-            struct texcoord_t { float_t x, y, z; } texcoord;
+            struct texcoord_t { float_t x, y; } texcoord;
             struct normal_t   { float_t x, y, z; } normal;
             struct tangent_t  { float_t x, y, z; } tangent;
             
             vertex_buffer_t
             ( float_t pos_x, float_t pos_y, float_t pos_z, float_t pos_w
-            , float_t tex_x, float_t tex_y, float_t tex_z
+            , float_t tex_x, float_t tex_y
             , float_t nor_x, float_t nor_y, float_t nor_z
             , float_t tan_x, float_t tan_y, float_t tan_z
             )
             : position( { pos_x, pos_y, pos_z, pos_w } )
-            , texcoord( { tex_x, tex_y, tex_z } )
+            , texcoord( { tex_x, tex_y } )
             , normal  ( { nor_x, nor_y, nor_z } )
             , tangent ( { tan_x, tan_y, tan_z } )
             { }
@@ -66,11 +63,11 @@ namespace wonder_rabbit_project
             static constexpr auto size_of_element = sizeof( float_t );
             
             static constexpr auto size_of_memory
-            = ( sizeof( position_t )
-            + sizeof( texcoord_t )
-            + sizeof( normal_t )
-            + sizeof( tangent_t )
-            );
+              = ( sizeof( position_t )
+              + sizeof( texcoord_t )
+              + sizeof( normal_t )
+              + sizeof( tangent_t )
+              );
             
             static constexpr auto count_of_elements = size_of_memory / size_of_element;
             
@@ -90,12 +87,10 @@ namespace wonder_rabbit_project
             // http://www.opengl.org/sdk/docs/man/html/glDeleteBuffers.xhtml
             //  glew::gl_type::GLsizei n, const glew::gl_type::GLuint buffers
             glew::c::glDeleteBuffers( 1, &_triangle_buffer_id );
-            glew::c::glDeleteBuffers( 1, &_quad_buffer_id );
             
             // http://www.opengl.org/sdk/docs/man/html/glDeleteVertexArrays.xhtml
             //  glew::gl_type::GLsizei n, const glew::gl_type::GLuint* arrays
             glew::c::glDeleteVertexArrays( 1, &_triangle_vao_id );
-            glew::c::glDeleteVertexArrays( 1, &_quad_vao_id );
           }
           
           mesh_t( const aiMesh* mesh, const std::vector<material_t>& materials_ )
@@ -105,8 +100,8 @@ namespace wonder_rabbit_project
             // 頂点バッファー生成のための準備用バッファー型
             using prepare_vertex_buffer_t = std::vector< vertex_buffer_t >;
             
-            // 三角群と四角群の準備用バッファー
-            prepare_vertex_buffer_t triangles_buffer, quads_buffer;
+            // 三角群の準備用バッファー
+            prepare_vertex_buffer_t triangles_buffer;
             
             // 面の数だけループ
             for ( auto n_face = 0; n_face < mesh -> mNumFaces; ++n_face )
@@ -126,42 +121,41 @@ namespace wonder_rabbit_project
                 
                 pvb.emplace_back
                 ( position -> x, position -> y, position -> z, 1.f
-                , texcoord -> x, texcoord -> y, texcoord -> z
+                , texcoord -> x, texcoord -> y
                 , normal   -> x, normal   -> y, normal   -> z
                 , tangent  -> x, tangent  -> y, tangent  -> z
                 );
               };
               
-              // 三角は頂点3つ、四角は頂点4つ
+              // 三角は頂点3つ
               constexpr auto indices_of_triangle = 3;
-              constexpr auto indices_of_quad     = 4;
               
-              // 面が三角か四角かで準備バッファーを切り替えて書き出し
-              switch( face -> mNumIndices )
-              {
-                case indices_of_triangle:
-                  for ( auto n_vertex = 0; n_vertex < indices_of_triangle; ++n_vertex )
-                    push_pvb( triangles_buffer, n_vertex );
-                  break;
-                case indices_of_quad:
-                  for ( auto n_vertex = 0; n_vertex < indices_of_quad; ++n_vertex )
-                    push_pvb( quads_buffer, n_vertex );
-              }
+              // Assimpポストプロセスにより四角面は三角面に変換済みなので三角面だけを考慮すればよい
+              for ( auto n_vertex = 0; n_vertex < indices_of_triangle; ++n_vertex )
+                push_pvb( triangles_buffer, n_vertex );
             }
             
             // 三角群のバッファーを生成
             // http://www.opengl.org/sdk/docs/man/html/glGenVertexArrays.xhtml
             //  glew::gl_type::GLsizei n, glew::gl_type::GLuint* arrays
             glew::c::glGenVertexArrays( 1, &_triangle_vao_id );
+            glew::test_error( __FILE__, __LINE__ );
+            
             // http://www.opengl.org/sdk/docs/man/html/glBindVertexArray.xhtml
             //  glew::gl_type::GLuint array
             glew::c::glBindVertexArray( _triangle_vao_id );
+            glew::test_error( __FILE__, __LINE__ );
+            
             // http://www.opengl.org/sdk/docs/man/html/glGenBuffers.xhtml
             //  glew::gl_type::GLsizei n, glew::gl_type::GLuint* buffers
             glew::c::glGenBuffers( 1, &_triangle_buffer_id);
+            glew::test_error( __FILE__, __LINE__ );
+            
             // http://www.opengl.org/sdk/docs/man/html/glBindBuffer.xhtml
             //  GLenum target, glew::gl_type::GLuint buffer
             glew::c::glBindBuffer( GL_ARRAY_BUFFER, _triangle_buffer_id );
+            glew::test_error( __FILE__, __LINE__ );
+            
             // http://www.opengl.org/sdk/docs/man/html/glBufferData.xhtml
             //  GLenum target, glew::gl_type::GLsizeiptr size, const GLvoid* data, GLenum usage
             glew::c::glBufferData
@@ -170,25 +164,17 @@ namespace wonder_rabbit_project
             , triangles_buffer.data() -> to_ptr<void>()
             , glew::gl_type::GLenum( GL_STATIC_DRAW )
             );
+            glew::test_error( __FILE__, __LINE__ );
+            
             // 後始末
             glew::c::glBindBuffer( GL_ARRAY_BUFFER, 0 );
+            glew::test_error( __FILE__, __LINE__ );
+            
             glew::c::glBindVertexArray( 0 );
+            glew::test_error( __FILE__, __LINE__ );
+            
             _count_of_triangles = triangles_buffer.size();
             
-            // 四角群のバッファーを生成
-            glew::c::glGenVertexArrays( 1, &_quad_vao_id );
-            glew::c::glBindVertexArray( _quad_vao_id );
-            glew::c::glGenBuffers( 1, &_quad_buffer_id);
-            glew::c::glBindBuffer( GL_ARRAY_BUFFER, _quad_buffer_id );
-            glew::c::glBufferData
-            ( GL_ARRAY_BUFFER
-            , quads_buffer.size() * vertex_buffer_t::size_of_memory
-            , quads_buffer.data() -> to_ptr<void>()
-            , glew::gl_type::GLenum( GL_STATIC_DRAW )
-            );
-            glew::c::glBindBuffer( GL_ARRAY_BUFFER, 0 );
-            glew::c::glBindVertexArray( 0 );
-            _count_of_quads = quads_buffer.size();
           }
           
           auto draw() const
@@ -250,14 +236,6 @@ namespace wonder_rabbit_project
               // http://www.opengl.org/sdk/docs/man/html/glDrawArrays.xhtml
               //  GLenum mode, GLint first, glew::gl_type::GLsizei count
               glew::c::glDrawArrays( GL_TRIANGLES, 0, _count_of_triangles );
-            }
-            
-            // 四角群描画
-            {
-              glew::c::glBindVertexArray( _quad_vao_id );
-              glew::c::glBindBuffer( GL_ARRAY_BUFFER, _quad_buffer_id );
-              set_vertex_attribute();
-              glew::c::glDrawArrays( GL_QUADS, 0, _count_of_quads );
             }
             
             // 後始末

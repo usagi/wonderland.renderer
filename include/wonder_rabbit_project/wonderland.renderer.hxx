@@ -306,15 +306,20 @@ namespace wonder_rabbit_project
         {
           if ( not enable )
           {
+#ifndef EMSCRIPTEN
             glew::c::glDisable( GL_MULTISAMPLE );
+#endif
             glew::c::glDisable( GL_SAMPLE_ALPHA_TO_COVERAGE );
             return;
           }
           
           if ( not multisample_capability() )
             throw std::runtime_error( "cannot use multi sample." );
-          
+#ifndef EMSCRIPTEN
+          // need OpenGL API
+          //  but on GLES2 MULTISAMPLE is true default and not support glEnable/glDisable it.
           glew::c::glEnable( GL_MULTISAMPLE );
+#endif
           glew::c::glEnable( GL_SAMPLE_ALPHA_TO_COVERAGE );
           
         }
