@@ -50,7 +50,10 @@ namespace wonder_rabbit_project
 
           inline void source( const std::string& s )
           { _source = s; }
-
+          
+          inline void source( std::string&& s )
+          { _source = std::move( s ); }
+          
           inline void source( std::istream && s )
           {
             s.seekg( 0, std::ios::end );
@@ -68,7 +71,13 @@ namespace wonder_rabbit_project
             source( v );
             compile();
           }
-
+          
+          inline void compile( std::string&& v )
+          {
+            source( std::move( v ) );
+            compile();
+          }
+          
           inline void compile( std::istream && s )
           {
             source( std::move( s ) );
