@@ -12,7 +12,9 @@
 
 #include "../glew.detail/c.hxx"
 #include "../glew.detail/gl_type.hxx"
+#include "../glew.detail/error.hxx"
 
+#include "helper.hxx"
 #include "material.hxx"
 
 namespace wonder_rabbit_project
@@ -38,21 +40,27 @@ namespace wonder_rabbit_project
           {
             using float_t = float;
             
-            struct position_t { float_t x, y, z, w; } position;
-            struct texcoord_t { float_t x, y; } texcoord;
-            struct normal_t   { float_t x, y, z; } normal;
-            struct tangent_t  { float_t x, y, z; } tangent;
+            glm::vec4 position;
+            glm::vec2 texcoord;
+            glm::vec3 normal;
+            glm::vec3 tangent;
+            glm::vec4 bone_ids;
+            glm::vec4 bone_weights;
             
             vertex_buffer_t
-            ( float_t pos_x, float_t pos_y, float_t pos_z, float_t pos_w
-            , float_t tex_x, float_t tex_y
-            , float_t nor_x, float_t nor_y, float_t nor_z
-            , float_t tan_x, float_t tan_y, float_t tan_z
+            ( glm::vec4&& pos
+            , glm::vec2&& tex
+            , glm::vec3&& nor
+            , glm::vec3&& tan
+            , glm::vec4&& bid
+            , glm::vec4&& bwt
             )
-            : position( { pos_x, pos_y, pos_z, pos_w } )
-            , texcoord( { tex_x, tex_y } )
-            , normal  ( { nor_x, nor_y, nor_z } )
-            , tangent ( { tan_x, tan_y, tan_z } )
+              : position     ( std::move( pos ) )
+              , texcoord     ( std::move( tex ) )
+              , normal       ( std::move( nor ) )
+              , tangent      ( std::move( tan ) )
+              , bone_ids     ( std::move( bid ) )
+              , bone_weights ( std::move( bwt ) )
             { }
             
             template < class T = float_t >
@@ -63,23 +71,29 @@ namespace wonder_rabbit_project
             static constexpr auto size_of_element = sizeof( float_t );
             
             static constexpr auto size_of_memory
-              = ( sizeof( position_t )
-              + sizeof( texcoord_t )
-              + sizeof( normal_t )
-              + sizeof( tangent_t )
-              );
+              = ( sizeof( decltype( position ) )
+                + sizeof( decltype( texcoord ) )
+                + sizeof( decltype( normal ) )
+                + sizeof( decltype( tangent ) )
+                + sizeof( decltype( bone_ids ) )
+                + sizeof( decltype( bone_weights ) )
+                );
             
             static constexpr auto count_of_elements = size_of_memory / size_of_element;
             
-            static constexpr auto count_of_position_elements = sizeof( position_t ) / size_of_element;
-            static constexpr auto count_of_texcoord_elements = sizeof( texcoord_t ) / size_of_element;
-            static constexpr auto count_of_normal_elements   = sizeof( normal_t   ) / size_of_element;
-            static constexpr auto count_of_tangent_elements  = sizeof( tangent_t  ) / size_of_element;
+            static constexpr auto count_of_position_elements     = sizeof( decltype( position )     ) / size_of_element;
+            static constexpr auto count_of_texcoord_elements     = sizeof( decltype( texcoord )     ) / size_of_element;
+            static constexpr auto count_of_normal_elements       = sizeof( decltype( normal )       ) / size_of_element;
+            static constexpr auto count_of_tangent_elements      = sizeof( decltype( tangent )      ) / size_of_element;
+            static constexpr auto count_of_bone_ids_elements     = sizeof( decltype( bone_ids )     ) / size_of_element;
+            static constexpr auto count_of_bone_weights_elements = sizeof( decltype( bone_weights ) ) / size_of_element;
             
-            static constexpr auto memory_offset_of_position = std::size_t( 0 );
-            static constexpr auto memory_offset_of_texcorrd = memory_offset_of_position + sizeof( position_t );
-            static constexpr auto memory_offset_of_normal   = memory_offset_of_texcorrd + sizeof( texcoord_t );
-            static constexpr auto memory_offset_of_tangent  = memory_offset_of_normal   + sizeof( normal_t   );
+            static constexpr auto memory_offset_of_position     = std::size_t( 0 );
+            static constexpr auto memory_offset_of_texcoord     = memory_offset_of_position + sizeof( decltype( position ) );
+            static constexpr auto memory_offset_of_normal       = memory_offset_of_texcoord + sizeof( decltype( texcoord ) );
+            static constexpr auto memory_offset_of_tangent      = memory_offset_of_normal   + sizeof( decltype( normal )   );
+            static constexpr auto memory_offset_of_bone_ids     = memory_offset_of_tangent  + sizeof( decltype( tangent )  );
+            static constexpr auto memory_offset_of_bone_weights = memory_offset_of_bone_ids + sizeof( decltype( bone_ids ) );
           };
           
           ~mesh_t()
@@ -114,16 +128,13 @@ namespace wonder_rabbit_project
               {
                 const auto offset = face -> mIndices[ n_vertex ];
                 
-                const auto position = mesh -> mVertices           + offset;
-                const auto texcoord = mesh -> mTextureCoords[ 0 ] + offset;
-                const auto normal   = mesh -> mNormals            + offset;
-                const auto tangent  = mesh -> mTangents           + offset;
-                
                 pvb.emplace_back
-                ( position -> x, position -> y, position -> z, 1.f
-                , texcoord -> x, texcoord -> y
-                , normal   -> x, normal   -> y, normal   -> z
-                , tangent  -> x, tangent  -> y, tangent  -> z
+                ( std::move( helper::to_glm_vec4( mesh -> mVertices + offset           ) )
+                , std::move( helper::to_glm_vec2( mesh -> mTextureCoords[ 0 ] + offset ) )
+                , std::move( helper::to_glm_vec3( mesh -> mNormals  + offset           ) )
+                , std::move( helper::to_glm_vec3( mesh -> mTangents + offset           ) )
+                , std::move( glm::vec4( 0.0f ) )
+                , std::move( glm::vec4( 0.0f ) )
                 );
               };
               
@@ -206,7 +217,7 @@ namespace wonder_rabbit_project
               
               if ( location_of_vs_texcoord not_eq -1 )
               { 
-                glew::c::glVertexAttribPointer( location_of_vs_texcoord, vertex_buffer_t::count_of_texcoord_elements, attribute, normalize_off, vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_texcorrd ) );
+                glew::c::glVertexAttribPointer( location_of_vs_texcoord, vertex_buffer_t::count_of_texcoord_elements, attribute, normalize_off, vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_texcoord ) );
                 glew::c::glEnableVertexAttribArray( location_of_vs_texcoord );
               }
               

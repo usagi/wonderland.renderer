@@ -7,6 +7,7 @@
 
 #include "../glew.detail/c.hxx"
 #include "../glew.detail/gl_type.hxx"
+#include "../glew.detail/error.hxx"
 
 #include "../stblib.hxx"
 
