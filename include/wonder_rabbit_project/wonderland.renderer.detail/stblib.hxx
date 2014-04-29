@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <sstream>
 #include <vector>
 #include <cstdint>
 #include <stdexcept>
@@ -49,6 +50,21 @@ namespace wonder_rabbit_project
           auto cend() -> decltype( _data.cend() ) { return _data.cend(); }
           
           auto data() -> decltype( _data.data() ) { return _data.data(); }
+          
+          auto to_string() -> std::string
+          {
+            std::stringstream r;
+            
+            r << "[stblib::image_loader_t ( " << this << " ) ]\n"
+              << "  width() : " << width() << "\n"
+              << "  height(): " << height() << "\n"
+              << "  count_of_pixel_elements(): " << count_of_pixel_elements() << "\n"
+              << "  data(): " << data() << "\n"
+              << "  _data.size(): " << _data.size() << "\n"
+              ;
+            
+            return r.str();
+          }
         };
         
       }
