@@ -35,6 +35,10 @@ namespace wonder_rabbit_project
           boost::optional< glm::vec1 > _reflective;
           
           glew::gl_type::GLuint _texture_id;
+#ifdef GL_VERSION_3_3
+          // need  for modern GL3
+          glew::gl_type::GLuint _sampler_id;
+#endif
           
         public:
           
@@ -69,12 +73,8 @@ namespace wonder_rabbit_project
               aiString path;
               material -> GetTexture( aiTextureType_DIFFUSE, number_of_texture, &path, nullptr, nullptr, nullptr, nullptr, nullptr );
               
-              glew::c::glGenTextures( 1, &_texture_id );
-              glew::c::glBindTexture( GL_TEXTURE_2D, _texture_id );
-              
               stblib::image_loader_t loader( path_prefix.size() ? path_prefix + "/" + path.C_Str() : path.C_Str() );
               
-              constexpr glew::gl_type::GLint level = 0;
               glew::gl_type::GLint internal_format;
               switch( loader.count_of_pixel_elements() )
               {
@@ -90,10 +90,73 @@ namespace wonder_rabbit_project
               const glew::gl_type::GLenum format = internal_format;
               constexpr glew::gl_type::GLenum type = GL_UNSIGNED_BYTE;
               const void* data = loader.data();
+              
               glew::c::glPixelStorei( GL_UNPACK_ALIGNMENT, loader.count_of_pixel_elements() == 4 ? 4 : 1 );
+              
+              // step.1: generate texture buffer
+              // glGenTextures / GL_1_1
+              //  http://www.opengl.org/wiki/GLAPI/glGenTextures
+              glew::c::glGenTextures( 1, &_texture_id );
+              // glBindTexture / GL_1_1
+              //  http://www.opengl.org/wiki/GLAPI/glBindTexture
+              glew::c::glBindTexture( GL_TEXTURE_2D, _texture_id );
+
+              // step.2: generate storage and load image
+#if defined( GL_VERSION_4_2 )
+              constexpr glew::gl_type::GLsizei level = 8;
+              // glTexStorage2D / GL_4_2
+              //  http://www.opengl.org/wiki/GLAPI/glTexStorage2D
+              glew::c::glTexStorage2D( GL_TEXTURE_2D, level, GL_RGBA8, width, height );
+              // glTexSubImage2D / GL_1_0
+              //  http://www.opengl.org/wiki/GLAPI/glTexSubImage2D
+              glew::c::glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, width, height, format, type, data );
+#elif defined( GL_VERSION_3_0 )
+              constexpr glew::gl_type::GLint level = 0;
               glew::c::glTexImage2D( GL_TEXTURE_2D, level, internal_format, width, height, border, format, type, data );
-              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+#elif defined( GL_VERSION_1_4 )
+              // warning: these medhod is deprecated in GL_3_0, removed in GL_3_1.
+              //  within throught step.3 and step.4.
+              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE );
+              glew::c::glTexImage2D( GL_TEXTURE_2D, level, internal_format, width, height, border, format, type, data );
+#else
+              // no mipmap
+              constexpr glew::gl_type::GLint level = 0;
+              glew::c::glTexImage2D( GL_TEXTURE_2D, level, internal_format, width, height, border, format, type, data );
+#endif
+              
+              // step.3: generate mipmaps
+#if defined( GL_VERSION_3_0 )
+              // glGenerateMipmap / GL_3_0
+              //  http://www.opengl.org/wiki/GLAPI/glGenerateMipmap
+              glew::c::glGenerateMipmap(GL_TEXTURE_2D);
+              // mipmaptexutre / GL_3_0
+              glew::c::glGenSamplers( 1, &_sampler_id );
+#endif
+              
+              // step.4: set sampler params
+#if defined( GL_VERSION_3_3 )
+              glew::c::glSamplerParameteri( _sampler_id, GL_TEXTURE_WRAP_S, GL_REPEAT );
+              glew::c::glSamplerParameteri( _sampler_id, GL_TEXTURE_WRAP_T, GL_REPEAT );
+              glew::c::glSamplerParameteri( _sampler_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+              glew::c::glSamplerParameteri( _sampler_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+#elif defined( GL_VERSION_3_0 )
+              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+#elif defined( GL_VERSION_1_4 )
+              // nothing to do. this step done before at this version.
+#else
+              // no mipmap
+              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+#endif
             }
           }
           
@@ -122,9 +185,14 @@ namespace wonder_rabbit_project
               
 #undef WRP_TMP
             }
-            
+#ifdef GL_VERSION_1_3
+            glew::c::glActiveTexture( GL_TEXTURE0 );
+#endif
+            // GL_1_1
             glew::c::glBindTexture( GL_TEXTURE_2D, _texture_id );
-            
+#ifdef GL_VERSION_3_3
+            glew::c::glBindSampler( 0, _sampler_id );
+#endif
           }
         };
       }
