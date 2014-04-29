@@ -12,6 +12,7 @@
 #include "../glew.detail/c.hxx"
 #include "../glew.detail/gl_type.hxx"
 
+#include "helper.hxx"
 #include "mesh.hxx"
 
 namespace wonder_rabbit_project
@@ -38,17 +39,7 @@ namespace wonder_rabbit_project
             for ( auto n = 0; n < node -> mNumMeshes; ++n )
               _indices.emplace_back( node -> mMeshes[ n ] );
             
-            // Assimp::aiMatrix4x4t
-            //  http://assimp.sourceforge.net/lib_html/classai_matrix4x4t.html
-            // glm::mat4
-            //  https://github.com/g-truc/glm/blob/0.9.5/glm/detail/type_mat4x4.hpp
-            const auto& nt = node -> mTransformation;
-            _transformation = glm::mat4
-            ( nt[0][0], nt[0][1], nt[0][2], nt[0][3]
-            , nt[1][0], nt[1][1], nt[1][2], nt[1][3]
-            , nt[2][0], nt[2][1], nt[2][2], nt[2][3]
-            , nt[3][0], nt[3][1], nt[3][2], nt[3][3]
-            );
+            _transformation = helper::to_glm_mat4( node -> mTransformation );
           }
           
           auto draw( const std::vector< mesh_t >& meshes ) const
