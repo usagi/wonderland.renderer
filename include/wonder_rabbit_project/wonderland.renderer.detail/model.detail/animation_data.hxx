@@ -106,8 +106,6 @@ namespace wonder_rabbit_project
             const auto rotation_matrix    = rotation   ( channel, animation_time );
             const auto translation_matrix = translation( channel, animation_time );
             
-            //std::cout << helper::to_string( translation_matrix * rotation_matrix * scaling_matrix ) << "\n";
-            
             return translation_matrix * rotation_matrix * scaling_matrix;
           }
           
@@ -115,7 +113,6 @@ namespace wonder_rabbit_project
             -> glm::mat4
           {
             const auto blended_scaling = blending_value( channel.scalings, animation_time );
-            //std::cout << "scaling: " << helper::to_string( blended_scaling );
             return glm::scale( glm::mat4( 1.0f ), blended_scaling );
           }
           
@@ -123,7 +120,6 @@ namespace wonder_rabbit_project
             -> glm::mat4
           {
             const auto blended_rotation = blending_value( channel.rotations, animation_time );
-            //std::cout << "rotation: " << helper::to_string( blended_rotation );
             return glm::mat4_cast( blended_rotation );
           }
           
@@ -131,7 +127,6 @@ namespace wonder_rabbit_project
             -> glm::mat4
           {
             const auto blended_translation = blending_value( channel.translations, animation_time );
-            //std::cout << "translation: " << helper::to_string( blended_translation );
             return glm::translate( glm::mat4( 1.0f ), blended_translation );
           }
           
@@ -159,14 +154,16 @@ namespace wonder_rabbit_project
             lower_value = ( --upper_bound ) -> second;
             lower_time  = upper_bound -> first;
             
+            //return lower_value;
+            
             if ( upper_value == lower_value )
               return upper_value;
             
             const auto blending_factor         = ( animation_time - lower_time ) / ( upper_time - lower_time );
             const auto reverse_blending_factor = 1.0f - blending_factor;
             
-            const auto blending_lower_value = lower_value * blending_factor;
-            const auto blending_upper_value = upper_value * reverse_blending_factor;
+            const auto blending_lower_value = lower_value * reverse_blending_factor;
+            const auto blending_upper_value = upper_value * blending_factor;
             
             return blending_lower_value + blending_upper_value;
           }

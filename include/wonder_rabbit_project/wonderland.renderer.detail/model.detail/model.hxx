@@ -124,13 +124,6 @@ namespace wonder_rabbit_project
             , _global_inverse_transformation( glm::inverse( helper::to_glm_mat4( scene -> mRootNode -> mTransformation ) ) )
           {
             
-            // TODO: for debug
-            {
-              const auto m = helper::to_glm_mat4( scene -> mRootNode -> mTransformation );
-              const auto i = glm::inverse(m);
-              std::cout << helper::to_string( m ) << "\n" << helper::to_string( i ) << "\n";
-            }
-            
             // シーンからマテリアル群を _materials に生成
             _materials.reserve( scene -> mNumMaterials );
             for ( auto n = 0; n < scene -> mNumMaterials; ++n )
@@ -146,13 +139,6 @@ namespace wonder_rabbit_project
               , _bone_name_to_bone_index_mapping
               , _animations
               );
-            
-            // TODO: for debug もしかしたら .x 以外では bone_offset に transpose していると怪奇現象化するかも
-            {
-              for ( auto n = 0u; n < _bone_offsets.size(); ++n )
-                std::cout << "bone_offisets[" << n << "] = " << helper::to_string( _bone_offsets[n] ) << "\n";
-              std::cout << std::flush;
-            }
             
             // アニメーション情報群を保存
             for ( auto n = 0; n < scene -> mNumAnimations; ++n )

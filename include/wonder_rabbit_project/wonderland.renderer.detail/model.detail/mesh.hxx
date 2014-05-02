@@ -143,33 +143,6 @@ namespace wonder_rabbit_project
             
             _count_of_indices = ib.size();
             
-            /*
-            vb.reserve( mesh -> mNumFaces * indices_of_triangle );
-            
-            for ( auto n_face = 0; n_face < mesh -> mNumFaces; ++n_face )
-            {
-              const auto face = mesh -> mFaces + n_face;
-              
-              if ( face -> mNumIndices not_eq 3 )
-                throw std::runtime_error( "required must be indices of face is 3. try create_model with aiProcess_Triangulate." );
-              
-              for ( auto n_vertex = 0; n_vertex < indices_of_triangle; ++n_vertex )
-              {
-                const auto offset = face -> mIndices[ n_vertex ];
-                
-                buffer.emplace_back
-                ( std::move( helper::to_glm_vec4( mesh -> mVertices + offset           ) )
-                , std::move( helper::to_glm_vec2( mesh -> mTextureCoords[ 0 ] + offset ) )
-                , std::move( helper::to_glm_vec3( mesh -> mNormals  + offset           ) )
-                , std::move( helper::to_glm_vec3( mesh -> mTangents + offset           ) )
-                , std::move( glm::vec4( 0.0f ) )
-                , std::move( glm::vec4( 0.0f ) )
-                );
-              }
-              
-            }
-            */
-            
           }
           
           auto initialize_animation_bone
@@ -206,8 +179,6 @@ namespace wonder_rabbit_project
               for ( auto n_weight = 0; n_weight < bone -> mNumWeights; ++n_weight )
               {
                 const auto& weight = bone -> mWeights[ n_weight ];
-                
-                //std::cout << this << " vid: " << weight.mVertexId << " bi: " << bone_index << " bw: " << weight.mWeight << "\n";
                 
                 auto& vertex = vb[ weight.mVertexId ];
                 bool overflow_check = true;
@@ -318,16 +289,6 @@ namespace wonder_rabbit_project
             initialize_prepare_buffers ( mesh, vb, ib );
             initialize_animation_bone  ( mesh, vb     );
             initialize_generate_buffers(       vb, ib );
-            
-            std::cout << this << " vb.size() = " << vb.size() << " ib.size() = " << ib.size() << "\n";
-            //for ( auto n = 0; n < buffer.size(); ++n )
-            //{
-            //  const auto& v = buffer[n];
-            //  std::cout
-            //    << n << ": "
-            //    << v.bone_ids[0] << " " << v.bone_ids[1] << " " << v.bone_ids[2] << " " << v.bone_ids[3] << " | "
-            //    << v.bone_weights[0] + v.bone_weights[1] + v.bone_weights[2] + v.bone_weights[3] << "\n";
-            //}
           }
           
           auto draw
@@ -406,10 +367,6 @@ namespace wonder_rabbit_project
               glew::c::glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _triangle_ib_id );
               
               set_vertex_attribute();
-              
-              // http://www.opengl.org/sdk/docs/man/html/glDrawArrays.xhtml
-              //  GLenum mode, GLint first, glew::gl_type::GLsizei count
-              //glew::c::glDrawArrays( GL_TRIANGLES, 0, _count_of_triangles );
               
               // http://www.opengl.org/wiki/GLAPI/glDrawElements
               //  GLenum mode, GLsizei count, GLenum type, const GLvoid* indices
