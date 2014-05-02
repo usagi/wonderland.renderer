@@ -267,7 +267,12 @@ namespace wonder_rabbit_project
          *            { m.template draw<TMODE>(); }
          */
         
-        inline auto draw( const model_t& m, const glm::mat4& world_transformation = glm::mat4() ) -> void
+        inline auto draw
+        ( model_t& m
+        , const glm::mat4& world_transformation = glm::mat4( 1.0f )
+        , const model::animation_states_t& animation_states = { }
+        )
+          -> void
         {
           const auto wvp = _projection_transformation * _camera.view_transformation() * world_transformation;
           
@@ -285,7 +290,7 @@ namespace wonder_rabbit_project
               uniform( location_of_world_transformation, world_transformation );
           }
           
-          m.draw();
+          m.draw( animation_states );
         }
         
         inline auto flush() const -> void

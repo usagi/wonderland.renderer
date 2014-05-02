@@ -1,12 +1,17 @@
 #pragma once
 
+#include <string>
+#include <sstream>
+
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #include <assimp/matrix4x4.h>
 #include <assimp/vector3.h>
+#include <assimp/quaternion.h>
 
 namespace wonder_rabbit_project
 {
@@ -46,6 +51,39 @@ namespace wonder_rabbit_project
           template < class T = void >
           inline auto to_glm_vec2( const aiVector3D* in ) -> glm::vec2
           { return { in -> x, in -> y }; }
+          
+          template < class T = void >
+          inline auto to_glm_quat( const aiQuaternion* in ) -> glm::quat
+          { return { in -> w, in -> x, in -> y, in -> z }; }
+          
+          template < class T = void >
+          inline auto to_string( const glm::mat4& m )
+            -> std::string
+          {
+            std::stringstream r;
+            
+            for ( auto a = 0; a < 4; ++a )
+            {
+              for ( auto b = 0; b < 4; ++b )
+                r << m[a][b] << " ";
+              r << "\n";
+            }
+            
+            return r.str();
+          }
+          
+          template < class T >
+          inline auto to_string( const T& v )
+          -> std::string
+          {
+            std::stringstream r;
+            
+            for ( auto a = 0; a < v.length(); ++a )
+              r << v[a] << " ";
+            r << "\n";
+            
+            return r.str();
+          }
           
         }
       }
