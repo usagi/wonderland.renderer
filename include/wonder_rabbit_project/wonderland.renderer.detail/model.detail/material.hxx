@@ -88,7 +88,6 @@ namespace wonder_rabbit_project
               }
               const glew::gl_type::GLsizei width = loader.width();
               const glew::gl_type::GLsizei height = loader.height();
-              constexpr glew::gl_type::GLint border = 0; // this value must be 0: http://www.opengl.org/sdk/docs/man/html/glTexImage2D.xhtml
               constexpr glew::gl_type::GLenum type = GL_UNSIGNED_BYTE;
               const void* data = loader.data();
               
@@ -129,7 +128,8 @@ namespace wonder_rabbit_project
               
 #elif defined( GL_VERSION_3_0 )
               
-              constexpr glew::gl_type::GLint level = 0;
+              constexpr glew::gl_type::GLint border = 0; // this value must be 0: http://www.opengl.org/sdk/docs/man/html/glTexImage2D.xhtml
+              constexpr glew::gl_type::GLint level  = 0;
   #if EMSCRIPTEN
               internal_format = format;
   #endif
@@ -226,10 +226,12 @@ namespace wonder_rabbit_project
 #define WRP_TMP( WRP_TMP_X, WRP_TMP_Y, WRP_TMP_Z ) \
               const auto location_of_ ## WRP_TMP_X = glew::c::glGetUniformLocation( program_id, # WRP_TMP_X ); \
               if ( location_of_ ## WRP_TMP_X not_eq -1 ) \
+              { \
                 if ( _ ## WRP_TMP_X ) \
                   glew::c::glUniform ## WRP_TMP_Y ## fv( location_of_ ## WRP_TMP_X , 1, & _ ## WRP_TMP_X .get().x ); \
                 else \
-                  glew::c::glUniform ## WRP_TMP_Y ## fv( location_of_ ## WRP_TMP_X , 1, & WRP_TMP_Z .x );
+                  glew::c::glUniform ## WRP_TMP_Y ## fv( location_of_ ## WRP_TMP_X , 1, & WRP_TMP_Z [0] ); \
+              }
               
               WRP_TMP( diffuse    , 3, glm::vec3( 1.0f ) )
               WRP_TMP( ambient    , 3, glm::vec3( 0.0f ) )

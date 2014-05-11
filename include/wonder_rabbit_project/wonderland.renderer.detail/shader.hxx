@@ -11,7 +11,7 @@ namespace wonder_rabbit_project
   {
     namespace renderer
     {
-      struct program_t;
+      class program_t;
 
       template < glew::gl_type::GLuint T_shader_type >
       struct shader_t

@@ -132,7 +132,7 @@ namespace wonder_rabbit_project
             {
               const auto face = mesh -> mFaces + n_face;
               
-              if ( face -> mNumIndices not_eq 3 )
+              if ( face -> mNumIndices not_eq indices_of_triangle )
                 throw std::runtime_error( "required must be indices of face is 3. try create_model with aiProcess_Triangulate." );
               
               ib.emplace_back( std::move( face -> mIndices[0] ) );

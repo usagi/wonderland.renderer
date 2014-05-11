@@ -75,8 +75,8 @@ namespace wonder_rabbit_project
         public:
           
           node_t( const aiNode* node, const std::unordered_map< std::string, animation_t >& animations )
-            : _animations( animations )
-            , _name( node -> mName.C_Str() )
+            : _name( node -> mName.C_Str() )
+            , _animations( animations )
           {
             _nodes.reserve( node -> mNumMeshes );
             for ( auto n = 0; n < node -> mNumChildren; ++n)
