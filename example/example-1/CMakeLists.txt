@@ -118,6 +118,16 @@ if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Emscripten")
   find_package(GLEW)
   target_link_libraries(${TARGET} ${GLEW_LIBRARIES})
 
+  find_library(LIB_ASSIMP assimp)
+  message( " * assimp: ${LIB_ASSIMP}" )
+  target_link_libraries(${TARGET} ${LIB_ASSIMP})
+  
+  add_custom_command(
+    TARGET ${TARGET} POST_BUILD
+    COMMAND ln -sv ${CMAKE_HOME_DIRECTORY}/assets ${CMAKE_CACHEFILE_DIR}
+    COMMAND ln -sv ${CMAKE_CURRENT_BINARY_DIR}/${TARGET} ${CMAKE_CACHEFILE_DIR}/
+  )
+
   if(SUBSYSTEM MATCHES GLFW3)
     find_package(PkgConfig REQUIRED)
     pkg_search_module(GLFW REQUIRED glfw3)
@@ -140,4 +150,8 @@ if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Emscripten")
     target_link_libraries(${TARGET} ${SDL1_LIBRARY})
     target_link_libraries(${TARGET} GL GLEW)
   endif()
+else()
+  find_library(LIB_ASSIMP assimp HINTS ~/repos/assimp/build.em++/code)
+  message( " * assimp: ${LIB_ASSIMP}" )
+  target_link_libraries(${TARGET} ${LIB_ASSIMP})
 endif()
