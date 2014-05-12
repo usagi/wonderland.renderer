@@ -27,6 +27,9 @@ namespace wonder_rabbit_project
           
         public:
           
+          explicit image_loader_t()
+          { }
+          
           explicit image_loader_t( const std::string& file_path )
           {
             auto data = c::stbi_load( file_path.data(), &_width, &_height, &_count_of_pixel_elements, 0 );

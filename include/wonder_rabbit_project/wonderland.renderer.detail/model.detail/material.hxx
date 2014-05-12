@@ -74,7 +74,18 @@ namespace wonder_rabbit_project
               aiString path;
               material -> GetTexture( aiTextureType_DIFFUSE, number_of_texture, &path, nullptr, nullptr, nullptr, nullptr, nullptr );
               
-              stblib::image_loader_t loader( path_prefix.size() ? path_prefix + "/" + path.C_Str() : path.C_Str() );
+              stblib::image_loader_t loader;
+              
+              try
+              {
+                stblib::image_loader_t loader_( path_prefix.size() ? path_prefix + "/" + path.C_Str() : path.C_Str() );
+                loader = std::move( loader_ );
+              }
+              catch( const std::runtime_error& e )
+              {
+                std::cerr << "warn: " << e.what() << " " << ( path_prefix.size() ? path_prefix + "/" + path.C_Str() : path.C_Str() ) << "; skip the texture.\n";
+                continue;
+              }
               
               glew::gl_type::GLenum internal_format;
               glew::gl_type::GLenum format;
