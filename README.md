@@ -1,7 +1,9 @@
 wonderland.renderer
 ===================
 
-C++ header only library of OpenGL rendering engine designed for wonderland game engine.
+C++ ~~header only~~ library of OpenGL rendering engine designed for wonderland game engine.
+
+note: This library depend on assimp, threfore this library is not header only now. however this library change to a header-only at future work plan.
 
 ## Caution
 
