@@ -197,21 +197,12 @@ namespace wonder_rabbit_project
             glew::gl_type::GLint program_id;
             glew::c::glGetIntegerv( GL_CURRENT_PROGRAM, &program_id );
             
-            const auto location_of_local_transformation = glew::c::glGetUniformLocation( program_id, "local_transformation" );
-            
-            if ( location_of_local_transformation not_eq -1 )
-            {
-              const glm::mat4 gpu_local_transformation( 1.0f );
-              glew::c::glUniformMatrix4fv( location_of_local_transformation , 1, false, &gpu_local_transformation[0][0] );
-            }
-            
             apply_animation( animation_states, program_id );
             
             _node.draw
             ( _meshes
             , animation_states
             , program_id
-            , location_of_local_transformation
             );
           }
           
