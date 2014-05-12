@@ -97,6 +97,9 @@ namespace wonder_rabbit_project
           inline auto apply_animation( const animation_states_t& animation_states, const glew::gl_type::GLint program_id )
             -> void
           {
+            if ( _bone_offsets.empty() or animation_states.empty() )
+              return;
+            
             // update animation matrices
             
             // アニメーション最終変形行列
