@@ -119,8 +119,8 @@ namespace wonder_rabbit_project
         public:
           
           // const aiScene* からモデルデータ（メッシュ群、ノードグラフ）を生成
-          explicit model_t( const aiScene* scene, const std::string& path_prefix = "" )
-            : _node( scene -> mRootNode, _animations )
+          explicit model_t( const aiScene* scene, const std::string& path_prefix = "", const bool transpose_node = false )
+            : _node( scene -> mRootNode, _animations, transpose_node )
             , _global_inverse_transformation( glm::inverse( helper::to_glm_mat4( scene -> mRootNode -> mTransformation ) ) )
           {
             // シーンからマテリアル群を _materials に生成
@@ -290,16 +290,22 @@ namespace wonder_rabbit_project
             //  このポストプロセスは ApplyPostProcessing() を後で呼んで行う事もできる。
             
             auto flags = default_importer_readfile_flags;
+            auto transpose_node = false;
             
-            if ( file_path.substr( file_path.rfind('.') + 1 ) == "x" )
-              flags |= aiProcess_FlipUVs;
+            {
+              auto ext = file_path.substr( file_path.rfind('.') + 1 );
+              if ( ext == "x" )
+                flags |= aiProcess_FlipUVs;
+              else if ( ext == "cob" || ext == "fbx")
+                transpose_node = true;
+            }
             
             auto scene = i.ReadFile( file_path, flags );
             
             if ( not scene )
               throw std::runtime_error( i.GetErrorString() );
             
-            model_t r( scene, file_path.substr(0, file_path.find_last_of('/')) );
+            model_t r( scene, file_path.substr(0, file_path.find_last_of('/')), transpose_node );
             
             i.FreeScene();
             

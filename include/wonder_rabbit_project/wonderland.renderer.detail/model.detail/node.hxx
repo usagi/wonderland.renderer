@@ -74,19 +74,22 @@ namespace wonder_rabbit_project
           
         public:
           
-          node_t( const aiNode* node, const std::unordered_map< std::string, animation_t >& animations )
+          node_t( const aiNode* node, const std::unordered_map< std::string, animation_t >& animations, const bool transpose_node )
             : _name( node -> mName.C_Str() )
             , _animations( animations )
           {
             _nodes.reserve( node -> mNumMeshes );
             for ( auto n = 0; n < node -> mNumChildren; ++n)
-              _nodes.emplace_back( node -> mChildren[ n ], animations );
+              _nodes.emplace_back( node -> mChildren[ n ], animations, transpose_node );
             
             _indices.reserve( node -> mNumMeshes );
             for ( auto n = 0; n < node -> mNumMeshes; ++n )
               _indices.emplace_back( node -> mMeshes[ n ] );
             
-            _transformation = helper::to_glm_mat4( node -> mTransformation );
+            _transformation = transpose_node
+              ? glm::transpose( helper::to_glm_mat4( node -> mTransformation ) )
+              : helper::to_glm_mat4( node -> mTransformation )
+              ;
           }
           
           auto draw
