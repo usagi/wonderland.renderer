@@ -64,14 +64,22 @@ namespace wonder_rabbit_project
             "varying vec4 var_color;\n"
             "varying vec2 var_texcoord;\n"
             "uniform sampler2D sampler;\n"
+            
+            "bool is_nan(float);\n"
+            
             "void main(void)\n"
             "{\n"
-              //"  gl_FragColor = vec4( 1., 0., 0., 1. );\n"
-              //"  gl_FragColor = color;\n"
-              "  gl_FragColor = vec4( texture2D( sampler, var_texcoord ).xyz, 1.0 );\n"
-              //"  gl_FragColor = vec4( var_texcoord, 1.0 );\n"
-              "}"
-              ;
+            "  if ( is_nan( var_texcoord.x ) )\n"
+            "    gl_FragColor = var_color;\n"
+            "  else\n"
+            "    gl_FragColor = texture2D( sampler, var_texcoord ).xyzw;\n"
+            "}\n"
+            
+            "bool is_nan(float val)\n"
+            "{\n"
+            "  return (val <= 0.0 || 0.0 <= val) ? false : true;\n"
+            "}\n"
+            ;
           }
           
         }

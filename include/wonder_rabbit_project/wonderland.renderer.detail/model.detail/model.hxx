@@ -123,7 +123,6 @@ namespace wonder_rabbit_project
             : _node( scene -> mRootNode, _animations )
             , _global_inverse_transformation( glm::inverse( helper::to_glm_mat4( scene -> mRootNode -> mTransformation ) ) )
           {
-            
             // シーンからマテリアル群を _materials に生成
             _materials.reserve( scene -> mNumMaterials );
             for ( auto n = 0; n < scene -> mNumMaterials; ++n )
@@ -245,7 +244,6 @@ namespace wonder_rabbit_project
           | aiProcess_FindInstances
           | aiProcess_OptimizeMeshes
           | aiProcess_OptimizeGraph
-          | aiProcess_FlipUVs
           | aiProcess_Triangulate
           ;
           
@@ -290,7 +288,16 @@ namespace wonder_rabbit_project
             //      aiProcess_SplitByBoneCount        : ボーン数によりメッシュを分割
             //      aiProcess_Debone                  : ボーンをロスレスないし閾値まで除去
             //  このポストプロセスは ApplyPostProcessing() を後で呼んで行う事もできる。
-            auto scene = i.ReadFile( file_path, importer_readfile_flags );
+            
+            auto flags = default_importer_readfile_flags;
+            
+            if ( file_path.substr( file_path.rfind('.') + 1 ) == "x" )
+              flags |= aiProcess_FlipUVs;
+            
+            auto scene = i.ReadFile( file_path, flags );
+            
+            if ( not scene )
+              throw std::runtime_error( i.GetErrorString() );
             
             model_t r( scene, file_path.substr(0, file_path.find_last_of('/')) );
             

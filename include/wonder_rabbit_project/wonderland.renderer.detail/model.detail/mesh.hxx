@@ -121,9 +121,9 @@ namespace wonder_rabbit_project
             for ( auto n_vertex = 0; n_vertex < mesh -> mNumVertices; ++ n_vertex )
               vb.emplace_back
               ( std::move( helper::to_glm_vec4( mesh -> mVertices           + n_vertex ) )
-              , std::move( helper::to_glm_vec2( mesh -> mTextureCoords[ 0 ] + n_vertex ) )
-              , std::move( helper::to_glm_vec3( mesh -> mNormals            + n_vertex ) )
-              , std::move( helper::to_glm_vec3( mesh -> mTangents           + n_vertex ) )
+              , std::move( mesh -> mTextureCoords[ 0 ] ? helper::to_glm_vec2( mesh -> mTextureCoords[ 0 ] + n_vertex ) : glm::vec2( std::nanf("") ) )
+              , std::move( mesh -> mNormals            ? helper::to_glm_vec3( mesh -> mNormals            + n_vertex ) : glm::vec3( std::nanf("") ) )
+              , std::move( mesh -> mTangents           ? helper::to_glm_vec3( mesh -> mTangents           + n_vertex ) : glm::vec3( std::nanf("") ) )
               , std::move( glm::vec4( 0.0f ) )
               , std::move( glm::vec4( 0.0f ) )
               );
@@ -174,7 +174,9 @@ namespace wonder_rabbit_project
               _bone_name_to_bone_index_mapping[ bone_name ] = bone_index;
               
               // TODO: もしかしたら .x 以外では bone_offset に transpose していると怪奇現象化するかも。要確認
+              // pattern: .x is ok
               _bone_offsets[ bone_index ] = glm::transpose( helper::to_glm_mat4( bone -> mOffsetMatrix ) );
+              //_bone_offsets[ bone_index ] = helper::to_glm_mat4( bone -> mOffsetMatrix );
               
               for ( auto n_weight = 0; n_weight < bone -> mNumWeights; ++n_weight )
               {
