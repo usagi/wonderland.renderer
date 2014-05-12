@@ -253,6 +253,7 @@ namespace wonder_rabbit_project
               
 #undef WRP_TMP
             }
+            
 #ifdef GL_VERSION_1_3
             glew::c::glActiveTexture( GL_TEXTURE0 );
 #endif
@@ -261,6 +262,7 @@ namespace wonder_rabbit_project
 #ifdef GL_VERSION_3_3
             glew::c::glBindSampler( 0, _sampler_id );
 #endif
+            
           }
         };
       }
