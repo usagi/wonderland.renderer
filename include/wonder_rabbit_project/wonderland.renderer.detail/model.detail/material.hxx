@@ -261,6 +261,7 @@ namespace wonder_rabbit_project
 #undef WRP_TMP
             }
             
+            if ( not _texblends.empty() )
             {
               const auto location_of_texblends = glew::c::glGetUniformLocation( program_id, "texblends" );
               if ( location_of_texblends not_eq -1 )
