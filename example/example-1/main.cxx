@@ -37,7 +37,7 @@ try
   // wonderland.renderer has the standard shader program
   auto program = renderer -> create_program_standard();
   
-  auto model = renderer -> create_model( "assets/dwarf/dwarf1.x" );
+  auto model = renderer -> create_model( "assets/vertex-colored-cube.x" );
   
   struct model_instance_state_t
   {
@@ -59,10 +59,10 @@ try
       {
         auto& s = model_instance_states[ n ];
         
-        s.animation_state.name = animation_names[0];
+        s.animation_state.name = animation_names[ n % animation_names.size() ];
         s.animation_state.time_in_seconds = float( n * 19937 );
         
-        s.world_transformation = glm::scale( glm::mat4(), glm::vec3( 13.0f ) );
+        s.world_transformation = glm::scale( glm::mat4(), glm::vec3( 25.0f ) );
         switch ( n )
         { case 1: s.world_transformation = glm::translate( s.world_transformation, glm::vec3(  10.0f, 0.0f,   0.0f ) ); break;
           case 2: s.world_transformation = glm::translate( s.world_transformation, glm::vec3( -10.0f, 0.0f,   0.0f ) ); break;
