@@ -92,6 +92,7 @@ namespace wonder_rabbit_project
             
             const auto time_in_ticks = time.count() * ticks_per_second;
             const auto animation_time = std::fmod( time_in_ticks, duration );
+            //const auto animation_time = 2560 - 8 * 3;
             
             const auto& channel = channels.at( bone_name );
             
@@ -101,6 +102,8 @@ namespace wonder_rabbit_project
             
             return translation_matrix * rotation_matrix * scaling_matrix;
           }
+          
+        private:
           
           inline auto scaling( const channel_t& channel, const float animation_time ) const
             -> glm::mat4
@@ -124,7 +127,7 @@ namespace wonder_rabbit_project
           }
           
           template < class T >
-          auto blending_value( const T& map, const float animation_time ) const
+          inline auto blending_value( const T& map, const float animation_time ) const
             -> typename T::mapped_type
           {
             
@@ -147,12 +150,18 @@ namespace wonder_rabbit_project
             lower_value = ( --upper_bound ) -> second;
             lower_time  = upper_bound -> first;
             
-            //return lower_value;
-            
             if ( upper_value == lower_value )
               return upper_value;
             
             const auto blending_factor         = ( animation_time - lower_time ) / ( upper_time - lower_time );
+            
+            return blending_value_blend( lower_value, upper_value, blending_factor );
+          }
+          
+          template < class T >
+          inline auto blending_value_blend( const T& lower_value, const T& upper_value, const float blending_factor ) const
+            -> T
+          {
             const auto reverse_blending_factor = 1.0f - blending_factor;
             
             const auto blending_lower_value = lower_value * reverse_blending_factor;
@@ -162,6 +171,18 @@ namespace wonder_rabbit_project
           }
           
         };
+        
+        template <>
+        inline auto animation_t::blending_value_blend< glm::quat >( const glm::quat& lower_value, const glm::quat& upper_value, const float blending_factor ) const
+          -> glm::quat
+        {
+          const auto reverse_blending_factor = 1.0f - blending_factor;
+          
+          const auto blending_lower_value = glm::mat4_cast( lower_value ) * reverse_blending_factor;
+          const auto blending_upper_value = glm::mat4_cast( upper_value ) * blending_factor;
+          
+          return glm::quat_cast( blending_lower_value + blending_upper_value );
+        }
         
       }
     }

@@ -65,7 +65,7 @@ namespace wonder_rabbit_project
             "      ;\n"
             "  vec4 local_position = animation_transformation * position;\n"
             "  gl_Position = world_view_projection_transformation * local_position;\n"
-            "  var_color       = color;\n"
+            "  var_color   = color;\n"
             "  var_texcoords[ 0 ] = texcoord0;\n"
             "  var_texcoords[ 1 ] = texcoord1;\n"
             "  var_texcoords[ 2 ] = texcoord2;\n"
