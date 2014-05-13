@@ -92,7 +92,6 @@ namespace wonder_rabbit_project
             
             const auto time_in_ticks = time.count() * ticks_per_second;
             const auto animation_time = std::fmod( time_in_ticks, duration );
-            //const auto animation_time = 2560 - 8 * 3;
             
             const auto& channel = channels.at( bone_name );
             
