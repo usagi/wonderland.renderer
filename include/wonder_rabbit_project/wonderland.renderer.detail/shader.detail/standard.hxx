@@ -20,6 +20,7 @@ namespace wonder_rabbit_project
             "attribute vec3 normal;\n"
             "attribute vec2 texcoord;\n"
             "attribute vec3 tangent;\n"
+            "attribute vec3 bitangent;\n"
             //"attribute ivec4 bone_ids;\n"
             "attribute vec4 bone_ids;\n"
             "attribute vec4 bone_weights;\n"
