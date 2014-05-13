@@ -37,10 +37,12 @@ try
   // wonderland.renderer has the standard shader program
   auto program = renderer -> create_program_standard();
   
-  auto model = renderer -> create_model( "assets/vertex-colored-cube.x" );
+  auto model0 = renderer -> create_model( "assets/vertex-colored-cube.x" );
+  auto model1 = renderer -> create_model( "assets/n175Anim.x" );
   
   struct model_instance_state_t
   {
+    decltype(model0)* pmodel;
     animation_state_t animation_state;
     glm::mat4         world_transformation;
   };
@@ -48,30 +50,36 @@ try
   std::array< model_instance_state_t, 9 > model_instance_states;
   
   {
-    auto animation_names = model.animation_names();
+    model_instance_states[0].pmodel = &model0;
+    model_instance_states[0].world_transformation
+      = glm::scale( glm::mat4(), glm::vec3( 0.1f ) );
+      
+    auto animation_names = model1.animation_names();
     
     if ( animation_names.size() )
     {
       for ( const auto& animation_name : animation_names )
         std::cout << "has animation: " << animation_name << std::endl;
       
-      for ( auto n = 0; n < model_instance_states.size(); ++n )
+      for ( auto n = 1; n < model_instance_states.size(); ++n )
       {
         auto& s = model_instance_states[ n ];
         
+        s.pmodel = &model1;
+        
         s.animation_state.name = animation_names[ n % animation_names.size() ];
-        s.animation_state.time_in_seconds = float( n * 19937 );
+        s.animation_state.time = animation_state_t::fseconds( float(n) * 19937 );
         
         s.world_transformation = glm::scale( glm::mat4(), glm::vec3( 25.0f ) );
         switch ( n )
-        { case 1: s.world_transformation = glm::translate( s.world_transformation, glm::vec3(  10.0f, 0.0f,   0.0f ) ); break;
-          case 2: s.world_transformation = glm::translate( s.world_transformation, glm::vec3( -10.0f, 0.0f,   0.0f ) ); break;
-          case 3: s.world_transformation = glm::translate( s.world_transformation, glm::vec3(  10.0f, 0.0f,  10.0f ) ); break;
-          case 4: s.world_transformation = glm::translate( s.world_transformation, glm::vec3(   0.0f, 0.0f,  10.0f ) ); break;
-          case 5: s.world_transformation = glm::translate( s.world_transformation, glm::vec3( -10.0f, 0.0f,  10.0f ) ); break;
-          case 6: s.world_transformation = glm::translate( s.world_transformation, glm::vec3(  10.0f, 0.0f, -10.0f ) ); break;
-          case 7: s.world_transformation = glm::translate( s.world_transformation, glm::vec3(   0.0f, 0.0f, -10.0f ) ); break;
-          case 8: s.world_transformation = glm::translate( s.world_transformation, glm::vec3( -10.0f, 0.0f, -10.0f ) );
+        { case 1: s.world_transformation = glm::translate( s.world_transformation, glm::vec3(  5.0f, 0.0f,  0.0f ) ); break;
+          case 2: s.world_transformation = glm::translate( s.world_transformation, glm::vec3( -5.0f, 0.0f,  0.0f ) ); break;
+          case 3: s.world_transformation = glm::translate( s.world_transformation, glm::vec3(  5.0f, 0.0f,  5.0f ) ); break;
+          case 4: s.world_transformation = glm::translate( s.world_transformation, glm::vec3(  0.0f, 0.0f,  5.0f ) ); break;
+          case 5: s.world_transformation = glm::translate( s.world_transformation, glm::vec3( -5.0f, 0.0f,  5.0f ) ); break;
+          case 6: s.world_transformation = glm::translate( s.world_transformation, glm::vec3(  5.0f, 0.0f, -5.0f ) ); break;
+          case 7: s.world_transformation = glm::translate( s.world_transformation, glm::vec3(  0.0f, 0.0f, -5.0f ) ); break;
+          case 8: s.world_transformation = glm::translate( s.world_transformation, glm::vec3( -5.0f, 0.0f, -5.0f ) );
         }
       }
     }
@@ -100,13 +108,15 @@ try
     static auto distance = 100.0f;
     
     for ( auto& model_instance_state : model_instance_states )
-      model_instance_state.animation_state += std::chrono::milliseconds( 16 );
+      model_instance_state.animation_state += animation_state_t::fseconds( 1.0f / 30.0f );
     
     const auto wheel = subsystem -> pointing_states_wheel();
+    const auto key_home = subsystem -> keyboard_state< key::home >();
+    const auto key_end  = subsystem -> keyboard_state< key::end  >();
     
-    if ( wheel.y > 0 )
+    if ( wheel.y > 0 or key_home )
       distance -= 10.0f;
-    else if ( wheel.y < 0 )
+    else if ( wheel.y < 0 or key_end )
       distance += 10.0f;
     
     // camera as view transformation generator
@@ -129,7 +139,7 @@ try
   
   subsystem -> render_functors.emplace_front
   ( [ renderer
-  , &program, &model
+  , &program
   , &model_instance_states
   ]
   {
@@ -143,7 +153,7 @@ try
     //   2. uniform(world_transformation) if shader program has uniform world_transformation
     
     for ( const auto& model_instance_state : model_instance_states )
-      renderer -> draw( model, model_instance_state.world_transformation, { model_instance_state.animation_state } );
+      renderer -> draw( *model_instance_state.pmodel , model_instance_state.world_transformation, { model_instance_state.animation_state } );
   }
   );
   

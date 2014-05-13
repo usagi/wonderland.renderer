@@ -69,6 +69,13 @@ em++ -std=c++11 -O2 your-app.cxx /home/you/repos/assimp/build.em/code/libassimp.
 
 [MIT](LICENSE)
 
+### Excluded
+
+- assets/n175.x
+    - COPYRIGHT [Sourceryforce / Yuichi Onodera](http://sorceryforce.com/).
+    - COPYRIGHT Mira Studio / Toya Yamazaki.
+    - ( [a few change](https://github.com/assimp/assimp/issues/275) for support assimp by Usagi Ito. )
+    
 ## Author
 
 Usagi Ito <usagi@WonderRabbitProject.net>
