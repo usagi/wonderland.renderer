@@ -21,7 +21,6 @@ namespace wonder_rabbit_project
   {
     namespace renderer
     {
-      
       class renderer_t
       {
         camera_t  _camera; // to view transformation

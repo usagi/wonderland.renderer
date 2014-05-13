@@ -3,6 +3,7 @@
 #include <map>
 #include <unordered_map>
 #include <chrono>
+#include <cmath>
 
 #include <glm/vec3.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -19,9 +20,11 @@ namespace wonder_rabbit_project
       {
         struct animation_state_t
         {
-          std::string              name;
-          float                    time_in_seconds;
-          float                    weight;
+          using fseconds = std::chrono::duration<float>;
+          
+          std::string name;
+          fseconds    time;
+          float       weight;
           
           explicit animation_state_t()
             : weight( 1.0f )
@@ -33,43 +36,33 @@ namespace wonder_rabbit_project
           , const float w = 1.0f
           )
             : name( n )
-            , time_in_seconds( t )
+            , time( t )
             , weight( w )
           { }
           
           animation_state_t
           ( const std::string& n
-          , const std::chrono::nanoseconds& t = std::chrono::nanoseconds( 0 )
+          , const fseconds& t = fseconds( 0 )
           , const float w = 1.0f
           )
             : name( n )
-            , time_in_seconds( float( std::chrono::duration_cast< std::chrono::nanoseconds >( t ).count() ) * float( std::chrono::nanoseconds::period::den ) )
+            , time( t )
             , weight( w )
           { }
           
-          template < class T_duration = std::chrono::nanoseconds >
-          inline auto time() const
-            -> T_duration
-          { return std::chrono::duration_cast< T_duration >( std::chrono::nanoseconds( unsigned( time_in_seconds * std::chrono::nanoseconds::period::den ) ) ); }
-          
-          template < class T_duration >
-          inline auto time( const T_duration& t )
-            -> void
-          { time_in_seconds = float( std::chrono::duration_cast< std::chrono::nanoseconds >( t ).count() ) / float( std::chrono::nanoseconds::period::den ); }
-          
           inline auto operator+=( const float delta_time_in_seconds )
             -> void
-          { time_in_seconds += delta_time_in_seconds; }
+          { time += fseconds( delta_time_in_seconds ); }
           
-          template < class T_duration >
+          template < class T_duration = fseconds >
           inline auto operator+=( const T_duration& delta_time )
             -> void
-          { time( time() + delta_time ); }
+          { time += delta_time; }
           
-          template < class T_duration >
+          template < class T_duration = fseconds >
           inline auto operator=( const T_duration& t )
             -> void
-          { time( t ); }
+          { time = t; }
           
         };
         
@@ -91,13 +84,13 @@ namespace wonder_rabbit_project
           // bone_name, channel
           std::unordered_map< std::string, channel_t > channels;
           
-          auto transformation( const std::string& bone_name, const float time_in_seconds ) const
+          auto transformation( const std::string& bone_name, const animation_state_t::fseconds time ) const
             -> glm::mat4
           {
             if ( channels.find( bone_name ) == channels.end() )
               return glm::mat4( 1.0f );
             
-            const auto time_in_ticks = time_in_seconds * ticks_per_second;
+            const auto time_in_ticks = time.count() * ticks_per_second;
             const auto animation_time = std::fmod( time_in_ticks, duration );
             
             const auto& channel = channels.at( bone_name );

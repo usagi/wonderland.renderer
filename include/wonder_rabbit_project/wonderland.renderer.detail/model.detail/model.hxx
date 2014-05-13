@@ -74,7 +74,7 @@ namespace wonder_rabbit_project
               auto animation_iterator = _animations.find( animation_state.name );
               
               if( animation_iterator not_eq _animations.end() )
-                node_transformation = animation_iterator -> second.transformation( node.name(), animation_state.time_in_seconds );
+                node_transformation = animation_iterator -> second.transformation( node.name(), animation_state.time );
               
               const auto global_transformation = parent_transformation * node_transformation;
               
