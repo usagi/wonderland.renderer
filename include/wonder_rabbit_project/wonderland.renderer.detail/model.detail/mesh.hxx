@@ -346,25 +346,25 @@ namespace wonder_rabbit_project
               
               if ( location_of_vs_tangent not_eq -1 )
               {
-                glew::c::glVertexAttribPointer( location_of_vs_tangent , vertex_buffer_t::count_of_tangent_elements , attribute, normalize_on , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_tangent  ) );
+                glew::c::glVertexAttribPointer( location_of_vs_tangent , vertex_buffer_t::count_of_tangent_elements , attribute, normalize_off , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_tangent  ) );
                 glew::c::glEnableVertexAttribArray( location_of_vs_tangent  );
               }
               
               if ( location_of_vs_bitangent not_eq -1 )
               {
-                glew::c::glVertexAttribPointer( location_of_vs_bitangent , vertex_buffer_t::count_of_tangent_elements , attribute, normalize_on , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_bitangent  ) );
+                glew::c::glVertexAttribPointer( location_of_vs_bitangent , vertex_buffer_t::count_of_tangent_elements , attribute, normalize_off , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_bitangent  ) );
                 glew::c::glEnableVertexAttribArray( location_of_vs_bitangent  );
               }
               
               if ( location_of_vs_bone_ids not_eq -1 )
               {
-                glew::c::glVertexAttribPointer( location_of_vs_bone_ids , vertex_buffer_t::count_of_bone_ids_elements , attribute, normalize_on , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_bone_ids  ) );
+                glew::c::glVertexAttribPointer( location_of_vs_bone_ids , vertex_buffer_t::count_of_bone_ids_elements , attribute, normalize_off , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_bone_ids  ) );
                 glew::c::glEnableVertexAttribArray( location_of_vs_bone_ids  );
               }
               
               if ( location_of_vs_bone_weights not_eq -1 )
               {
-                glew::c::glVertexAttribPointer( location_of_vs_bone_weights , vertex_buffer_t::count_of_bone_weights_elements , attribute, normalize_on , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_bone_weights  ) );
+                glew::c::glVertexAttribPointer( location_of_vs_bone_weights , vertex_buffer_t::count_of_bone_weights_elements , attribute, normalize_off , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_bone_weights  ) );
                 glew::c::glEnableVertexAttribArray( location_of_vs_bone_weights  );
               }
               
