@@ -35,7 +35,15 @@ namespace wonder_rabbit_project
           using float_t = float;
           
           glm::vec4 position;
-          glm::vec2 texcoord;
+          glm::vec4 color;
+          glm::vec2 texcoord0;
+          glm::vec2 texcoord1;
+          glm::vec2 texcoord2;
+          glm::vec2 texcoord3;
+          glm::vec2 texcoord4;
+          glm::vec2 texcoord5;
+          glm::vec2 texcoord6;
+          glm::vec2 texcoord7;
           glm::vec3 normal;
           glm::vec3 tangent;
           glm::vec3 bitangent;
@@ -44,7 +52,15 @@ namespace wonder_rabbit_project
           
           vertex_buffer_t
           ( glm::vec4&& pos
-          , glm::vec2&& tex
+          , glm::vec4&& col
+          , glm::vec2&& tex0
+          , glm::vec2&& tex1
+          , glm::vec2&& tex2
+          , glm::vec2&& tex3
+          , glm::vec2&& tex4
+          , glm::vec2&& tex5
+          , glm::vec2&& tex6
+          , glm::vec2&& tex7
           , glm::vec3&& nor
           , glm::vec3&& tan
           , glm::vec3&& bit
@@ -52,7 +68,15 @@ namespace wonder_rabbit_project
           , glm::vec4&& bwt
           )
           : position     ( std::move( pos ) )
-          , texcoord     ( std::move( tex ) )
+          , color        ( std::move( col ) )
+          , texcoord0    ( std::move( tex0 ) )
+          , texcoord1    ( std::move( tex1 ) )
+          , texcoord2    ( std::move( tex2 ) )
+          , texcoord3    ( std::move( tex3 ) )
+          , texcoord4    ( std::move( tex4 ) )
+          , texcoord5    ( std::move( tex5 ) )
+          , texcoord6    ( std::move( tex6 ) )
+          , texcoord7    ( std::move( tex7 ) )
           , normal       ( std::move( nor ) )
           , tangent      ( std::move( tan ) )
           , bitangent    ( std::move( bit ) )
@@ -69,7 +93,15 @@ namespace wonder_rabbit_project
           
           static constexpr auto size_of_memory
           = ( sizeof( decltype( position ) )
-          + sizeof( decltype( texcoord ) )
+          + sizeof( decltype( color ) )
+          + sizeof( decltype( texcoord0 ) )
+          + sizeof( decltype( texcoord1 ) )
+          + sizeof( decltype( texcoord2 ) )
+          + sizeof( decltype( texcoord3 ) )
+          + sizeof( decltype( texcoord4 ) )
+          + sizeof( decltype( texcoord5 ) )
+          + sizeof( decltype( texcoord6 ) )
+          + sizeof( decltype( texcoord7 ) )
           + sizeof( decltype( normal ) )
           + sizeof( decltype( tangent ) )
           + sizeof( decltype( bitangent ) )
@@ -80,7 +112,15 @@ namespace wonder_rabbit_project
           static constexpr auto count_of_elements = size_of_memory / size_of_element;
           
           static constexpr auto count_of_position_elements     = sizeof( decltype( position )     ) / size_of_element;
-          static constexpr auto count_of_texcoord_elements     = sizeof( decltype( texcoord )     ) / size_of_element;
+          static constexpr auto count_of_color_elements        = sizeof( decltype( color )        ) / size_of_element;
+          static constexpr auto count_of_texcoord0_elements    = sizeof( decltype( texcoord0 )    ) / size_of_element;
+          static constexpr auto count_of_texcoord1_elements    = sizeof( decltype( texcoord1 )    ) / size_of_element;
+          static constexpr auto count_of_texcoord2_elements    = sizeof( decltype( texcoord2 )    ) / size_of_element;
+          static constexpr auto count_of_texcoord3_elements    = sizeof( decltype( texcoord3 )    ) / size_of_element;
+          static constexpr auto count_of_texcoord4_elements    = sizeof( decltype( texcoord4 )    ) / size_of_element;
+          static constexpr auto count_of_texcoord5_elements    = sizeof( decltype( texcoord5 )    ) / size_of_element;
+          static constexpr auto count_of_texcoord6_elements    = sizeof( decltype( texcoord6 )    ) / size_of_element;
+          static constexpr auto count_of_texcoord7_elements    = sizeof( decltype( texcoord7 )    ) / size_of_element;
           static constexpr auto count_of_normal_elements       = sizeof( decltype( normal )       ) / size_of_element;
           static constexpr auto count_of_tangent_elements      = sizeof( decltype( tangent )      ) / size_of_element;
           static constexpr auto count_of_bitangent_elements    = sizeof( decltype( bitangent )    ) / size_of_element;
@@ -88,12 +128,20 @@ namespace wonder_rabbit_project
           static constexpr auto count_of_bone_weights_elements = sizeof( decltype( bone_weights ) ) / size_of_element;
           
           static constexpr auto memory_offset_of_position     = std::size_t( 0 );
-          static constexpr auto memory_offset_of_texcoord     = memory_offset_of_position  + sizeof( decltype( position )  );
-          static constexpr auto memory_offset_of_normal       = memory_offset_of_texcoord  + sizeof( decltype( texcoord )  );
-          static constexpr auto memory_offset_of_tangent      = memory_offset_of_normal    + sizeof( decltype( normal )    );
-          static constexpr auto memory_offset_of_bitangent    = memory_offset_of_tangent   + sizeof( decltype( tangent )   );
+          static constexpr auto memory_offset_of_color        = memory_offset_of_position  + sizeof( decltype( position  ) );
+          static constexpr auto memory_offset_of_texcoord0    = memory_offset_of_color     + sizeof( decltype( color     ) );
+          static constexpr auto memory_offset_of_texcoord1    = memory_offset_of_texcoord0 + sizeof( decltype( texcoord0 ) );
+          static constexpr auto memory_offset_of_texcoord2    = memory_offset_of_texcoord1 + sizeof( decltype( texcoord1 ) );
+          static constexpr auto memory_offset_of_texcoord3    = memory_offset_of_texcoord2 + sizeof( decltype( texcoord2 ) );
+          static constexpr auto memory_offset_of_texcoord4    = memory_offset_of_texcoord3 + sizeof( decltype( texcoord3 ) );
+          static constexpr auto memory_offset_of_texcoord5    = memory_offset_of_texcoord4 + sizeof( decltype( texcoord4 ) );
+          static constexpr auto memory_offset_of_texcoord6    = memory_offset_of_texcoord5 + sizeof( decltype( texcoord5 ) );
+          static constexpr auto memory_offset_of_texcoord7    = memory_offset_of_texcoord6 + sizeof( decltype( texcoord6 ) );
+          static constexpr auto memory_offset_of_normal       = memory_offset_of_texcoord7 + sizeof( decltype( texcoord7 ) );
+          static constexpr auto memory_offset_of_tangent      = memory_offset_of_normal    + sizeof( decltype( normal    ) );
+          static constexpr auto memory_offset_of_bitangent    = memory_offset_of_tangent   + sizeof( decltype( tangent   ) );
           static constexpr auto memory_offset_of_bone_ids     = memory_offset_of_bitangent + sizeof( decltype( bitangent ) );
-          static constexpr auto memory_offset_of_bone_weights = memory_offset_of_bone_ids  + sizeof( decltype( bone_ids )  );
+          static constexpr auto memory_offset_of_bone_weights = memory_offset_of_bone_ids  + sizeof( decltype( bone_ids  ) );
         };
         
         class mesh_t
@@ -127,7 +175,15 @@ namespace wonder_rabbit_project
             for ( auto n_vertex = 0; n_vertex < mesh -> mNumVertices; ++ n_vertex )
               vb.emplace_back
               ( std::move( helper::to_glm_vec4( mesh -> mVertices           + n_vertex ) )
+              , std::move( mesh -> mColors[ 0 ]        ? helper::to_glm_vec4( mesh -> mColors[ 0 ]        + n_vertex ) : glm::vec4( std::nanf("") ) )
               , std::move( mesh -> mTextureCoords[ 0 ] ? helper::to_glm_vec2( mesh -> mTextureCoords[ 0 ] + n_vertex ) : glm::vec2( std::nanf("") ) )
+              , std::move( mesh -> mTextureCoords[ 1 ] ? helper::to_glm_vec2( mesh -> mTextureCoords[ 1 ] + n_vertex ) : glm::vec2( std::nanf("") ) )
+              , std::move( mesh -> mTextureCoords[ 2 ] ? helper::to_glm_vec2( mesh -> mTextureCoords[ 2 ] + n_vertex ) : glm::vec2( std::nanf("") ) )
+              , std::move( mesh -> mTextureCoords[ 3 ] ? helper::to_glm_vec2( mesh -> mTextureCoords[ 3 ] + n_vertex ) : glm::vec2( std::nanf("") ) )
+              , std::move( mesh -> mTextureCoords[ 4 ] ? helper::to_glm_vec2( mesh -> mTextureCoords[ 4 ] + n_vertex ) : glm::vec2( std::nanf("") ) )
+              , std::move( mesh -> mTextureCoords[ 5 ] ? helper::to_glm_vec2( mesh -> mTextureCoords[ 5 ] + n_vertex ) : glm::vec2( std::nanf("") ) )
+              , std::move( mesh -> mTextureCoords[ 6 ] ? helper::to_glm_vec2( mesh -> mTextureCoords[ 6 ] + n_vertex ) : glm::vec2( std::nanf("") ) )
+              , std::move( mesh -> mTextureCoords[ 7 ] ? helper::to_glm_vec2( mesh -> mTextureCoords[ 7 ] + n_vertex ) : glm::vec2( std::nanf("") ) )
               , std::move( mesh -> mNormals            ? helper::to_glm_vec3( mesh -> mNormals            + n_vertex ) : glm::vec3( std::nanf("") ) )
               , std::move( mesh -> mTangents           ? helper::to_glm_vec3( mesh -> mTangents           + n_vertex ) : glm::vec3( std::nanf("") ) )
               , std::move( mesh -> mBitangents         ? helper::to_glm_vec3( mesh -> mBitangents         + n_vertex ) : glm::vec3( std::nanf("") ) )
@@ -302,7 +358,7 @@ namespace wonder_rabbit_project
           
           auto draw
           ( const animation_states_t& animation_states
-          , glew::gl_type::GLint program_id
+          , const glew::gl_type::GLint program_id
           )
             -> void
           {
@@ -315,7 +371,15 @@ namespace wonder_rabbit_project
             const auto set_vertex_attribute = [ this, program_id ]
             {
               const auto location_of_vs_position     = glew::c::glGetAttribLocation( program_id, "position"     );
-              const auto location_of_vs_texcoord     = glew::c::glGetAttribLocation( program_id, "texcoord"     );
+              const auto location_of_vs_color        = glew::c::glGetAttribLocation( program_id, "color"        );
+              const auto location_of_vs_texcoord0    = glew::c::glGetAttribLocation( program_id, "texcoord0"    );
+              const auto location_of_vs_texcoord1    = glew::c::glGetAttribLocation( program_id, "texcoord1"    );
+              const auto location_of_vs_texcoord2    = glew::c::glGetAttribLocation( program_id, "texcoord2"    );
+              const auto location_of_vs_texcoord3    = glew::c::glGetAttribLocation( program_id, "texcoord3"    );
+              const auto location_of_vs_texcoord4    = glew::c::glGetAttribLocation( program_id, "texcoord4"    );
+              const auto location_of_vs_texcoord5    = glew::c::glGetAttribLocation( program_id, "texcoord5"    );
+              const auto location_of_vs_texcoord6    = glew::c::glGetAttribLocation( program_id, "texcoord6"    );
+              const auto location_of_vs_texcoord7    = glew::c::glGetAttribLocation( program_id, "texcoord7"    );
               const auto location_of_vs_normal       = glew::c::glGetAttribLocation( program_id, "normal"       );
               const auto location_of_vs_tangent      = glew::c::glGetAttribLocation( program_id, "tangent"      );
               const auto location_of_vs_bitangent    = glew::c::glGetAttribLocation( program_id, "bitangent"    );
@@ -332,10 +396,51 @@ namespace wonder_rabbit_project
                 glew::c::glEnableVertexAttribArray( location_of_vs_position );
               }
               
-              if ( location_of_vs_texcoord not_eq -1 )
+              if ( location_of_vs_color not_eq -1 )
               { 
-                glew::c::glVertexAttribPointer( location_of_vs_texcoord, vertex_buffer_t::count_of_texcoord_elements, attribute, normalize_off, vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_texcoord ) );
-                glew::c::glEnableVertexAttribArray( location_of_vs_texcoord );
+                glew::c::glVertexAttribPointer( location_of_vs_color, vertex_buffer_t::count_of_color_elements, attribute, normalize_off, vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_color ) );
+                glew::c::glEnableVertexAttribArray( location_of_vs_color );
+              }
+              
+              if ( location_of_vs_texcoord0 not_eq -1 )
+              { 
+                glew::c::glVertexAttribPointer( location_of_vs_texcoord0, vertex_buffer_t::count_of_texcoord0_elements, attribute, normalize_off, vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_texcoord0 ) );
+                glew::c::glEnableVertexAttribArray( location_of_vs_texcoord0 );
+              }
+              if ( location_of_vs_texcoord1 not_eq -1 )
+              { 
+                glew::c::glVertexAttribPointer( location_of_vs_texcoord1, vertex_buffer_t::count_of_texcoord1_elements, attribute, normalize_off, vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_texcoord1 ) );
+                glew::c::glEnableVertexAttribArray( location_of_vs_texcoord1 );
+              }
+              if ( location_of_vs_texcoord2 not_eq -1 )
+              { 
+                glew::c::glVertexAttribPointer( location_of_vs_texcoord2, vertex_buffer_t::count_of_texcoord2_elements, attribute, normalize_off, vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_texcoord2 ) );
+                glew::c::glEnableVertexAttribArray( location_of_vs_texcoord2 );
+              }
+              if ( location_of_vs_texcoord3 not_eq -1 )
+              { 
+                glew::c::glVertexAttribPointer( location_of_vs_texcoord3, vertex_buffer_t::count_of_texcoord3_elements, attribute, normalize_off, vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_texcoord3 ) );
+                glew::c::glEnableVertexAttribArray( location_of_vs_texcoord3 );
+              }
+              if ( location_of_vs_texcoord4 not_eq -1 )
+              { 
+                glew::c::glVertexAttribPointer( location_of_vs_texcoord4, vertex_buffer_t::count_of_texcoord4_elements, attribute, normalize_off, vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_texcoord4 ) );
+                glew::c::glEnableVertexAttribArray( location_of_vs_texcoord4 );
+              }
+              if ( location_of_vs_texcoord5 not_eq -1 )
+              { 
+                glew::c::glVertexAttribPointer( location_of_vs_texcoord5, vertex_buffer_t::count_of_texcoord5_elements, attribute, normalize_off, vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_texcoord5 ) );
+                glew::c::glEnableVertexAttribArray( location_of_vs_texcoord5 );
+              }
+              if ( location_of_vs_texcoord6 not_eq -1 )
+              { 
+                glew::c::glVertexAttribPointer( location_of_vs_texcoord6, vertex_buffer_t::count_of_texcoord6_elements, attribute, normalize_off, vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_texcoord6 ) );
+                glew::c::glEnableVertexAttribArray( location_of_vs_texcoord6 );
+              }
+              if ( location_of_vs_texcoord7 not_eq -1 )
+              { 
+                glew::c::glVertexAttribPointer( location_of_vs_texcoord7, vertex_buffer_t::count_of_texcoord7_elements, attribute, normalize_off, vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_texcoord7 ) );
+                glew::c::glEnableVertexAttribArray( location_of_vs_texcoord7 );
               }
               
               if ( location_of_vs_normal not_eq -1 )
@@ -352,7 +457,7 @@ namespace wonder_rabbit_project
               
               if ( location_of_vs_bitangent not_eq -1 )
               {
-                glew::c::glVertexAttribPointer( location_of_vs_bitangent , vertex_buffer_t::count_of_tangent_elements , attribute, normalize_off , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_bitangent  ) );
+                glew::c::glVertexAttribPointer( location_of_vs_bitangent , vertex_buffer_t::count_of_bitangent_elements , attribute, normalize_off , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_bitangent  ) );
                 glew::c::glEnableVertexAttribArray( location_of_vs_bitangent  );
               }
               
@@ -369,7 +474,7 @@ namespace wonder_rabbit_project
               }
               
               // マテリアルの有効化
-              _material.draw();
+              _material.draw( program_id );
             };
             
             // 三角群描画

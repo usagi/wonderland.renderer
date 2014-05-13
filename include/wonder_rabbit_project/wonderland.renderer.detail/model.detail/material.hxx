@@ -35,17 +35,21 @@ namespace wonder_rabbit_project
           boost::optional< glm::vec1 > _transparent;
           boost::optional< glm::vec1 > _reflective;
           
-          glew::gl_type::GLuint _texture_id;
+          std::vector< glew::gl_type::GLuint > _texture_ids;
 #ifdef GL_VERSION_3_3
           // need  for modern GL3
-          glew::gl_type::GLuint _sampler_id;
+          std::vector< glew::gl_type::GLuint > _sampler_ids;
 #endif
+          std::vector< float > _texblends;
           
         public:
           
           ~material_t()
           {
-            glew::c::glDeleteTextures( 1, &_texture_id );
+            glew::c::glDeleteTextures( _texture_ids.size(), _texture_ids.data() );
+#ifdef GL_VERSION_3_3
+            glew::c::glDeleteSamplers( _sampler_ids.size(), _sampler_ids.data() );
+#endif
           }
           
           material_t( aiMaterial* material, const std::string& path_prefix = "" )
@@ -69,6 +73,23 @@ namespace wonder_rabbit_project
             
             // テクスチャー
             const auto count_of_textures = material -> GetTextureCount(aiTextureType_DIFFUSE);
+            
+            _texblends.resize( count_of_textures, 0.0f );
+            
+            _texture_ids.resize( count_of_textures );
+            
+            // glGenTextures / GL_1_1
+            //  http://www.opengl.org/wiki/GLAPI/glGenTextures
+            glew::c::glGenTextures( _texture_ids.size(), _texture_ids.data() );
+            
+            glew::test_error( __FILE__, __LINE__ );
+            
+#if defined( GL_VERSION_3_3 )
+            _sampler_ids.resize( count_of_textures );
+            // glGenSamplers / GL_3_3
+            //  http://www.opengl.org/wiki/GLAPI/glGenSamplers
+            glew::c::glGenSamplers( _sampler_ids.size(), _sampler_ids.data() );
+#endif
             for ( auto number_of_texture = 0u; number_of_texture < count_of_textures; ++number_of_texture )
             {
               aiString path;
@@ -106,16 +127,9 @@ namespace wonder_rabbit_project
               
               glew::test_error( __FILE__, __LINE__ );
               
-              // step.1: generate texture buffer
-              // glGenTextures / GL_1_1
-              //  http://www.opengl.org/wiki/GLAPI/glGenTextures
-              glew::c::glGenTextures( 1, &_texture_id );
-
-              glew::test_error( __FILE__, __LINE__ );
-              
               // glBindTexture / GL_1_1
               //  http://www.opengl.org/wiki/GLAPI/glBindTexture
-              glew::c::glBindTexture( GL_TEXTURE_2D, _texture_id );
+              glew::c::glBindTexture( GL_TEXTURE_2D, _texture_ids[ number_of_texture ] );
 
               glew::test_error( __FILE__, __LINE__ );
               
@@ -187,17 +201,13 @@ namespace wonder_rabbit_project
               
               // step.4: set sampler params
 #if defined( GL_VERSION_3_3 )
-              // glGenSamplers / GL_3_3
-              //  http://www.opengl.org/wiki/GLAPI/glGenSamplers
-              glew::c::glGenSamplers( 1, &_sampler_id );
-              
-              glew::c::glSamplerParameteri( _sampler_id, GL_TEXTURE_WRAP_S, GL_REPEAT );
+              glew::c::glSamplerParameteri( _sampler_ids[ number_of_texture ], GL_TEXTURE_WRAP_S, GL_REPEAT );
               glew::test_error( __FILE__, __LINE__ );
-              glew::c::glSamplerParameteri( _sampler_id, GL_TEXTURE_WRAP_T, GL_REPEAT );
+              glew::c::glSamplerParameteri( _sampler_ids[ number_of_texture ], GL_TEXTURE_WRAP_T, GL_REPEAT );
               glew::test_error( __FILE__, __LINE__ );
-              glew::c::glSamplerParameteri( _sampler_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+              glew::c::glSamplerParameteri( _sampler_ids[ number_of_texture ], GL_TEXTURE_MAG_FILTER, GL_LINEAR );
               glew::test_error( __FILE__, __LINE__ );
-              glew::c::glSamplerParameteri( _sampler_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+              glew::c::glSamplerParameteri( _sampler_ids[ number_of_texture ], GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
               glew::test_error( __FILE__, __LINE__ );
               
 #elif defined( GL_VERSION_3_0 )
@@ -222,15 +232,12 @@ namespace wonder_rabbit_project
               glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
               glew::test_error( __FILE__, __LINE__ );
 #endif
-              
+              _texblends [ number_of_texture ] = 1.0f;
             }
           }
           
-          auto draw() const -> void
+          auto draw( glew::gl_type::GLint program_id ) const -> void
           {
-            glew::gl_type::GLint program_id;
-            glew::c::glGetIntegerv( GL_CURRENT_PROGRAM, &program_id );
-            
             if ( program_id )
             {
 
@@ -254,15 +261,27 @@ namespace wonder_rabbit_project
 #undef WRP_TMP
             }
             
-#ifdef GL_VERSION_1_3
-            glew::c::glActiveTexture( GL_TEXTURE0 );
-#endif
-            // GL_1_1
-            glew::c::glBindTexture( GL_TEXTURE_2D, _texture_id );
-#ifdef GL_VERSION_3_3
-            glew::c::glBindSampler( 0, _sampler_id );
-#endif
+            {
+              const auto location_of_texblends = glew::c::glGetUniformLocation( program_id, "texblends" );
+              if ( location_of_texblends not_eq -1 )
+                glew::c::glUniform1fv( location_of_texblends, _texblends.size(), _texblends.data() );
+            }
             
+            for ( glew::gl_type::GLuint n = 0u; n < _texture_ids.size(); ++n )
+            {
+              if ( _texture_ids[ n ] )
+              {
+#ifdef GL_VERSION_1_3
+                glew::c::glActiveTexture( GL_TEXTURE0 + n );
+#endif
+                // GL_1_1
+                glew::c::glBindTexture( GL_TEXTURE_2D, _texture_ids[ n ] );
+              }
+#ifdef GL_VERSION_3_3
+              if ( _sampler_ids[ n ] )
+                glew::c::glBindSampler( n, _sampler_ids[ n ] );
+#endif
+            }
           }
         };
       }

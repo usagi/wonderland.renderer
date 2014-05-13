@@ -10,6 +10,7 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include <assimp/matrix4x4.h>
+#include <assimp/color4.h>
 #include <assimp/vector3.h>
 #include <assimp/quaternion.h>
 
@@ -39,6 +40,10 @@ namespace wonder_rabbit_project
               , in[3][0], in[3][1], in[3][2], in[3][3]
               };
           }
+          
+          template < class T = void >
+          inline auto to_glm_vec4( const aiColor4D* in ) -> glm::vec4
+          { return { in -> r, in -> g, in -> b, in -> a }; }
           
           template < class T = void >
           inline auto to_glm_vec4( const aiVector3D* in ) -> glm::vec4
