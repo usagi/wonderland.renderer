@@ -71,12 +71,18 @@ namespace wonder_rabbit_project
             {
               glm::mat4 node_transformation( node.transformation() );
               
+              if ( animation_state.name == "" )
+              {
+                //std::cerr << "warn: empty animation name.\n";
+                continue;
+              }
+              
               auto animation_iterator = _animations.find( animation_state.name );
               
               if( animation_iterator not_eq _animations.end() )
                 node_transformation = animation_iterator -> second.transformation( node.name(), animation_state.time );
               else
-                continue;
+                throw std::runtime_error( std::string( "animation_state.name " ) + animation_state.name + " is not found." );
               
               const auto global_transformation = parent_transformation * node_transformation;
               
