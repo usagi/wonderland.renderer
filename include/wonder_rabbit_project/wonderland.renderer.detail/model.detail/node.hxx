@@ -61,19 +61,15 @@ namespace wonder_rabbit_project
           
           auto draw
           ( std::vector< mesh_t >& meshes
-          , const animation_states_t& animation_states
           , const glew::gl_type::GLint program_id
           )
             -> void
           {
             for ( auto& node : _nodes )
-              node.draw( meshes, animation_states, program_id );
+              node.draw( meshes, program_id );
             
             for ( auto index : _indices )
-              meshes[ index ].draw
-              ( animation_states
-              , program_id
-              );
+              meshes[ index ].draw( program_id );
           }
           
           auto transformation() const

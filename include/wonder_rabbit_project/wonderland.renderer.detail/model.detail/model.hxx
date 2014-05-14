@@ -105,8 +105,6 @@ namespace wonder_rabbit_project
           inline auto apply_animation( const animation_states_t& animation_states, const glew::gl_type::GLint program_id )
             -> void
           {
-            const auto location_of_animate = glew::c::glGetUniformLocation( program_id, "animate" );
-            
             if ( _bone_offsets.empty() or animation_states.empty() or animation_states.empty() )
               return;
             
@@ -209,11 +207,7 @@ namespace wonder_rabbit_project
             
             apply_animation( animation_states, program_id );
             
-            _node.draw
-            ( _meshes
-            , animation_states
-            , program_id
-            );
+            _node.draw( _meshes, program_id );
           }
           
           // ボーンの名前のリストを提供

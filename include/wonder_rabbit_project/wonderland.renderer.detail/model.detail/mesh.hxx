@@ -356,10 +356,7 @@ namespace wonder_rabbit_project
             initialize_generate_buffers(       vb, ib );
           }
           
-          auto draw
-          ( const animation_states_t& animation_states
-          , const glew::gl_type::GLint program_id
-          )
+          auto draw( const glew::gl_type::GLint program_id )
             -> void
           {
             // vertex transfar
