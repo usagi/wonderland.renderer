@@ -75,6 +75,8 @@ namespace wonder_rabbit_project
               
               if( animation_iterator not_eq _animations.end() )
                 node_transformation = animation_iterator -> second.transformation( node.name(), animation_state.time );
+              else
+                continue;
               
               const auto global_transformation = parent_transformation * node_transformation;
               
@@ -97,7 +99,9 @@ namespace wonder_rabbit_project
           inline auto apply_animation( const animation_states_t& animation_states, const glew::gl_type::GLint program_id )
             -> void
           {
-            if ( _bone_offsets.empty() or animation_states.empty() )
+            const auto location_of_animate = glew::c::glGetUniformLocation( program_id, "animate" );
+            
+            if ( _bone_offsets.empty() or animation_states.empty() or animation_states.empty() )
               return;
             
             // update animation matrices

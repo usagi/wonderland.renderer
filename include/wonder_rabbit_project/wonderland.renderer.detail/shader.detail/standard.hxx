@@ -51,12 +51,10 @@ namespace wonder_rabbit_project
             "uniform mat4 bones[ 128 ];\n"
             "uniform float texblends[ 8 ];\n"
             
-            "bool is_nan(float);\n"
-            
             "void main(void)\n"
             "{\n"
             "  mat4 animation_transformation\n"
-            "    = bone_weights[ 0 ] + bone_weights[ 1 ] + bone_weights[ 2 ] + bone_weights[ 3 ] == 0.0\n"
+            "    = ( bone_weights[ 0 ] + bone_weights[ 1 ] + bone_weights[ 2 ] +bone_weights[ 3 ] == 0.0 )\n"
             "      ? mat4( 1.0 )\n"
             "      : bones[ int( bone_ids[ 0 ] ) ] * bone_weights[ 0 ]\n"
             "      + bones[ int( bone_ids[ 1 ] ) ] * bone_weights[ 1 ]\n"
