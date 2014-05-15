@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Wonderland.renderer by usagi</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Wonderland.renderer</h1>
+        <h2>C++ library of OpenGL rendering engine designed for clang++|g++|em++ standalone use or wonderland game engine.</h2>
+        <a href="https://github.com/usagi/wonderland.renderer" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a name="wonderlandrenderer" class="anchor" href="#wonderlandrenderer"><span class="octicon octicon-link"></span></a>wonderland.renderer</h1>
+
+<p>C++ <del>header only</del> library of OpenGL rendering engine designed for clang++|g++|em++ standalone use or wonderland game engine.</p>
+
+<p>note: This library depend on assimp, threfore this library is not header only now. however this library change to a header-only at future work plan.</p>
+
+<h2>
+<a name="demo" class="anchor" href="#demo"><span class="octicon octicon-link"></span></a>Demo</h2>
+
+<ul>
+<li><a href="https://usagi.github.io/wonderland.renderer/build.em++/example/example-1/example-1.html">example-1 on GitHub-pages</a></li>
+</ul><h2>
+<a name="dependancy" class="anchor" href="#dependancy"><span class="octicon octicon-link"></span></a>Dependancy</h2>
+
+<ul>
+<li><a href="http://glew.sourceforge.net/">GLEW</a></li>
+<li><a href="http://assimp.sourceforge.net/">Open Asset Import Library</a></li>
+<li>Boost
+
+<ul>
+<li>optional</li>
+</ul>
+</li>
+</ul><h3>
+<a name="note" class="anchor" href="#note"><span class="octicon octicon-link"></span></a>note</h3>
+
+<p>this library is not depend on wonderland.subsystem
+ or any other window management library or OS APIs
+ but require OpenGL context at the run-time.
+ Therefore, this library could not run standalone,
+ its need to running with library or OS APIs
+ as a window management and make OpenGL context
+ any as you like.</p>
+
+<p>library suggestion:</p>
+
+<ul>
+<li>wonderland.subsystem</li>
+<li>GLFW3 or GLFW2</li>
+<li>SDL2</li>
+<li>EGLplus or EGL</li>
+<li>OS native API directly</li>
+</ul><h3>
+<a name="special-thanks" class="anchor" href="#special-thanks"><span class="octicon octicon-link"></span></a>special thanks</h3>
+
+<p>the library included a part of public domain <a href="https://code.google.com/p/stblib/">stblib</a> library to
+ <a href="include/wonder_rabbit_project/wonderland.renderer.detail/stblib.detail">include/wonder_rabbit_project/wonderland.renderer.detail/stblib.detail</a>.</p>
+
+<p>thanks.</p>
+
+<h2>
+<a name="emscripten-tips" class="anchor" href="#emscripten-tips"><span class="octicon octicon-link"></span></a>Emscripten tips</h2>
+
+<p>Open Asset Import Library(assimp) can compile Emscripten-1.16.0.</p>
+
+<p>For example build assimp with Emscripten:</p>
+
+<pre lang="shell"><code>. pwd
+/home/you/repos
+. git clone git@github.com:assimp/assimp.git
+. cd assimp
+. mkdir build.em
+. cd build.em
+. cmake -D Ninja .. -DCMAKE_CXX_COMPILER=em++ -DCMAKE_C_COMPILER=emcc -DCMAKE_BUILD_TYPE=Release
+. ninja
+</code></pre>
+
+<p>Then, you can build your-app with link libassimp.so:</p>
+
+<pre lang="shell"><code>em++ -std=c++11 -O2 your-app.cxx /home/you/repos/assimp/build.em/code/libassimp.so -I/home/you/repos/assimp/include -o your-app.html
+</code></pre>
+
+<h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p><a href="LICENSE">MIT</a></p>
+
+<h3>
+<a name="excluded" class="anchor" href="#excluded"><span class="octicon octicon-link"></span></a>Excluded</h3>
+
+<ul>
+<li>assets/n175.x
+
+<ul>
+<li>COPYRIGHT <a href="http://sorceryforce.com/">Sourceryforce / Yuichi Onodera</a>.</li>
+<li>COPYRIGHT Mira Studio / Toya Yamazaki.</li>
+<li>( <a href="https://github.com/assimp/assimp/issues/275">a few change</a> for support assimp by Usagi Ito. )</li>
+</ul>
+</li>
+</ul><h2>
+<a name="author" class="anchor" href="#author"><span class="octicon octicon-link"></span></a>Author</h2>
+
+<p>Usagi Ito <a href="mailto:usagi@WonderRabbitProject.net">usagi@WonderRabbitProject.net</a></p>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/usagi/wonderland.renderer/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/usagi/wonderland.renderer/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/usagi/wonderland.renderer"></a> is maintained by <a href="https://github.com/usagi">usagi</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
