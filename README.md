@@ -1,14 +1,13 @@
 wonderland.renderer
 ===================
 
-C++ ~~header only~~ library of OpenGL rendering engine designed for wonderland game engine.
+C++ ~~header only~~ library of OpenGL rendering engine designed for clang++|g++|em++ standalone use or wonderland game engine.
 
 note: This library depend on assimp, threfore this library is not header only now. however this library change to a header-only at future work plan.
 
-## Caution
+## Demo
 
-This is alpha version under developing on master branch in currently.
-Please wait for stable release version if you avoid unfortunately troubles.
+- [example-1 on GitHub-pages](http://usagi.github.io/wonderland.renderer/build.em++/example/example-1/example-1.html)
 
 ## Dependancy
 
