@@ -16,6 +16,8 @@ auto main()
 -> int
 try
 {
+  std::cout << "Controll camera: Home/End key or Wheel.\n";
+  
   using namespace wonder_rabbit_project::wonderland::subsystem;
   using namespace wonder_rabbit_project::wonderland::renderer;
   using wonder_rabbit_project::wonderland::renderer::model::animation_state_t;
@@ -28,7 +30,7 @@ try
   auto ips = subsystem -> default_initialize_params();
   ips.put( "width"  , screen_width  );
   ips.put( "height" , screen_height );
-  ips.put( "title"  , "assimp on g++/clang++/em++ test" );
+  ips.put( "title"  , "Wonderland.Renderer example-1" );
   ips.put( "samples", 4 ); // FSAA
   subsystem -> initialize( std::move(ips) );
   
@@ -42,7 +44,7 @@ try
   
   struct model_instance_state_t
   {
-    decltype(model0)* pmodel;
+    decltype(model0)* pmodel = nullptr;
     animation_state_t animation_state;
     glm::mat4         world_transformation;
   };
@@ -56,31 +58,31 @@ try
       
     auto animation_names = model1.animation_names();
     
-    if ( animation_names.size() )
+    for ( const auto& animation_name : animation_names )
+      std::cout << "has animation: " << animation_name << std::endl;
+    
+    for ( auto n = 1; n < model_instance_states.size(); ++n )
     {
-      for ( const auto& animation_name : animation_names )
-        std::cout << "has animation: " << animation_name << std::endl;
+      auto& s = model_instance_states[ n ];
       
-      for ( auto n = 1; n < model_instance_states.size(); ++n )
+      s.pmodel = &model1;
+      
+      if ( ! animation_names.empty() )
       {
-        auto& s = model_instance_states[ n ];
-        
-        s.pmodel = &model1;
-        
         s.animation_state.name = animation_names[ n % animation_names.size() ];
         s.animation_state.time = animation_state_t::fseconds( float(n) * 19937 );
-        
-        s.world_transformation = glm::scale( glm::mat4(), glm::vec3( 25.0f ) );
-        switch ( n )
-        { case 1: s.world_transformation = glm::translate( s.world_transformation, glm::vec3(  5.0f, 0.0f,  0.0f ) ); break;
-          case 2: s.world_transformation = glm::translate( s.world_transformation, glm::vec3( -5.0f, 0.0f,  0.0f ) ); break;
-          case 3: s.world_transformation = glm::translate( s.world_transformation, glm::vec3(  5.0f, 0.0f,  5.0f ) ); break;
-          case 4: s.world_transformation = glm::translate( s.world_transformation, glm::vec3(  0.0f, 0.0f,  5.0f ) ); break;
-          case 5: s.world_transformation = glm::translate( s.world_transformation, glm::vec3( -5.0f, 0.0f,  5.0f ) ); break;
-          case 6: s.world_transformation = glm::translate( s.world_transformation, glm::vec3(  5.0f, 0.0f, -5.0f ) ); break;
-          case 7: s.world_transformation = glm::translate( s.world_transformation, glm::vec3(  0.0f, 0.0f, -5.0f ) ); break;
-          case 8: s.world_transformation = glm::translate( s.world_transformation, glm::vec3( -5.0f, 0.0f, -5.0f ) );
-        }
+      }
+      
+      s.world_transformation = glm::scale( glm::mat4(), glm::vec3( 25.f ) );
+      switch ( n )
+      { case 1: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 0.0f,  0.0f ) ); break;
+        case 2: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 0.0f,  0.0f ) ); break;
+        case 3: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 0.0f,  5.0f ) ); break;
+        case 4: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  0.0f, 0.0f,  5.0f ) ); break;
+        case 5: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 0.0f,  5.0f ) ); break;
+        case 6: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 0.0f, -5.0f ) ); break;
+        case 7: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  0.0f, 0.0f, -5.0f ) ); break;
+        case 8: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 0.0f, -5.0f ) );
       }
     }
   }
@@ -105,7 +107,7 @@ try
   {
     static auto counter = 0.0f;
     
-    static auto distance = 100.0f;
+    static auto distance = 300.0f;
     
     for ( auto& model_instance_state : model_instance_states )
       model_instance_state.animation_state += animation_state_t::fseconds( 1.0f / 30.0f );
@@ -162,7 +164,7 @@ try
   {
     static auto before = std::chrono::high_resolution_clock::now();
     const auto elapsed = std::chrono::high_resolution_clock::now() - before;
-    const auto wait = std::chrono::milliseconds(33) - elapsed;
+    const auto wait = std::chrono::duration<float>( 1.0f / 30.0f ) - elapsed;
     std::this_thread::sleep_for(wait);
     before = std::chrono::high_resolution_clock::now();
   }
