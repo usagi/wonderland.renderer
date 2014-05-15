@@ -63,7 +63,7 @@ namespace wonder_rabbit_project
           ( const animation_states_t& animation_states
           , const node_t& node
           , std::vector< glm::mat4 >& bone_animation_transformations
-          , const glm::mat4& parent_transformation
+          , const glm::mat4&& parent_transformation
           )
             -> void
           {
@@ -95,7 +95,7 @@ namespace wonder_rabbit_project
               }
               
               for ( const auto& child_node : node.nodes() )
-                apply_animation_recursive( animation_states, child_node, bone_animation_transformations, global_transformation );
+                apply_animation_recursive( animation_states, child_node, bone_animation_transformations, std::move( global_transformation ) );
               
               // TODO: 複数のアニメーションの合成に対応する。現状: 最初の１つで break
               break;
@@ -172,17 +172,26 @@ namespace wonder_rabbit_project
                   ch.scalings.emplace( std::move( key.mTime ), helper::to_glm_vec3( &key.mValue ) );
                 }
                 
+                if ( ch.scalings.empty() )
+                  throw std::runtime_error( std::string("animation[") + animation -> mName.C_Str() + "], bone[" + channel -> mNodeName.C_Str() + "] scaling keyframes are empty." );
+                
                 for ( auto n_key = 0; n_key < channel -> mNumRotationKeys; ++ n_key )
                 {
                   const auto key = channel -> mRotationKeys[ n_key ];
                   ch.rotations.emplace( std::move( key.mTime ), helper::to_glm_quat( &key.mValue ) );
                 }
                 
+                if ( ch.rotations.empty() )
+                  throw std::runtime_error( std::string("animation[") + animation -> mName.C_Str() + "], bone[" + channel -> mNodeName.C_Str() + "] rotations keyframes are empty." );
+                
                 for ( auto n_key = 0; n_key < channel -> mNumPositionKeys; ++ n_key )
                 {
                   const auto key = channel -> mPositionKeys[ n_key ];
                   ch.translations.emplace( std::move( key.mTime ), helper::to_glm_vec3( &key.mValue ) );
                 }
+                
+                if ( ch.translations.empty() )
+                  throw std::runtime_error( std::string("animation[") + animation -> mName.C_Str() + "], bone[" + channel -> mNodeName.C_Str() + "] translations keyframes are empty." );
                 
                 data.channels.emplace( std::string( channel -> mNodeName.C_Str() ), std::move( ch ) );
               }

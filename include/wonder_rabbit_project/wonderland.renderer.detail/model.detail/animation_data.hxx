@@ -129,6 +129,8 @@ namespace wonder_rabbit_project
           inline auto blending_value( const T& map, const float animation_time ) const
             -> typename T::mapped_type
           {
+            if ( map.size() == 1)
+              return map.begin() -> second;
             
             auto upper_bound = map.upper_bound( animation_time );
             
@@ -152,7 +154,7 @@ namespace wonder_rabbit_project
             if ( upper_value == lower_value )
               return upper_value;
             
-            const auto blending_factor         = ( animation_time - lower_time ) / ( upper_time - lower_time );
+            const auto blending_factor = ( animation_time - lower_time ) / ( upper_time - lower_time );
             
             return blending_value_blend( lower_value, upper_value, blending_factor );
           }
