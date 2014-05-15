@@ -21,6 +21,8 @@
 #include "bone.hxx"
 #include "animation_data.hxx"
 
+#include "../shader.detail/constant.hxx"
+
 namespace wonder_rabbit_project
 {
   namespace wonderland
@@ -230,6 +232,13 @@ namespace wonder_rabbit_project
               {
                 bone_index = _bone_name_to_bone_index_mapping.size();
                 _bone_offsets.push_back( glm::mat4( 1.0f ) );
+                
+                if ( _bone_offsets.size() > shader::max_bones )
+                  throw std::runtime_error
+                  ( "bone offset size " + std::to_string( _bone_offsets.size() )
+                  + " over shader::max_bones " + std::to_string( shader::max_bones )
+                  + "."
+                  );
               }
               else
                 bone_index = _bone_name_to_bone_index_mapping[ bone_name ];

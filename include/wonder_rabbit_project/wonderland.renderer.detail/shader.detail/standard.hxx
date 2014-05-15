@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "constant.hxx"
+
 namespace wonder_rabbit_project
 {
   namespace wonderland
@@ -48,7 +50,7 @@ namespace wonder_rabbit_project
             "uniform vec3 emissive;\n"
             "uniform float transparent;\n"
             "uniform float reflective;\n"
-            "uniform mat4 bones[ 128 ];\n"
+            "uniform mat4 bones[ " + std::to_string( max_bones ) + " ];\n"
             "uniform float texblends[ 8 ];\n"
             
             "void main(void)\n"
