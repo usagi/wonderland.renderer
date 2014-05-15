@@ -1,5 +1,9 @@
 #pragma once
 
+#include <memory>
+#include <list>
+#include <type_traits>
+
 #define GLM_SWIZZLE
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -12,6 +16,7 @@
 #include "wonderland.renderer.detail/shader.hxx"
 #include "wonderland.renderer.detail/program.hxx"
 #include "wonderland.renderer.detail/model.hxx"
+#include "wonderland.renderer.detail/light.hxx"
 
 #include "wonderland.renderer.detail/shader.detail/all.hxx"
 
@@ -25,6 +30,8 @@ namespace wonder_rabbit_project
       {
         camera_t  _camera; // to view transformation
         glm::mat4 _projection_transformation;
+        boost::optional< const program_t& > _default_program;
+        std::list< const light_t* > _default_lights;
         
       public:
         
@@ -38,6 +45,15 @@ namespace wonder_rabbit_project
           depth_test();
           if ( multisample_capability() )
             multisample();
+        }
+        
+        template < class T_type, class ... T_prams >
+        auto create_light( T_prams ... params ) -> T_type
+        {
+          static_assert( std::is_base_of<light_t, T_type>(), "create_light need class of a based on light_t." );
+          auto light = T_type( params ... );
+          add_default_light( light );
+          return light;
         }
         
         inline auto create_shader_standard_vs() -> vertex_shader_t
@@ -92,17 +108,18 @@ namespace wonder_rabbit_project
           return s;
         }
         
-        inline program_t create_program() const
+        inline program_t create_program()
         {
           return program_t();
         }
         
         template< class ... T_shaders >
-        inline program_t create_program( T_shaders&& ... shaders ) const
+        inline program_t create_program( T_shaders&& ... shaders )
         {
           program_t pg;
           pg.attach( shaders ... );
           pg.link();
+          _default_program = pg;
           return pg;
         }
         
@@ -291,6 +308,65 @@ namespace wonder_rabbit_project
           }
           
           m.draw( animation_states );
+        }
+        
+        template < class ... Ts >
+        auto default_lights( const Ts& ... ls )
+          -> void
+        {
+          _default_lights.clear();
+          add_default_lights( ls ... );
+        }
+        
+        template < class T, class ... Ts >
+        auto add_default_lights( const T& light, const Ts& ... ls )
+          -> void
+        {
+          add_default_light( light );
+          add_default_lights( ls ... );
+        }
+        
+        template < class T>
+        auto add_default_light( const T& light )
+          -> void
+        { _default_lights.push_back( &light ); }
+        
+        template < class T, class ... Ts >
+        auto remove_default_lights( const T& light, const Ts& ... ls )
+          -> void
+        {
+          remove_default_light( light );
+          remove_default_lights( ls ... );
+        }
+        
+        template < class T>
+        auto remove_default_light( const T& light )
+          -> void
+        { _default_lights.remove( &light ); }
+        
+        auto activate_lights() const
+          -> void
+        {
+          for ( const auto* light : _default_lights )
+            light -> activate();
+        }
+        
+        auto default_program( const program_t& p )
+          -> void
+        { _default_program = p; }
+        
+        auto invoke() const
+          -> std::array< destruct_invoker_t, 2 >
+        { return invoke( _default_program.get() ); }
+        
+        auto invoke( const program_t& p ) const
+          -> std::array< destruct_invoker_t, 2 >
+        {
+          clear();
+          auto rf = this -> flusher();
+          auto rp = this -> use_program( p );
+          activate_lights();
+          return {{ std::move( rf ) , std::move( rp ) }};
         }
         
         inline auto flush() const -> void
