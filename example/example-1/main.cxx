@@ -37,8 +37,21 @@ try
   auto renderer = std::make_shared<renderer_t>();
   
   // wonderland.renderer has the standard shader program
+  //   effects:
+  //     1. create default shader program
+  //     2. set default program automatically ( you can set `renderer -> default_program( p )` after manually )
+  // or you can manually create your shader from source string and link program if you need.
+  //   auto my_shader0 = renderer -> create_shader< vertex_shader >( "your source string" );
+  //   auto my_program = renderer -> create_program( my_shader0, my_shader1, my_shader2, ... );
   auto program = renderer -> create_program_standard();
   
+  // create light with effect:
+  //  set default lights automatically
+  //  ( you can add/remove default light `{add|remove}_lights( light0, light1, light2, ... )` )
+  //  ( and `lights( light0, light1, light2, ... )` to set lights or remove all. )
+  auto light0 = renderer -> create_light<point_light_t>();
+  
+  // load models with assimp currently
   auto model0 = renderer -> create_model( "assets/vertex-colored-cube.x" );
   auto model1 = renderer -> create_model( "assets/n175Anim.x" );
   
@@ -103,7 +116,7 @@ try
   }
   
   subsystem -> update_functors.emplace_front
-  ( [ subsystem, renderer, &model_instance_states ]
+  ( [ subsystem, renderer, &model_instance_states, &light0 ]
   {
     static auto counter = 0.0f;
     
@@ -127,6 +140,8 @@ try
     camera.target( { 0.0f, 25.0f, 0.0f } );
     camera.up    ( { 0.0f,  1.0f, 0.0f } );
     
+    light0.position = glm::vec3( distance * std::sin( counter ), distance * std::cos( counter ), distance );
+    
     counter += 0.01f;
   }
   );
@@ -145,9 +160,11 @@ try
   , &model_instance_states
   ]
   {
-    renderer -> clear();
-    auto flusher     = renderer -> flusher();
-    auto use_program = renderer -> use_program( program );
+    // invoker effects:
+    //  1. clear
+    //  2. return { flusher(), use_program( p ) }
+    //    use default program if call with no parameter.
+    auto rendering_invoker = renderer -> invoke();
     
     // draw model with world transformation
     //  automatic set
