@@ -1,4 +1,7 @@
 #pragma once
 
+#include "misc.hxx"
+
 #include "constant.hxx"
-#include "standard.hxx"
+#include "phong.hxx"
+#include "cartoon.hxx"

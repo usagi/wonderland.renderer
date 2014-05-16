@@ -56,14 +56,13 @@ namespace wonder_rabbit_project
           return light;
         }
         
-        inline auto create_shader_standard_vs() -> vertex_shader_t
-        { return create_shader< vertex_shader_t >( shader::standard::vs_source() ); }
+        template <class T_shader , class T_embedded_shader_type_tag = shader::constant >
+        inline auto create_shader_from_embedded() -> T_shader
+        { throw std::logic_error( "create_shader_from_embedded: invalid template parameter." ); }
         
-        inline auto create_shader_standard_fs() -> fragment_shader_t
-        { return create_shader< fragment_shader_t >( shader::standard::fs_source() ); }
-        
-        inline auto create_program_standard() -> program_t
-        { return create_program( create_shader_standard_vs(), create_shader_standard_fs() ); }
+        template <class T_embedded_shader_type_tag = shader::constant >
+        inline auto create_program_from_embedded() -> program_t
+        { throw std::logic_error( "create_program_from_embedded: invalid template parameter." ); }
         
         inline auto view_projection_transformation() -> glm::mat4
         { return _projection_transformation * _camera.view_transformation(); }
@@ -432,6 +431,19 @@ namespace wonder_rabbit_project
         }
         
       };
+      
+      template<>
+      auto renderer_t::create_shader_from_embedded< vertex_shader_t, shader::constant >() -> vertex_shader_t
+      { return create_shader< vertex_shader_t >( shader::constant::vs_source() ); }
+      
+      template<>
+      auto renderer_t::create_shader_from_embedded< fragment_shader_t, shader::constant >() -> fragment_shader_t
+      { return create_shader< fragment_shader_t >( shader::constant::fs_source() ); }
+      
+      template<>
+      auto renderer_t::create_program_from_embedded< shader::constant >() -> program_t
+      { return create_program( create_shader_from_embedded< vertex_shader_t, shader::constant >(), create_shader_from_embedded< fragment_shader_t, shader::constant >() ); }
+      
     }
   }
 }

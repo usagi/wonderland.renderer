@@ -20,10 +20,6 @@ namespace wonder_rabbit_project
       {
       protected:
         
-        glm::vec3 position;
-        glm::vec3 color;
-        unsigned id;
-        
         auto activate_impl( glew::gl_type::GLint program_id ) const
           -> void override
         {
@@ -37,6 +33,10 @@ namespace wonder_rabbit_project
         }
         
       public:
+        
+        glm::vec3 position;
+        glm::vec3 color;
+        unsigned id;
         
         point_light_t
         ( const glm::vec3& position_
