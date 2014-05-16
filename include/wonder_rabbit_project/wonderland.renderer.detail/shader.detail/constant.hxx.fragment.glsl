@@ -11,33 +11,46 @@ varying vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
 varying float var_texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
 
 uniform vec3 diffuse;
-uniform vec3 ambient;
 uniform float transparent;
 
 uniform sampler2D sampler;
 
-bool is_nan(float);
+vec4 calc_final_diffuse();
+bool is_nan( float );
 
-void main(void)
+void main( void )
 {
+  vec4 final_diffuse = calc_final_diffuse();
+  gl_FragColor = final_diffuse;
+}
+
+vec4 calc_final_diffuse()
+{
+  vec4 final_diffuse;
+
   if ( ! is_nan( var_color.x ) )
-    gl_FragColor = var_color;
+    final_diffuse = var_color;
   else
-    gl_FragColor = vec4( ( diffuse + ambient ), transparent );
+    final_diffuse = vec4( diffuse, transparent );
 
   float texblend = 0.0;
+
   vec4 texture_color = vec4( 0.0 );
+
   for ( int n = 0; n < )" + std::to_string( count_of_textures ) + u8R"(; ++n )
-  if ( var_texblends[ n ] > 0.0 )
-  {
-    texblend += var_texblends[ n ];
-    texture_color += texture2D( sampler, var_texcoords[ n ] );
-  }
+    if ( var_texblends[ n ] > 0.0 )
+    {
+      texblend += var_texblends[ n ];
+      texture_color += texture2D( sampler, var_texcoords[ n ] );
+    }
+
   if ( texblend > 0.0 )
   {
-    gl_FragColor *= 1.0 - texblend;
-    gl_FragColor += texture_color * texblend;
+    final_diffuse *= 1.0 - texblend;
+    final_diffuse += texture_color * texblend;
   }
+
+  return final_diffuse;
 }
 
 bool is_nan(float val)

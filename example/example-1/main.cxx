@@ -16,7 +16,11 @@ auto main()
 -> int
 try
 {
-  std::cout << "Controll camera: Home/End key or Wheel.\n";
+  std::cout
+    << "[Home]/[End] key or mouse [Wheel]: camera zooming.\n"
+    << "[1]: shader program change to Wonderland.Renderer embedded <constant> shader program.\n"
+    << "[2]: shader program change to Wonderland.Renderer embedded <phong> shader program.\n"
+    ;
   
   using namespace wonder_rabbit_project::wonderland::subsystem;
   using namespace wonder_rabbit_project::wonderland::renderer;
@@ -38,12 +42,13 @@ try
   
   // wonderland.renderer has the standard shader program
   //   effects:
-  //     1. create default shader program
+  //     1. create shader program from embedded sources as < shader::constant >.
   //     2. set default program automatically ( you can set `renderer -> default_program( p )` after manually )
   // or you can manually create your shader from source string and link program if you need.
   //   auto my_shader0 = renderer -> create_shader< vertex_shader >( "your source string" );
   //   auto my_program = renderer -> create_program( my_shader0, my_shader1, my_shader2, ... );
-  auto program = renderer -> create_program_standard();
+  auto program_constant = renderer -> create_program_from_embedded< shader::constant >();
+  auto program_phong    = renderer -> create_program_from_embedded< shader::phong    >();
   
   // create light with effect:
   //  set default lights automatically
@@ -116,7 +121,12 @@ try
   }
   
   subsystem -> update_functors.emplace_front
-  ( [ subsystem, renderer, &model_instance_states, &light0 ]
+  ( [ subsystem, renderer
+    , &model_instance_states
+    , &light0
+    , &program_constant
+    , &program_phong
+    ]
   {
     static auto counter = 0.0f;
     
@@ -142,6 +152,17 @@ try
     
     light0.position = glm::vec3( distance * std::sin( counter ), distance * std::cos( counter ), distance );
     
+    if ( ( renderer -> default_program() != program_constant ) and subsystem -> keyboard_state< key::_1 >() )
+    {
+      renderer -> default_program( program_constant );
+      std::cout << "change to Wonderland.Renderer embedded <constant> shader program.\n";
+    }
+    else if ( ( renderer -> default_program() != program_phong ) and subsystem -> keyboard_state< key::_2 >() )
+    {
+      renderer -> default_program( program_phong );
+      std::cout << "change to Wonderland.Renderer embedded <phong> shader program.\n";
+    }
+    
     counter += 0.01f;
   }
   );
@@ -156,9 +177,8 @@ try
   
   subsystem -> render_functors.emplace_front
   ( [ renderer
-  , &program
-  , &model_instance_states
-  ]
+    , &model_instance_states
+    ]
   {
     // invoker effects:
     //  1. clear

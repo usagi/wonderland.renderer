@@ -58,6 +58,12 @@ namespace wonder_rabbit_project
           this_type& operator=( const this_type& ) = delete;
           this_type& operator=( this_type && )     = delete;
 
+          auto operator==( const program_t& p ) const -> bool
+          { return _program == p._program; }
+          
+          auto operator!=( const program_t& p ) const -> bool
+          { return not operator==( p ); }
+          
           inline auto cancel() -> void
           { _finalizer = []{}; }
 

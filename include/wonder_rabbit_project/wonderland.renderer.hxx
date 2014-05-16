@@ -361,6 +361,15 @@ namespace wonder_rabbit_project
           -> void
         { _default_program = p; }
         
+        auto default_program()
+          -> const program_t&
+        {
+          if( _default_program )
+            return _default_program.get();
+          
+          throw std::logic_error( "default program is not set yet." );
+        }
+        
         auto invoke() const
           -> std::array< destruct_invoker_t, 2 >
         { return invoke( _default_program.get() ); }
@@ -432,6 +441,7 @@ namespace wonder_rabbit_project
         
       };
       
+      // specialize to constant
       template<>
       auto renderer_t::create_shader_from_embedded< vertex_shader_t, shader::constant >() -> vertex_shader_t
       { return create_shader< vertex_shader_t >( shader::constant::vs_source() ); }
@@ -443,6 +453,19 @@ namespace wonder_rabbit_project
       template<>
       auto renderer_t::create_program_from_embedded< shader::constant >() -> program_t
       { return create_program( create_shader_from_embedded< vertex_shader_t, shader::constant >(), create_shader_from_embedded< fragment_shader_t, shader::constant >() ); }
+      
+      // specialize to phong
+      template<>
+      auto renderer_t::create_shader_from_embedded< vertex_shader_t, shader::phong >() -> vertex_shader_t
+      { return create_shader< vertex_shader_t >( shader::phong::vs_source() ); }
+      
+      template<>
+      auto renderer_t::create_shader_from_embedded< fragment_shader_t, shader::phong >() -> fragment_shader_t
+      { return create_shader< fragment_shader_t >( shader::phong::fs_source() ); }
+      
+      template<>
+      auto renderer_t::create_program_from_embedded< shader::phong >() -> program_t
+      { return create_program( create_shader_from_embedded< vertex_shader_t, shader::phong >(), create_shader_from_embedded< fragment_shader_t, shader::phong >() ); }
       
     }
   }

@@ -4,6 +4,7 @@ u8R"(#version 100
 
 attribute vec4 position;
 attribute vec4 color;
+attribute vec3 normal;
 attribute vec2 texcoord0;
 //attribute vec2 texcoord1;
 //attribute vec2 texcoord2;
@@ -18,7 +19,9 @@ attribute vec3 bitangent;
 attribute vec4 bone_ids;
 attribute vec4 bone_weights;
 
+varying vec3 var_position;
 varying vec4 var_color;
+varying vec3 var_normal;
 varying vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
 varying float var_texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
 
@@ -41,8 +44,10 @@ void main(void)
   vec4 local_position = animation_transformation * position;
   gl_Position = world_view_projection_transformation * local_position;
   
-  var_color = color;
-  
+  var_position = local_position.xyz;
+  var_color    = color;
+  var_normal   = ( animation_transformation * vec4( normal, 1.0 ) ).xyz;
+
   var_texcoords[ 0 ] = texcoord0;
   //  var_texcoords[ 1 ] = texcoord1;
   //  var_texcoords[ 2 ] = texcoord2;
