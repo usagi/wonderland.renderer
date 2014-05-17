@@ -8,6 +8,8 @@
 #include "../c.hxx"
 #include "../gl_type.hxx"
 
+#include "program.hxx"
+
 namespace wonder_rabbit_project
 {
   namespace wonderland
@@ -19,25 +21,53 @@ namespace wonder_rabbit_project
         struct uniform_t
         {
           // get location from GPU by name
-          static inline auto uniform( gl_type::GLuint program_id, const std::string name )
+          static inline auto uniform( const gl_type::GLuint program_id, const std::string& name )
             -> gl_type::GLuint
           {
             const auto location = c::glGetUniformLocation( program_id, name.data() );
             return location;
           }
           
+          static inline auto uniform( const std::string& name )
+          -> gl_type::GLuint
+          { return uniform( program_t::current_program(), name ); }
+          
           // get value from GPU by loation
           //   impl as template specialization
           template < class T >
-          static inline auto uniform( gl_type::GLuint program_id, gl_type::GLint location )
+          static inline auto uniform( const gl_type::GLuint program_id, const gl_type::GLint location )
             -> T
           { throw std::logic_error( "uniform<T>: unsupported type T." ); }
           
+          template < class T >
+          static inline auto uniform( const gl_type::GLint location )
+            -> T
+          { return uniform<T>( program_t::current_program(), location ); }
+          
           // get value from GPU by name
           template < class T >
-          static inline auto uniform( gl_type::GLuint program_id, const std::string name )
+          static inline auto uniform( const gl_type::GLuint program_id, const std::string& name )
             -> T
           { return uniform<T>( program_id, uniform( program_id, name) ); }
+          
+          template < class T >
+          static inline auto uniform( const std::string& name )
+            -> T
+          {
+            const auto program_id = program_t::current_program();
+            return uniform<T>( program_id, uniform( program_id, name) );
+          }
+          
+          // set value to GPU by name
+          template < class T >
+          static inline auto uniform( const gl_type::GLuint program_id, const std::string& name, const T& value )
+            -> void
+          { uniform( uniform( program_id, name ), value ); }
+          
+          template < class T >
+          static inline auto uniform( const std::string& name, const T& value )
+            -> void
+          { uniform( uniform( program_t::current_program(), name ), value ); }
           
           // set float series
           static inline auto uniform( gl_type::GLint location, const gl_type::GLfloat value ) -> void

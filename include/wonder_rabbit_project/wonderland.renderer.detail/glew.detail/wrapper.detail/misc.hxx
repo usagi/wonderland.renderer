@@ -46,6 +46,7 @@ namespace wonder_rabbit_project
           )
             -> void
           { glew::c::glClear( glew::gl_type::GLint( flag ) ); }
+          
         };
       }
     }

@@ -177,21 +177,16 @@ namespace wonder_rabbit_project
         )
           -> void
         {
-          const auto wvp = _projection_transformation * _camera.view_transformation() * world_transformation;
+          const auto wvp
+            = _projection_transformation
+            * _camera.view_transformation()
+            * world_transformation
+            ;
           
-          glew::gl_type::GLint program_id;
-          glew::c::glGetIntegerv( GL_CURRENT_PROGRAM, &program_id );
+          const auto program_id = current_program();
           
-          if ( program_id )
-          {
-            const auto location_of_world_view_projection_transformation = uniform( program_id, "world_view_projection_transformation" );
-            const auto location_of_world_transformation = uniform( program_id, "world_transformation" );
-          
-            if ( location_of_world_view_projection_transformation not_eq -1 )
-              uniform( location_of_world_view_projection_transformation, wvp );
-            if ( location_of_world_transformation not_eq -1 )
-              uniform( location_of_world_transformation, world_transformation );
-          }
+          uniform( program_id, "world_view_projection_transformation", wvp );
+          uniform( program_id, "world_transformation", world_transformation );
           
           m.draw( animation_states );
         }
@@ -266,49 +261,6 @@ namespace wonder_rabbit_project
         
         inline auto flusher() const -> destruct_invoker_t
         { return { [ ]{ glew::wrapper_t::flush(); } }; }
-        
-#define WRP_TMP( WRP_TMP_X, WRP_TMP_Y ) \
-        inline auto WRP_TMP_X ( bool enable = true ) -> void \
-        { if( enable ) glew::c::glEnable( WRP_TMP_Y ); else glew::c::glDisable( WRP_TMP_Y ); }
-        
-        WRP_TMP( blend       , GL_BLEND )
-        WRP_TMP( cull_face   , GL_CULL_FACE )
-        WRP_TMP( debug_output, GL_DEBUG_OUTPUT )
-        WRP_TMP( depth_test  , GL_DEPTH_TEST )
-        
-#undef WRP_TMP
-        
-        inline auto multisample_capability() -> bool
-        {
-          glew::gl_type::GLint buffers, samples;
-          
-          glew::c::glGetIntegerv(GL_SAMPLE_BUFFERS, &buffers);
-          glew::c::glGetIntegerv(GL_SAMPLES, &samples);
-          
-          return buffers >= 1 and samples >= 2;
-        }
-        
-        inline auto multisample( bool enable = true ) -> void
-        {
-          if ( not enable )
-          {
-#ifndef EMSCRIPTEN
-            glew::c::glDisable( GL_MULTISAMPLE );
-#endif
-            glew::c::glDisable( GL_SAMPLE_ALPHA_TO_COVERAGE );
-            return;
-          }
-          
-          if ( not multisample_capability() )
-            throw std::runtime_error( "cannot use multi sample." );
-#ifndef EMSCRIPTEN
-          // need OpenGL API
-          //  but on GLES2 MULTISAMPLE is true default and not support glEnable/glDisable it.
-          glew::c::glEnable( GL_MULTISAMPLE );
-#endif
-          glew::c::glEnable( GL_SAMPLE_ALPHA_TO_COVERAGE );
-          
-        }
         
       };
       
