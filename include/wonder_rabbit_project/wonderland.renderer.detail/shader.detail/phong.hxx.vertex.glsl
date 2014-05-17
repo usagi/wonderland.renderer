@@ -44,7 +44,7 @@ void main(void)
   vec4 local_position = animation_transformation * position;
   gl_Position = world_view_projection_transformation * local_position;
   
-  var_position = local_position.xyz;
+  var_position = ( world_transformation * local_position ).xyz;
   var_color    = color;
   var_normal   = ( animation_transformation * vec4( normal, 1.0 ) ).xyz;
 
