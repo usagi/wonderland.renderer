@@ -13,13 +13,14 @@
 #include <wonder_rabbit_project/wonderland.subsystem.hxx>
 
 auto main()
--> int
+  -> int
 try
 {
   std::cout
     << "[Home]/[End] key or mouse [Wheel]: camera zooming.\n"
     << "[1]: shader program change to Wonderland.Renderer embedded <constant> shader program.\n"
     << "[2]: shader program change to Wonderland.Renderer embedded <phong> shader program.\n"
+    << "\n"
     ;
   
   using namespace wonder_rabbit_project::wonderland::subsystem;

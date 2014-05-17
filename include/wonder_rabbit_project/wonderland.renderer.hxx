@@ -27,10 +27,11 @@ namespace wonder_rabbit_project
     namespace renderer
     {
       class renderer_t
+        : public glew::wrapper_t
       {
         camera_t  _camera; // to view transformation
         glm::mat4 _projection_transformation;
-        boost::optional< const program_t& > _default_program;
+        boost::optional< const renderer::program_t& > _default_program;
         std::list< const light_t* > _default_lights;
         
       public:
@@ -61,7 +62,7 @@ namespace wonder_rabbit_project
         { throw std::logic_error( "create_shader_from_embedded: invalid template parameter." ); }
         
         template <class T_embedded_shader_type_tag = shader::constant >
-        inline auto create_program_from_embedded() -> program_t
+        inline auto create_program_from_embedded() -> renderer::program_t
         { throw std::logic_error( "create_program_from_embedded: invalid template parameter." ); }
         
         inline auto view_projection_transformation() -> glm::mat4
@@ -112,16 +113,16 @@ namespace wonder_rabbit_project
         }
         
         inline auto create_program()
-          -> program_t
+          -> wonder_rabbit_project::wonderland::renderer::program_t
         {
-          return program_t();
+          return wonder_rabbit_project::wonderland::renderer::program_t();
         }
         
         template< class ... T_shaders >
         inline auto create_program( T_shaders&& ... shaders )
-          -> program_t
+          -> wonder_rabbit_project::wonderland::renderer::program_t
         {
-          program_t pg;
+          wonder_rabbit_project::wonderland::renderer::program_t pg;
           pg.attach( shaders ... );
           pg.link();
           _default_program = pg;
@@ -151,144 +152,23 @@ namespace wonder_rabbit_project
           {
             [list]()
             {
-              std::for_each(
-                list.crbegin(), list.crend(),
-                            []( glew::gl_type::GLuint n )
-                            {
-                              glew::c::glDisableVertexAttribArray( n );
-                            }
+              std::for_each
+              ( list.crbegin(), list.crend()
+              , []( glew::gl_type::GLuint n )
+                {
+                  glew::c::glDisableVertexAttribArray( n );
+                }
               );
             }
           };
         }
         
-        inline auto use_program( const program_t& p ) const
+        inline auto use_program( const renderer::program_t& p ) const
           -> destruct_invoker_t
         {
-          glew::c::glUseProgram( p._program );
-          return { []{ glew::c::glUseProgram( 0 ); } };
+          glew::wrapper_t::use_program( p._program );
+          return { [ ]{ glew::wrapper_t::use_program(); } };
         }
-        
-        template < class T >
-        inline auto uniform( program_t program_, glew::gl_type::GLint localtion )
-        -> T
-        { return program_.uniform< T >( localtion ); }
-        
-        inline auto uniform( program_t program_, const std::string name )
-        -> glew::gl_type::GLuint
-        { return uniform( program_._program, name ); }
-        
-        inline auto uniform( glew::gl_type::GLint program_id, const std::string name )
-        -> glew::gl_type::GLuint
-        {
-          const auto location = glew::c::glGetUniformLocation( program_id, name.data() );
-          return location;
-        }
-        
-        // float
-        inline auto uniform( glew::gl_type::GLint location, const glew::gl_type::GLfloat value ) const -> void
-        { glew::c::glUniform1f( location, value ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const glm::vec1& value) const -> void
-        { glew::c::glUniform1f( location, value.x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const std::vector<float>& values) const -> void
-        { glew::c::glUniform1fv( location, values.size(), values.data() ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const std::vector<glm::vec1>& values) const -> void
-        { glew::c::glUniform1fv( location, values.size(), & values.data() -> x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const glm::vec2& value ) const -> void
-        { glew::c::glUniform2fv( location, 1, & value.x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const std::vector<glm::vec2>& values ) const -> void
-        { glew::c::glUniform2fv( location, values.size(), & values.data() -> x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const glm::vec3& value ) const -> void
-        { glew::c::glUniform3fv( location, 1, & value.x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const std::vector<glm::vec3>& values ) const -> void
-        { glew::c::glUniform3fv( location, values.size(), & values.data() -> x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const glm::vec4& value ) const -> void
-        { glew::c::glUniform4fv( location, 1, & value.x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const std::vector<glm::vec4>& values ) const -> void
-        { glew::c::glUniform4fv( location, values.size(), & values.data() -> x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const glm::mat4& value ) const -> void
-        { glew::c::glUniformMatrix4fv( location, 1, false, & value[0][0] ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const std::vector<glm::mat4>& values ) const -> void
-        { glew::c::glUniformMatrix4fv( location, values.size(), false, & ( *values.data() )[0][0] ); }
-        
-        // int
-        inline auto uniform( glew::gl_type::GLint location, const glew::gl_type::GLint value ) const -> void
-        { glew::c::glUniform1i( location, value ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const glm::i32vec1 value ) const -> void
-        { glew::c::glUniform1i( location, value.x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const std::vector<glew::gl_type::GLint>& values ) const -> void
-        { glew::c::glUniform1iv( location, values.size(), values.data() ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const std::vector<glm::i32vec1>& values ) const -> void
-        { glew::c::glUniform1iv( location, values.size(), & values.data() -> x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const glm::i32vec2& value ) const -> void
-        { glew::c::glUniform2iv( location, 1, & value.x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const std::vector<glm::i32vec2>& values ) const -> void
-        { glew::c::glUniform2iv( location, values.size(), & values.data() -> x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const glm::i32vec3& value ) const -> void
-        { glew::c::glUniform3iv( location, 1, & value.x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const std::vector<glm::i32vec3>& values ) const -> void
-        { glew::c::glUniform3iv( location, values.size(), & values.data() -> x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const glm::i32vec4& value ) const -> void
-        { glew::c::glUniform4iv( location, 1, & value.x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const std::vector<glm::i32vec4>& values ) const -> void
-        { glew::c::glUniform4iv( location, values.size(), & values.data() -> x ); }
-        
-        // uint
-        inline auto uniform( glew::gl_type::GLint location, const glew::gl_type::GLuint value ) const -> void
-        { glew::c::glUniform1ui( location, value ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const glm::u32vec1 value ) const -> void
-        { glew::c::glUniform1ui( location, value.x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const std::vector<glew::gl_type::GLuint>& values ) const -> void
-        { glew::c::glUniform1uiv( location, values.size(), values.data() ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const std::vector<glm::u32vec1>& values ) const -> void
-        { glew::c::glUniform1uiv( location, values.size(), & values.data() -> x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const glm::u32vec2& value ) const -> void
-        { glew::c::glUniform2uiv( location, 1, & value.x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const std::vector<glm::u32vec2>& values ) const -> void
-        { glew::c::glUniform2uiv( location, values.size(), & values.data() -> x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const glm::u32vec3& value ) const -> void
-        { glew::c::glUniform3uiv( location, 1, & value.x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const std::vector<glm::u32vec3>& values ) const -> void
-        { glew::c::glUniform3uiv( location, values.size(), & values.data() -> x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const glm::u32vec4& value ) const -> void
-        { glew::c::glUniform4uiv( location, 1, & value.x ); }
-        
-        inline auto uniform( glew::gl_type::GLint location, const std::vector<glm::u32vec4>& values ) const -> void
-        { glew::c::glUniform4uiv( location, values.size(), & values.data() -> x ); }
-        
-        /*
-         *            template<class TMODE, class TMODEL>
-         *            inline auto draw( const TMODEL& m ) const -> void
-         *            { m.template draw<TMODE>(); }
-         */
         
         inline auto draw
         ( model_t& m
@@ -357,12 +237,12 @@ namespace wonder_rabbit_project
             light -> activate();
         }
         
-        auto default_program( const program_t& p )
+        auto default_program( const renderer::program_t& p )
           -> void
         { _default_program = p; }
         
         auto default_program()
-          -> const program_t&
+          -> const renderer::program_t&
         {
           if( _default_program )
             return _default_program.get();
@@ -374,7 +254,7 @@ namespace wonder_rabbit_project
           -> std::array< destruct_invoker_t, 2 >
         { return invoke( _default_program.get() ); }
         
-        auto invoke( const program_t& p ) const
+        auto invoke( const renderer::program_t& p ) const
           -> std::array< destruct_invoker_t, 2 >
         {
           clear();
@@ -384,17 +264,8 @@ namespace wonder_rabbit_project
           return {{ std::move( rf ) , std::move( rp ) }};
         }
         
-        inline auto flush() const -> void
-        { glew::c::glFlush(); }
-        
-        inline auto clear_color( const glm::vec4& color ) const -> void
-        { glew::c::glClearColor( color.r, color.g, color.b, color.a ); }
-        
-        inline auto clear( glew::gl_type::GLbitfield flag = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT ) const -> void
-        { glew::c::glClear( glew::gl_type::GLint( flag ) ); }
-        
         inline auto flusher() const -> destruct_invoker_t
-        { return { [this]{ this->flush(); } }; }
+        { return { [ ]{ glew::wrapper_t::flush(); } }; }
         
 #define WRP_TMP( WRP_TMP_X, WRP_TMP_Y ) \
         inline auto WRP_TMP_X ( bool enable = true ) -> void \
@@ -451,7 +322,7 @@ namespace wonder_rabbit_project
       { return create_shader< fragment_shader_t >( shader::constant::fs_source() ); }
       
       template<>
-      auto renderer_t::create_program_from_embedded< shader::constant >() -> program_t
+      auto renderer_t::create_program_from_embedded< shader::constant >() -> renderer::program_t
       { return create_program( create_shader_from_embedded< vertex_shader_t, shader::constant >(), create_shader_from_embedded< fragment_shader_t, shader::constant >() ); }
       
       // specialize to phong
@@ -464,7 +335,7 @@ namespace wonder_rabbit_project
       { return create_shader< fragment_shader_t >( shader::phong::fs_source() ); }
       
       template<>
-      auto renderer_t::create_program_from_embedded< shader::phong >() -> program_t
+      auto renderer_t::create_program_from_embedded< shader::phong >() -> renderer::program_t
       { return create_program( create_shader_from_embedded< vertex_shader_t, shader::phong >(), create_shader_from_embedded< fragment_shader_t, shader::phong >() ); }
       
     }

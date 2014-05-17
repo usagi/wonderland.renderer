@@ -7,6 +7,8 @@
 #include "glew.detail/gl_type.hxx"
 #include "glew.detail/error.hxx"
 
+#include "glew.detail/wrapper.hxx"
+
 namespace wonder_rabbit_project
 {
   namespace wonderland
@@ -16,6 +18,7 @@ namespace wonder_rabbit_project
       namespace glew
       {
         struct glew_t final
+          : public wrapper_t
         {
             using this_type = glew_t;
 
