@@ -42,16 +42,24 @@ void main(void)
     + point_light_quadratic_attenuation0 * light0_distance * light0_distance
     );
   
-  float diffuse_factor = dot( light0_direction, normal );
-  gl_FragColor = vec4( ambient, transparent );
+  float diffuse_factor = max( dot( light0_direction, normal ), 0.0 );
+  gl_FragColor.rgb = ambient;
   
   if ( diffuse_factor > 0.0 )
   {
     vec3 view_direction = normalize( -var_position );
+    
+    // reflrect
     vec3 reflection_direction = reflect( -light0_direction, normal );
-    float specular_factor = pow( max( dot( view_direction, reflection_direction ), 1.0 ), reflective );
-    gl_FragColor += calc_final_diffuse() * diffuse_factor * attenuation + vec4( specular, transparent ) * specular_factor * attenuation;
+    float specular_factor = pow( max( dot( view_direction, reflection_direction ), 0.0000001 ), reflective );
+    
+    // half
+    //vec3 lv_half = normalize( light0_direction + view_direction );
+    //float specular_factor = pow( max( dot( normal, lv_half), 0.0000001 ), reflective );
+    
+    gl_FragColor.rgb += ( calc_final_diffuse().rgb * diffuse_factor + specular * specular_factor ) * attenuation;
   }
+  gl_FragColor.a = transparent;
 }
 
 vec4 calc_final_diffuse()
