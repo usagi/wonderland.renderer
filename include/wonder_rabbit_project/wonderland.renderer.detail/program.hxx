@@ -55,8 +55,14 @@ namespace wonder_rabbit_project
             , _finalizer( std::move( o._finalizer ) )
           { }
 
-          this_type& operator=( const this_type& ) = delete;
-          this_type& operator=( this_type && )     = delete;
+          this_type& operator=( const this_type& t ) = delete;
+          this_type& operator=( this_type && t )
+          {
+            _program = std::move( t._program );
+            _finalizer = std::move( t._finalizer );
+            t.cancel();
+            return *this;
+          }
 
           auto operator==( const program_t& p ) const -> bool
           { return _program == p._program; }
