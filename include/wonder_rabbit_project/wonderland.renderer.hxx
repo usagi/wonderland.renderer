@@ -37,6 +37,25 @@ namespace wonder_rabbit_project
         bool _shadow;
         std::unique_ptr< renderer::program_t > _shadow_mapping_program;
         
+        struct draw_params_t
+        {
+          model_t& model;
+          const glm::mat4 world_transformation;
+          const model::animation_states_t animation_states;
+          
+          draw_params_t
+          ( model_t& model_
+          , const glm::mat4& world_transformation_
+          , const model::animation_states_t& animation_states_
+          )
+            : model( model_ )
+            , world_transformation( world_transformation_ )
+            , animation_states( animation_states_ )
+          { }
+        };
+        
+        std::list< draw_params_t > _draw_queue;
+        
         auto _create_shadow_mapping_program() -> void
         {
           _shadow_mapping_program.reset( new renderer::program_t() );
@@ -203,16 +222,12 @@ namespace wonder_rabbit_project
           return { [ ]{ glew::wrapper_t::use_program(); } };
         }
         
-        inline auto draw
-        ( model_t& m
-        , const glm::mat4& world_transformation = glm::mat4( 1.0f )
-        , const model::animation_states_t& animation_states = { }
-        )
+        auto _draw( const draw_params_t& draw_params )
           -> void
         {
           const auto wv
             = _camera.view_transformation()
-            * world_transformation
+            * draw_params.world_transformation
             ;
             
           const auto wvp = _projection_transformation * wv;
@@ -221,11 +236,19 @@ namespace wonder_rabbit_project
           
           uniform( program_id, "world_view_projection_transformation", wvp );
           uniform( program_id, "world_view_transformation", wv );
-          uniform( program_id, "world_transformation", world_transformation );
+          uniform( program_id, "world_transformation", draw_params.world_transformation );
           uniform( program_id, "view_direction", _camera.view_direction() );
           
-          m.draw( animation_states );
+          draw_params.model.draw( draw_params.animation_states );
         }
+        
+        auto draw
+        ( model_t& model
+        , const glm::mat4& world_transformation = glm::mat4( 1.0f )
+        , const model::animation_states_t& animation_states = { }
+        )
+          -> void
+        { _draw_queue.emplace_back( model, world_transformation, animation_states ); }
         
         template < class ... Ts >
         auto default_lights( const Ts& ... ls )
@@ -281,18 +304,30 @@ namespace wonder_rabbit_project
           throw std::logic_error( "default program is not set yet." );
         }
         
-        auto invoker() const
-          -> std::array< destruct_invoker_t, 2 >
+        auto invoker()
+          -> std::array< destruct_invoker_t, 3 >
         { return invoker( _default_program.get() ); }
         
-        auto invoker( const renderer::program_t& p ) const
-          -> std::array< destruct_invoker_t, 2 >
+        auto _invoke_draw() -> void
+        {
+          for ( const auto& draw_params : _draw_queue )
+            _draw( draw_params );
+          _draw_queue.clear();
+        }
+        
+        auto invoker( const renderer::program_t& p )
+          -> std::array< destruct_invoker_t, 3 >
         {
           clear();
           auto rf = this -> flusher();
           auto rp = this -> use_program( p );
           activate_lights();
-          return {{ std::move( rf ) , std::move( rp ) }};
+          return
+          { { std::move( rf )
+            , std::move( rp )
+            , destruct_invoker_t( [ this ]{ _invoke_draw(); } )
+            }
+          };
         }
         
         inline auto flusher() const -> destruct_invoker_t
