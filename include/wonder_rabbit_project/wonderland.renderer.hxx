@@ -305,6 +305,19 @@ namespace wonder_rabbit_project
       template<>
       auto renderer_t::create_program_from_embedded< shader::cartoon >() -> renderer::program_t
       { return create_program( create_shader_from_embedded< vertex_shader_t, shader::cartoon >(), create_shader_from_embedded< fragment_shader_t, shader::cartoon >() ); }
+      
+      // specialize to shadow_mapping
+      template<>
+      auto renderer_t::create_shader_from_embedded< vertex_shader_t, shader::shadow_mapping >() -> vertex_shader_t
+      { return create_shader< vertex_shader_t >( shader::shadow_mapping::vs_source() ); }
+      
+      template<>
+      auto renderer_t::create_shader_from_embedded< fragment_shader_t, shader::shadow_mapping >() -> fragment_shader_t
+      { return create_shader< fragment_shader_t >( shader::shadow_mapping::fs_source() ); }
+      
+      template<>
+      auto renderer_t::create_program_from_embedded< shader::shadow_mapping >() -> renderer::program_t
+      { return create_program( create_shader_from_embedded< vertex_shader_t, shader::shadow_mapping >(), create_shader_from_embedded< fragment_shader_t, shader::shadow_mapping >() ); }
     }
   }
 }
