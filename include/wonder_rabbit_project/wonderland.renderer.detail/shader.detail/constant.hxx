@@ -16,8 +16,6 @@ namespace wonder_rabbit_project
         { constant() = delete;
         public:
           
-          static constexpr unsigned count_of_textures = 1;
-          
           static auto vs_source() -> std::string
           { return 
             #include "constant.hxx.vertex.glsl"

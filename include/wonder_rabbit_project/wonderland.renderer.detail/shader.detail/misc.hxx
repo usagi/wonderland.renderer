@@ -9,6 +9,7 @@ namespace wonder_rabbit_project
       namespace shader
       {
         constexpr unsigned max_bones = 48;
+        constexpr unsigned count_of_textures = 1;
       }
     }
   }

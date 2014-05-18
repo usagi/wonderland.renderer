@@ -8,8 +8,10 @@
 #include "../glew.detail/c.hxx"
 #include "../glew.detail/gl_type.hxx"
 #include "../glew.detail/error.hxx"
+#include "../glew.detail/wrapper.hxx"
 
 #include "../stblib.hxx"
+#include "../shader.detail/misc.hxx"
 
 // assimp::Importer
 #include <assimp/Importer.hpp>
@@ -261,11 +263,11 @@ namespace wonder_rabbit_project
 #undef WRP_TMP
             }
             
-            if ( not _texblends.empty() )
             {
-              const auto location_of_texblends = glew::c::glGetUniformLocation( program_id, "texblends" );
-              if ( location_of_texblends not_eq -1 )
-                glew::c::glUniform1fv( location_of_texblends, _texblends.size(), _texblends.data() );
+              std::array< float, shader::count_of_textures > texblends;
+              std::copy( std::begin( _texblends ), std::end( _texblends), texblends.begin() );
+              
+              glew::wrapper_t::uniform( program_id, "texblends", texblends );
             }
             
             for ( glew::gl_type::GLuint n = 0u; n < _texture_ids.size(); ++n )

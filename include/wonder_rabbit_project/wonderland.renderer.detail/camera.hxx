@@ -5,6 +5,7 @@
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace wonder_rabbit_project
 {
@@ -60,6 +61,17 @@ namespace wonder_rabbit_project
         auto target() const -> const glm::vec3& { return _target; }
         auto up    () const -> const glm::vec3& { return _up; }
         
+        auto eye_from_orbit_of_target( float theta, float phi, float distance )
+          -> void
+        {
+          eye
+          ( ( glm::mat4_cast( glm::quat( glm::vec3( phi, theta, 0.0f ) ) )
+            * glm::scale( glm::mat4(), glm::vec3( 0.0f, 0.0f, distance ) )
+            * glm::vec4( 0.0f, 0.0f, 1.0f, 1.0f )
+            ).xyz()
+          );
+        }
+        
         auto view_transformation() -> glm::mat4
         {
           if ( _changed )
@@ -69,6 +81,10 @@ namespace wonder_rabbit_project
           }
           return _view_transformation_cache;
         }
+        
+        auto view_direction()
+          -> glm::vec3 
+        { return glm::normalize( _eye - _target ); }
         
       };
       
