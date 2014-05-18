@@ -177,16 +177,19 @@ namespace wonder_rabbit_project
         )
           -> void
         {
-          const auto wvp
-            = _projection_transformation
-            * _camera.view_transformation()
+          const auto wv
+            = _camera.view_transformation()
             * world_transformation
             ;
+            
+          const auto wvp = _projection_transformation * wv;
           
           const auto program_id = current_program();
           
           uniform( program_id, "world_view_projection_transformation", wvp );
+          uniform( program_id, "world_view_transformation", wv );
           uniform( program_id, "world_transformation", world_transformation );
+          uniform( program_id, "view_direction", _camera.view_direction() );
           
           m.draw( animation_states );
         }
@@ -290,6 +293,18 @@ namespace wonder_rabbit_project
       auto renderer_t::create_program_from_embedded< shader::phong >() -> renderer::program_t
       { return create_program( create_shader_from_embedded< vertex_shader_t, shader::phong >(), create_shader_from_embedded< fragment_shader_t, shader::phong >() ); }
       
+      // specialize to cartoon
+      template<>
+      auto renderer_t::create_shader_from_embedded< vertex_shader_t, shader::cartoon >() -> vertex_shader_t
+      { return create_shader< vertex_shader_t >( shader::cartoon::vs_source() ); }
+      
+      template<>
+      auto renderer_t::create_shader_from_embedded< fragment_shader_t, shader::cartoon >() -> fragment_shader_t
+      { return create_shader< fragment_shader_t >( shader::cartoon::fs_source() ); }
+      
+      template<>
+      auto renderer_t::create_program_from_embedded< shader::cartoon >() -> renderer::program_t
+      { return create_program( create_shader_from_embedded< vertex_shader_t, shader::cartoon >(), create_shader_from_embedded< fragment_shader_t, shader::cartoon >() ); }
     }
   }
 }

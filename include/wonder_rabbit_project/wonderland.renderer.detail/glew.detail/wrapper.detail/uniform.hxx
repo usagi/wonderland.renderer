@@ -76,6 +76,10 @@ namespace wonder_rabbit_project
           static inline auto uniform( gl_type::GLint location, const glm::vec1& value) -> void
           { c::glUniform1f( location, value.x ); }
           
+          template < std::size_t array_size >
+          static inline auto uniform( gl_type::GLint location, const std::array< float, array_size >& values) -> void
+          { c::glUniform1fv( location, array_size, values.data() ); }
+          
           static inline auto uniform( gl_type::GLint location, const std::vector<float>& values) -> void
           { c::glUniform1fv( location, values.size(), values.data() ); }
           
