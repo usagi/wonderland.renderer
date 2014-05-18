@@ -44,25 +44,27 @@ void main(void)
   float light0_distance = length( light0_direction );
   light0_direction = normalize( light0_direction );
   
+  float edge_factor = max( dot( view_direction, var_normal ), 0.0 );
+  
   float attenuation = 1.0 /
     ( point_light_constant_attenuation0
     + point_light_linear_attenuation0 * light0_distance
     + point_light_quadratic_attenuation0 * light0_distance * light0_distance
     );
   
-  float diffuse_factor = max( dot( light0_direction, normal ), 0.0 );
-
+  float diffuse_factor = dot( light0_direction, normal );
+  
   vec4 hsva = vec4( 0.0,  0.0,  0.0,  1.0 );
   
   if ( diffuse_factor > 0.0 )
   {
     // reflrect
     vec3 reflection_direction = reflect( -light0_direction, normal );
-    float specular_factor = pow( max( dot( view_direction, reflection_direction ), 1.0e-10 ), reflective );
+    float specular_factor = pow( max( dot( view_direction, reflection_direction ), 0.0000001 ), reflective );
     
     // half
     //vec3 lv_half = normalize( light0_direction + view_direction );
-    //float specular_factor = pow( max( dot( normal, lv_half), 1.0e-10 ), reflective );
+    //float specular_factor = pow( max( dot( normal, lv_half), 0.0000001 ), reflective );
     
     vec4 hsva_diffuse = hsva_calc_diffuse();
     hsva_diffuse.z *= diffuse_factor;
@@ -79,9 +81,21 @@ void main(void)
   
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( ambient  ) );
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( emissive ) );
+
+  vec3 hsv = from_rgb_to_hsv( gl_FragColor.rgb );
+  
+  hsva.xyz = vec3
+  ( float(int( hsva.x * 16.0 )) / 16.0
+  , float(int( hsva.y * 16.0 )) / 16.0
+  , float(int( hsva.z * 3.0 )) / 3.0
+  );
+
+  if ( pow( edge_factor, 4.0 ) < 0.10 )
+    hsva.z *= 0.20;
   
   gl_FragColor = from_hsva_to_rgba( hsva );
 }
+
 
 vec3 hsv_add( vec3 a, vec3 b )
 {

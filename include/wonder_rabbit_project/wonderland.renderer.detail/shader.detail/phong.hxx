@@ -17,8 +17,6 @@ namespace wonder_rabbit_project
         { phong() = delete;
         public:
           
-          static constexpr unsigned count_of_textures = 1;
-          
           static auto vs_source() -> std::string
           { return 
             #include "phong.hxx.vertex.glsl"

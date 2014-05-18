@@ -4,21 +4,21 @@ Format Text Ver 1.0
 Scene {
 	pos 0.0000 0.0000 1500.0000
 	lookat 0.0000 0.0000 0.0000
-	head 5.5064
-	pich 0.3808
+	head 7.2364
+	pich 0.2608
 	bank 0.0000
 	ortho 0
 	zoom2 5.0000
 	amb 0.250 0.250 0.250
 	dirlights 1 {
 		light {
-			dir 0.408 0.408 0.816
+			dir 0.137 0.032 0.990
 			color 1.000 1.000 1.000
 		}
 	}
 }
 Material 1 {
-	"mat1" shader(3) vcol(1) col(1.000 1.000 1.000 1.000) dif(1.000) amb(0.500) emi(0.000) spc(0.500) power(15.00)
+	"mat1" shader(3) vcol(1) col(1.000 1.000 1.000 1.000) dif(1.000) amb(0.000) emi(0.000) spc(0.000) power(0.00)
 }
 Object "obj1" {
 	depth 0

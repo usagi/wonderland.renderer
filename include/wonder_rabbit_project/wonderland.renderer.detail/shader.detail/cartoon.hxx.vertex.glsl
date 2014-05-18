@@ -27,7 +27,6 @@ varying vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
 uniform mat4 world_view_projection_transformation;
 uniform mat4 world_transformation;
 uniform mat4 bones[ )" + std::to_string( max_bones ) + u8R"( ];
-uniform float texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
 
 void main(void)
 {

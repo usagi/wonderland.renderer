@@ -804,7 +804,7 @@ Object "wall_front" {
 	scale 1.000000 1.000000 1.000000
 	rotation 0.000000 0.000000 0.000000
 	translation 0.000000 0.000000 0.000000
-	visible 0
+	visible 15
 	locking 1
 	shading 1
 	facet 59.5
@@ -834,7 +834,7 @@ Object "wall_front_side" {
 	scale 1.000000 1.000000 1.000000
 	rotation 0.000000 0.000000 0.000000
 	translation 0.000000 0.000000 0.000000
-	visible 0
+	visible 15
 	locking 1
 	shading 1
 	facet 59.5

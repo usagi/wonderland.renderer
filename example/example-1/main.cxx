@@ -17,9 +17,14 @@ auto main()
 try
 {
   std::cout
-    << "[Home]/[End] key or mouse [Wheel]: camera zooming.\n"
+    << "[Home]/[End] key or mouse [Wheel]: camera distance forward/backward.\n"
+    << "[up]/[left]/[right]/[bottom]: control camera phi and theta.\n"
+    << "[shift] + [Home]/[End] key or mouse [Wheel]: light distance forward/backward.\n"
+    << "[shift] + [up]/[left]/[right]/[bottom]: control light phi and theta.\n"
+    << "[q]/[e]: camera eye auto orbitation on/off."
     << "[1]: shader program change to Wonderland.Renderer embedded <constant> shader program.\n"
     << "[2]: shader program change to Wonderland.Renderer embedded <phong> shader program.\n"
+    << "[3]: shader program change to Wonderland.Renderer embedded <cartoon> shader program.\n"
     << "\n"
     ;
   
@@ -50,6 +55,7 @@ try
   //   auto my_program = renderer -> create_program( my_shader0, my_shader1, my_shader2, ... );
   auto program_constant = renderer -> create_program_from_embedded< shader::constant >();
   auto program_phong    = renderer -> create_program_from_embedded< shader::phong    >();
+  auto program_cartoon  = renderer -> create_program_from_embedded< shader::cartoon  >();
   
   // create light with effect:
   //  set default lights automatically
@@ -58,8 +64,9 @@ try
   auto light0 = renderer -> create_light<point_light_t>();
   
   // load models with assimp currently
-  auto model0 = renderer -> create_model( "assets/vertex-colored-cube.x" );
-  auto model1 = renderer -> create_model( "assets/n175Anim.x" );
+  auto model0 = renderer -> create_model( "assets/like_a_cornell_box.x" );
+  auto model1 = renderer -> create_model( "assets/vertex-colored-cube.x" );
+  auto model2 = renderer -> create_model( "assets/n175Anim.x" );
   
   struct model_instance_state_t
   {
@@ -71,11 +78,11 @@ try
   std::array< model_instance_state_t, 9 > model_instance_states;
   
   {
-    model_instance_states[0].pmodel = &model0;
+    model_instance_states[0].pmodel = &model1;
     model_instance_states[0].world_transformation
-      = glm::scale( glm::mat4(), glm::vec3( 0.1f ) );
+      = glm::translate( glm::mat4(), glm::vec3( 0.0f, 80.0f, 0.0f ) );
       
-    auto animation_names = model1.animation_names();
+    auto animation_names = model2.animation_names();
     
     for ( const auto& animation_name : animation_names )
       std::cout << "has animation: " << animation_name << std::endl;
@@ -84,7 +91,7 @@ try
     {
       auto& s = model_instance_states[ n ];
       
-      s.pmodel = &model1;
+      s.pmodel = &model2;
       
       if ( ! animation_names.empty() )
       {
@@ -94,14 +101,14 @@ try
       
       s.world_transformation = glm::scale( glm::mat4(), glm::vec3( 25.f ) );
       switch ( n )
-      { case 1: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 0.0f,  0.0f ) ); break;
-        case 2: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 0.0f,  0.0f ) ); break;
+      { case 1: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 1.0f,  0.0f ) ); break;
+        case 2: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 1.0f,  0.0f ) ); break;
         case 3: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 0.0f,  5.0f ) ); break;
-        case 4: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  0.0f, 0.0f,  5.0f ) ); break;
-        case 5: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 0.0f,  5.0f ) ); break;
-        case 6: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 0.0f, -5.0f ) ); break;
+        case 4: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  0.0f, 1.0f,  5.0f ) ); break;
+        case 5: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 1.0f,  5.0f ) ); break;
+        case 6: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 1.0f, -5.0f ) ); break;
         case 7: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  0.0f, 0.0f, -5.0f ) ); break;
-        case 8: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 0.0f, -5.0f ) );
+        case 8: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 1.0f, -5.0f ) );
       }
     }
   }
@@ -116,8 +123,8 @@ try
   {
     const auto fov_y = glm::pi<float>() / 4.0f;
     constexpr auto screen_aspect_ratio = float( screen_width ) / float( screen_height );
-    constexpr auto near_clip =    0.1f;
-    constexpr auto far_clip  = 1000.0f;
+    constexpr auto near_clip = 1.0e-3f;
+    constexpr auto far_clip  = 1.0e+6f;
     renderer -> projection_transformation( glm::perspective( fov_y, screen_aspect_ratio, near_clip, far_clip ) );
   }
   
@@ -127,11 +134,17 @@ try
     , &light0
     , &program_constant
     , &program_phong
+    , &program_cartoon
     ]
   {
-    static auto counter = 0.0f;
-    
-    static auto distance = 300.0f;
+    static auto camera_theta = glm::half_pi< float >();
+    static auto camera_phi   = glm::half_pi< float >() * -0.5f;
+    static auto camera_distance = 300.0f;
+    static auto camera_auto_orbitation = false;
+    static auto light_theta = glm::half_pi< float >();
+    static auto light_phi   = glm::half_pi< float >() * -0.5f;
+    static auto light_distance = 1000.0f;
+    static auto light_auto_orbitation = false;
     
     for ( auto& model_instance_state : model_instance_states )
       model_instance_state.animation_state += animation_state_t::fseconds( 1.0f / 30.0f );
@@ -139,32 +152,66 @@ try
     const auto wheel = subsystem -> pointing_states_wheel();
     const auto key_home = subsystem -> keyboard_state< key::home >();
     const auto key_end  = subsystem -> keyboard_state< key::end  >();
+    const auto shift = subsystem -> keyboard_state< key::left_shift >() || subsystem -> keyboard_state< key::right_shift >();
     
+    // camera change
     if ( wheel.y > 0 or key_home )
-      distance -= 10.0f;
+      ( shift ? light_distance : camera_distance ) -= 10.0f;
     else if ( wheel.y < 0 or key_end )
-      distance += 10.0f;
+      ( shift ? light_distance : camera_distance ) += 10.0f;
     
-    // camera as view transformation generator
+    if ( subsystem -> keyboard_state< key::left_arrow >() )
+      ( shift ? light_theta : camera_theta ) -= 0.05f;
+    if ( subsystem -> keyboard_state< key::right_arrow >() )
+      ( shift ? light_theta : camera_theta ) += 0.05f;
+    if ( subsystem -> keyboard_state< key::up_arrow >() )
+      ( shift ? light_phi : camera_phi ) -= 0.05f;
+    if ( subsystem -> keyboard_state< key::down_arrow >() )
+      ( shift ? light_phi : camera_phi ) += 0.05f;
+    
     auto& camera = renderer -> camera();
-    camera.eye   ( { distance * std::sin( counter ), 100.0f, distance * std::cos( counter ) } );
     camera.target( { 0.0f, 25.0f, 0.0f } );
+    camera.eye_from_orbit_of_target( camera_theta, camera_phi, camera_distance );
     camera.up    ( { 0.0f,  1.0f, 0.0f } );
     
-    light0.position = glm::vec3( distance * std::sin( counter ), distance * std::cos( counter ), distance );
+    // light change
+    light0.position = ( glm::mat4_cast( glm::quat( glm::vec3( light_phi, light_theta, 0.0f ) ) ) * glm::vec4( 0.0f, 0.0f, light_distance, 1.0f ) ).xyz();
     
-    if ( ( renderer -> default_program() != program_constant ) and subsystem -> keyboard_state< key::_1 >() )
+    // program change
+    const auto program_change =
+    [ &renderer, &subsystem ]
+    ( const program_t& program, const key_code_t key, const std::string& name )
+      -> bool
     {
-      renderer -> default_program( program_constant );
-      std::cout << "change to Wonderland.Renderer embedded <constant> shader program.\n";
+      if ( ( renderer -> default_program() != program ) and subsystem -> keyboard_state( key ) )
+      {
+        renderer -> default_program( program );
+        std::cout << "change to Wonderland.Renderer embedded < " << name << " > shader program.\n";
+        return true;
+      }
+      return false;
+    };
+    
+    program_change( program_constant, key::_1, "constant" ) ? 0 :
+    program_change( program_phong   , key::_2, "phong"    ) ? 0 :
+    program_change( program_cartoon , key::_3, "cartoon"  )
+    ;
+    
+    if ( ( not camera_auto_orbitation ) and subsystem -> keyboard_state< key::q >() )
+    {
+      camera_auto_orbitation = true;
+      std::cout << "camera auto orbitation on.\n";
     }
-    else if ( ( renderer -> default_program() != program_phong ) and subsystem -> keyboard_state< key::_2 >() )
+    else if ( ( camera_auto_orbitation ) and subsystem -> keyboard_state< key::e >() )
     {
-      renderer -> default_program( program_phong );
-      std::cout << "change to Wonderland.Renderer embedded <phong> shader program.\n";
+      camera_auto_orbitation = false;
+      std::cout << "camera auto orbitation off.\n";
     }
     
-    counter += 0.01f;
+    if ( camera_auto_orbitation )
+      camera_theta += 0.01f;
+    if ( light_auto_orbitation )
+      light_theta += 0.01f;
   }
   );
   
@@ -178,6 +225,7 @@ try
   
   subsystem -> render_functors.emplace_front
   ( [ renderer
+    , &model0
     , &model_instance_states
     ]
   {
@@ -191,6 +239,8 @@ try
     //  automatic set
     //   1. uniform(world_view_projection_transformation) if shader program has uniform world_view_projection_transformation
     //   2. uniform(world_transformation) if shader program has uniform world_transformation
+    
+    renderer -> draw( model0 , glm::mat4(), { } );
     
     for ( const auto& model_instance_state : model_instance_states )
       renderer -> draw( *model_instance_state.pmodel , model_instance_state.world_transformation, { model_instance_state.animation_state } );
