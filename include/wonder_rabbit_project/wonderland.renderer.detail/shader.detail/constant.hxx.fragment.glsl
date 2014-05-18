@@ -51,13 +51,13 @@ vec4 hsva_add( vec4 a, vec4 b )
 
 vec3 from_rgb_to_hsv( vec3 rgb )
 {
-  vec4 K = vec4( 0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0 );
-  vec4 p = mix( vec4( rgb.bg, K.wz ), vec4( rgb.gb, K.xy ), step( rgb.b, rgb.g ) );
-  vec4 q = mix( vec4( p.xyw, rgb.r ), vec4( rgb.r, p.yzx ), step( p.x, rgb.r ) );
+    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    vec4 p = rgb.g < rgb.b ? vec4(rgb.bg, K.wz) : vec4(rgb.gb, K.xy);
+    vec4 q = rgb.r < p.x ? vec4(p.xyw, rgb.r) : vec4(rgb.r, p.yzx);
 
-  float d = q.x - min( q.w, q.y );
-  float e = 1.0e-10;
-  return vec3( abs( q.z + ( q.w - q.y ) / ( 6.0 * d + e ) ), d / ( q.x + e ), q.x );
+    float d = q.x - min(q.w, q.y);
+    float e = 1.0e-10;
+    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
 }
 
 vec3 from_hsv_to_rgb( vec3 hsv )
@@ -82,7 +82,7 @@ vec4 hsva_calc_diffuse()
   vec4 result;
   
   if ( ! is_nan( var_color.x ) )
-    result = vec4( from_rgb_to_hsv( var_color.rgb ), var_color.a );
+    result = from_rgba_to_hsva( var_color );
   else
     result = vec4( from_rgb_to_hsv( diffuse ), transparent );
   

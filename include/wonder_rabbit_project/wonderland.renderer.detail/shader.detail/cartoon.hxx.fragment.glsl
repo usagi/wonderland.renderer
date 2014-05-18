@@ -145,7 +145,7 @@ vec4 hsva_calc_diffuse()
   vec4 result;
   
   if ( ! is_nan( var_color.x ) )
-    result = vec4( from_rgb_to_hsv( var_color.rgb ), var_color.a );
+    result = from_rgba_to_hsva( var_color );
   else
     result = vec4( from_rgb_to_hsv( diffuse ), transparent );
   
