@@ -59,6 +59,9 @@ namespace wonder_rabbit_project
           // ルートノードの変形行列の逆行列（アニメーション適用で使用）
           glm::mat4 _global_inverse_transformation;
           
+          // シャドウ生成対象か
+          bool _shadow;
+          
           inline auto apply_animation_recursive
           ( const animation_states_t& animation_states
           , const node_t& node
@@ -133,6 +136,7 @@ namespace wonder_rabbit_project
           explicit model_t( const aiScene* scene, const std::string& path_prefix = "", const bool transpose_node = false )
             : _node( scene -> mRootNode, _animations, transpose_node )
             , _global_inverse_transformation( glm::inverse( helper::to_glm_mat4( scene -> mRootNode -> mTransformation ) ) )
+            , _shadow( true )
           {
             // シーンからマテリアル群を _materials に生成
             _materials.reserve( scene -> mNumMaterials );
@@ -206,6 +210,9 @@ namespace wonder_rabbit_project
               );
             }
           }
+          
+          auto shadow( const bool shadow_ ) -> void { _shadow = shadow_; }
+          auto shadow() -> bool { return _shadow; }
           
           // 描画
           auto draw( const animation_states_t& animation_states = animation_states_t() )
