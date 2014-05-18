@@ -34,6 +34,37 @@ namespace wonder_rabbit_project
         boost::optional< const renderer::program_t& > _default_program;
         std::list< const light_t* > _default_lights;
         
+        bool _shadow;
+        std::unique_ptr< renderer::program_t > _shadow_mapping_program;
+        
+        auto _create_shadow_mapping_program() -> void
+        {
+          _shadow_mapping_program.reset( new renderer::program_t() );
+          _shadow_mapping_program -> attach( create_shader< vertex_shader_t   >( shader::shadow_mapping::vs_source() ) );
+          _shadow_mapping_program -> attach( create_shader< fragment_shader_t >( shader::shadow_mapping::fs_source() ) );
+          _shadow_mapping_program -> link();
+        }
+        
+        auto _shadow_on() -> void
+        {
+          if ( not _shadow_mapping_program )
+            try
+            { _create_shadow_mapping_program(); }
+            catch ( ... )
+            {
+              std::cerr << "warn: cannot use shadow program. Wonderland.Renderer shadow feature to off.";
+              _shadow_off();
+              return;
+            }
+          
+          _shadow = true;
+        }
+        
+        auto _shadow_off() -> void
+        {
+          _shadow = false;
+        }
+        
       public:
         
         explicit renderer_t()
@@ -46,6 +77,8 @@ namespace wonder_rabbit_project
           depth_test();
           if ( multisample_capability() )
             multisample();
+          
+          shadow();
         }
         
         template < class T_type, class ... T_prams >
@@ -265,6 +298,8 @@ namespace wonder_rabbit_project
         inline auto flusher() const -> destruct_invoker_t
         { return { [ ]{ glew::wrapper_t::flush(); } }; }
         
+        auto shadow( bool enable = true) -> void
+        { enable ? _shadow_on() : _shadow_off(); }
       };
       
       // specialize to constant
@@ -318,6 +353,7 @@ namespace wonder_rabbit_project
       template<>
       auto renderer_t::create_program_from_embedded< shader::shadow_mapping >() -> renderer::program_t
       { return create_program( create_shader_from_embedded< vertex_shader_t, shader::shadow_mapping >(), create_shader_from_embedded< fragment_shader_t, shader::shadow_mapping >() ); }
+      
     }
   }
 }
