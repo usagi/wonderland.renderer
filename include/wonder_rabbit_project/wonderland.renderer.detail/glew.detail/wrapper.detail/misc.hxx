@@ -20,15 +20,15 @@ namespace wonder_rabbit_project
         {
           static inline auto flush()
             -> void
-          { glew::c::glFlush(); }
+          { c::glFlush(); }
           
           static inline auto clear_color( const glm::vec4& color )
             -> void
-          { glew::c::glClearColor( color.r, color.g, color.b, color.a ); }
+          { c::glClearColor( color.r, color.g, color.b, color.a ); }
           
           static inline auto clear_color( const glm::vec3& color )
             -> void
-          { glew::c::glClearColor( color.r, color.g, color.b, 1.0f ); }
+          { c::glClearColor( color.r, color.g, color.b, 1.0f ); }
           
           static inline auto clear_color( const glm::vec1& color )
             -> void
@@ -36,16 +36,16 @@ namespace wonder_rabbit_project
           
           static inline auto clear_color( const float color )
             -> void
-          { glew::c::glClearColor( color, color, color, 1.0f ); }
+          { c::glClearColor( color, color, color, 1.0f ); }
           
           static inline auto clear
-          ( glew::gl_type::GLbitfield flag
+          ( gl_type::GLbitfield flag
             = GL_COLOR_BUFFER_BIT
             | GL_DEPTH_BUFFER_BIT
             | GL_STENCIL_BUFFER_BIT
           )
             -> void
-          { glew::c::glClear( glew::gl_type::GLint( flag ) ); }
+          { c::glClear( glew::gl_type::GLint( flag ) ); }
           
         };
       }
