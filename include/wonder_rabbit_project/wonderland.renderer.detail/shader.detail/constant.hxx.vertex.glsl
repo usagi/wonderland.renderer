@@ -20,7 +20,6 @@ attribute vec4 bone_weights;
 
 varying vec4 var_color;
 varying vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
-varying float var_texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
 
 uniform mat4 world_view_projection_transformation;
 uniform mat4 world_transformation;
@@ -51,8 +50,5 @@ void main(void)
   //  var_texcoords[ 5 ] = texcoord5;
   //  var_texcoords[ 6 ] = texcoord6;
   //  var_texcoords[ 7 ] = texcoord7;
-  
-  for ( int n = 0; n < )" + std::to_string( count_of_textures ) + u8R"(; ++n )
-    var_texblends[ n ] = texblends[ n ];
 }
 )"
