@@ -233,7 +233,7 @@ try
     //  1. clear
     //  2. return { flusher(), use_program( p ) }
     //    use default program if call with no parameter.
-    auto rendering_invoker = renderer -> invoke();
+    auto rendering_invoker = renderer -> invoker();
     
     // draw model with world transformation
     //  automatic set

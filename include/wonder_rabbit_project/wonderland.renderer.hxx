@@ -281,11 +281,11 @@ namespace wonder_rabbit_project
           throw std::logic_error( "default program is not set yet." );
         }
         
-        auto invoke() const
+        auto invoker() const
           -> std::array< destruct_invoker_t, 2 >
-        { return invoke( _default_program.get() ); }
+        { return invoker( _default_program.get() ); }
         
-        auto invoke( const renderer::program_t& p ) const
+        auto invoker( const renderer::program_t& p ) const
           -> std::array< destruct_invoker_t, 2 >
         {
           clear();
