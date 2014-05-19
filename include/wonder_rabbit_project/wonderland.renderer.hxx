@@ -84,6 +84,58 @@ namespace wonder_rabbit_project
           _shadow = false;
         }
         
+        auto _invoke_draw() -> void
+        {
+          if ( _shadow )
+            for ( const auto& draw_params : _draw_queue )
+              _draw_shadow( draw_params );
+          
+          for ( const auto& draw_params : _draw_queue )
+            _draw( draw_params );
+          
+          _draw_queue.clear();
+        }
+        
+        auto _draw_shadow( const draw_params_t& draw_params )
+          -> void
+        {
+          const auto wv
+            = _camera.view_transformation()
+            * draw_params.world_transformation
+            ;
+            
+          const auto wvp = _projection_transformation * wv;
+          
+          const auto program_id = current_program();
+          
+          uniform( program_id, "world_view_projection_transformation", wvp );
+          uniform( program_id, "world_view_transformation", wv );
+          uniform( program_id, "world_transformation", draw_params.world_transformation );
+          uniform( program_id, "view_direction", _camera.view_direction() );
+          
+          draw_params.model.draw( draw_params.animation_states );
+        }
+        
+        auto _draw( const draw_params_t& draw_params )
+          -> void
+        {
+          const auto wv
+            = _camera.view_transformation()
+            * draw_params.world_transformation
+            ;
+            
+          const auto wvp = _projection_transformation * wv;
+          
+          const auto program_id = current_program();
+          
+          uniform( program_id, "world_view_projection_transformation", wvp );
+          uniform( program_id, "world_view_transformation", wv );
+          uniform( program_id, "world_transformation", draw_params.world_transformation );
+          uniform( program_id, "view_direction", _camera.view_direction() );
+          
+          draw_params.model.draw( draw_params.animation_states );
+        }
+        
       public:
         
         explicit renderer_t()
@@ -222,26 +274,6 @@ namespace wonder_rabbit_project
           return { [ ]{ glew::wrapper_t::use_program(); } };
         }
         
-        auto _draw( const draw_params_t& draw_params )
-          -> void
-        {
-          const auto wv
-            = _camera.view_transformation()
-            * draw_params.world_transformation
-            ;
-            
-          const auto wvp = _projection_transformation * wv;
-          
-          const auto program_id = current_program();
-          
-          uniform( program_id, "world_view_projection_transformation", wvp );
-          uniform( program_id, "world_view_transformation", wv );
-          uniform( program_id, "world_transformation", draw_params.world_transformation );
-          uniform( program_id, "view_direction", _camera.view_direction() );
-          
-          draw_params.model.draw( draw_params.animation_states );
-        }
-        
         auto draw
         ( model_t& model
         , const glm::mat4& world_transformation = glm::mat4( 1.0f )
@@ -307,13 +339,6 @@ namespace wonder_rabbit_project
         auto invoker()
           -> std::array< destruct_invoker_t, 3 >
         { return invoker( _default_program.get() ); }
-        
-        auto _invoke_draw() -> void
-        {
-          for ( const auto& draw_params : _draw_queue )
-            _draw( draw_params );
-          _draw_queue.clear();
-        }
         
         auto invoker( const renderer::program_t& p )
           -> std::array< destruct_invoker_t, 3 >
