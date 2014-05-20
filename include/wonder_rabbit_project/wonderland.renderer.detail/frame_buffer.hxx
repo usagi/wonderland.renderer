@@ -35,19 +35,26 @@ namespace wonder_rabbit_project
             : GL_COLOR_ATTACHMENT0;
         }
         
-        template < class T >
-        auto _texture( T texture ) -> void
+        template < typename glew::gl_type::GLenum T_target, typename glew::gl_type::GLenum T_internal_format >
+        auto _texture( std::shared_ptr< renderer::texture_t< T_target, T_internal_format > > texture )
+          -> void
         {
-          switch( T::target )
+          constexpr auto base_internal_format
+            = renderer::texture_t< T_target, T_internal_format >::base_internal_format;
+          
+          switch( T_target )
           {
             case GL_TEXTURE_1D:
-              frame_buffer_texture_1d< attachment( T::base_internal_format ) >( texture.texture_id() );
+              frame_buffer_texture_1d< attachment( base_internal_format ) >( texture -> texture_id() );
               break;
             case GL_TEXTURE_2D:
-              frame_buffer_texture_2d< attachment( T::base_internal_format ) >( texture.texture_id() );
+              frame_buffer_texture_2d< attachment( base_internal_format ) >( texture -> texture_id() );
               break;
             case GL_TEXTURE_3D:
-              frame_buffer_texture_3d< attachment( T::base_internal_format ) >( texture.texture_id() );
+              frame_buffer_texture_3d< attachment( base_internal_format ) >( texture -> texture_id() );
+              break;
+            default:
+              throw std::logic_error( "_texture: unsupported T::target type." );
           }
           glew::test_error();
         }
@@ -86,14 +93,14 @@ namespace wonder_rabbit_project
         template < class ... Ts >
         auto bind_textures( Ts ... textures ) -> void
         {
-          scoped_bind();
+          auto binding = scoped_bind();
           _bind_textures_bind( textures ... );
         }
         
-        template < class T >
-        auto bind_texture( T texture ) -> void
+        template < typename glew::gl_type::GLenum T_target, typename glew::gl_type::GLenum T_internal_format >
+        auto bind_texture( std::shared_ptr< renderer::texture_t< T_target, T_internal_format > > texture ) -> void
         {
-          scoped_bind();
+          auto binding = scoped_bind();
           _texture( texture );
           glew::test_error();
         }
