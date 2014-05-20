@@ -8,6 +8,8 @@
 #include "../glew.hxx"
 #include "light.hxx"
 
+#include "../glew.detail/wrapper.detail/uniform.hxx"
+
 namespace wonder_rabbit_project
 {
   namespace wonderland
@@ -16,40 +18,24 @@ namespace wonder_rabbit_project
     {
       
       class point_light_t
-        : public light_t
+        : public std::enable_shared_from_this< point_light_t >
+        , public light_t
+        , glew::uniform_t
       {
-        inline auto location( glew::gl_type::GLint program_id, const std::string& key ) const
-          -> glew::gl_type::GLuint
-        { return glew::c::glGetUniformLocation( program_id, ( key + std::to_string( id ) ).data() ); }
+      public:
+        using shared_t       = std::shared_ptr<       point_light_t >;
+        using const_shared_t = std::shared_ptr< const point_light_t >;
         
-        inline auto uniform( glew::gl_type::GLuint location, const glm::vec3& value ) const
-          -> void
-        {
-          if ( location not_eq -1 )
-            glew::c::glUniform3fv( location, 1, &value[0] );
-        }
-        
-        inline auto uniform( glew::gl_type::GLuint location, const float value ) const
-          -> void
-        {
-          if ( location not_eq -1 )
-            glew::c::glUniform1f( location, value );
-        }
-        
+      private:
         auto activate_impl( glew::gl_type::GLint program_id ) const
           -> void override
         {
-          const auto location_of_point_light_position = location( program_id, "point_light_position");
-          const auto location_of_point_light_color    = location( program_id, "point_light_color"   );
-          const auto location_of_point_light_constant_attenuation  = location( program_id, "point_light_constant_attenuation" );
-          const auto location_of_point_light_linear_attenuation    = location( program_id, "point_light_linear_attenuation" );
-          const auto location_of_point_light_quadratic_attenuation = location( program_id, "point_light_quadratic_attenuation" );
-          
-          uniform( location_of_point_light_position, position );
-          uniform( location_of_point_light_color, color );
-          uniform( location_of_point_light_constant_attenuation, constant_attenuation );
-          uniform( location_of_point_light_linear_attenuation, linear_attenuation );
-          uniform( location_of_point_light_quadratic_attenuation, quadratic_attenuation );
+          const auto id_string = std::to_string( id );
+          uniform( program_id, std::string( "point_light_position"              ) + id_string , position );
+          uniform( program_id, std::string( "point_light_color"                 ) + id_string , color    );
+          uniform( program_id, std::string( "point_light_constant_attenuation"  ) + id_string , constant_attenuation  );
+          uniform( program_id, std::string( "point_light_linear_attenuation"    ) + id_string , linear_attenuation    );
+          uniform( program_id, std::string( "point_light_quadratic_attenuation" ) + id_string , quadratic_attenuation );
         }
         
       public:

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <map>
 #include <unordered_map>
 #include <functional>
@@ -34,7 +35,13 @@ namespace wonder_rabbit_project
       namespace model
       {
         class model_t
+          : public std::enable_shared_from_this< model_t >
         {
+        public:
+          using shared_t       = std::shared_ptr<       model_t >;
+          using const_shared_t = std::shared_ptr< const model_t >;
+          
+        private:
           // アニメーションデータ
           std::unordered_map< std::string, animation_t > _animations;
           
@@ -263,7 +270,7 @@ namespace wonder_rabbit_project
           
           // ファイルからモデルデータを生成
           static auto create( const std::string& file_path, unsigned int importer_readfile_flags = default_importer_readfile_flags )
-          -> model_t
+          -> std::shared_ptr< model_t >
           {
             // Assimp::Importer ctor
             //  http://assimp.sourceforge.net/lib_html/class_assimp_1_1_importer.html#a2c207299ed05f1db1ad1e6dab005f719
@@ -319,7 +326,7 @@ namespace wonder_rabbit_project
             if ( not scene )
               throw std::runtime_error( i.GetErrorString() );
             
-            model_t r( scene, file_path.substr(0, file_path.find_last_of('/')), transpose_node );
+            const auto r = std::make_shared< model_t >( scene, file_path.substr(0, file_path.find_last_of('/')), transpose_node );
             
             i.FreeScene();
             
