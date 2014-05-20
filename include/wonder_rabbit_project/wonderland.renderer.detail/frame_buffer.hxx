@@ -4,6 +4,7 @@
 
 #include "glew.detail/c.hxx"
 #include "glew.detail/gl_type.hxx"
+#include "glew.detail/error.hxx"
 #include "glew.detail/wrapper.detail/frame_buffer.hxx"
 
 #include "texture.hxx"
@@ -41,14 +42,14 @@ namespace wonder_rabbit_project
           {
             case GL_TEXTURE_1D:
               frame_buffer_texture_1d< attachment( T::base_internal_format ) >( texture.texture_id() );
-              return;
+              break;
             case GL_TEXTURE_2D:
               frame_buffer_texture_2d< attachment( T::base_internal_format ) >( texture.texture_id() );
-              return;
+              break;
             case GL_TEXTURE_3D:
               frame_buffer_texture_3d< attachment( T::base_internal_format ) >( texture.texture_id() );
-              return;
           }
+          glew::test_error();
         }
         
         template < class T, class ... Ts >
@@ -70,10 +71,17 @@ namespace wonder_rabbit_project
         { return _frame_buffer_id; }
         
         auto bind() -> void
-        { bind_frame_buffer( _frame_buffer_id ); }
+        {
+          bind_frame_buffer( _frame_buffer_id );
+          glew::test_error();
+        }
         
         auto scoped_bind() -> destruct_invoker_t
-        { return scoped_bind_frame_buffer( _frame_buffer_id ); }
+        {
+          auto r = scoped_bind_frame_buffer( _frame_buffer_id );
+          glew::test_error();
+          return r;
+        }
         
         template < class ... Ts >
         auto bind_textures( Ts ... textures ) -> void
@@ -87,6 +95,7 @@ namespace wonder_rabbit_project
         {
           scoped_bind();
           _texture( texture );
+          glew::test_error();
         }
         
       };
