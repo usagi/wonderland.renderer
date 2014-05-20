@@ -17,6 +17,9 @@
 #include "wonderland.renderer.detail/program.hxx"
 #include "wonderland.renderer.detail/model.hxx"
 #include "wonderland.renderer.detail/light.hxx"
+#include "wonderland.renderer.detail/sampler.hxx"
+#include "wonderland.renderer.detail/frame_buffer.hxx"
+#include "wonderland.renderer.detail/texture.hxx"
 
 #include "wonderland.renderer.detail/shader.detail/all.hxx"
 
@@ -35,7 +38,13 @@ namespace wonder_rabbit_project
         std::list< const light_t* > _default_lights;
         
         bool _shadow;
-        std::unique_ptr< renderer::program_t > _shadow_mapping_program;
+        
+        using shadow_mapping_texture_t = renderer::texture2d_t< GL_DEPTH32F_STENCIL8 >;
+        
+        std::unique_ptr< renderer::program_t >      _shadow_mapping_program;
+        std::unique_ptr< shadow_mapping_texture_t > _shadow_mapping_texture;
+        std::unique_ptr< renderer::frame_buffer_t > _shadow_mapping_frame_buffer;
+        std::unique_ptr< renderer::sampler_t >      _shadow_mapping_sampler;
         
         struct draw_params_t
         {
@@ -56,7 +65,29 @@ namespace wonder_rabbit_project
         
         std::list< draw_params_t > _draw_queue;
         
-        auto _create_shadow_mapping_program() -> void
+        auto _create_shadow_mapping_buffer()
+          -> void
+        {
+          // create texture for shadow mapping
+          _shadow_mapping_texture.reset( new texture2d_t< GL_DEPTH32F_STENCIL8 >() );
+          _shadow_mapping_texture -> image_2d();
+          
+          // create frame buffer for shadow mapping
+          _shadow_mapping_frame_buffer.reset( new renderer::frame_buffer_t() );
+          _shadow_mapping_frame_buffer -> bind_texture( *_shadow_mapping_texture );
+          
+          // create sampler
+          _shadow_mapping_sampler.reset( new renderer::sampler_t() );
+          _shadow_mapping_sampler
+            -> parameter_wrap_st( GL_CLAMP_TO_EDGE )
+            -> parameter_min_mag_filter( GL_LINEAR )
+            -> parameter_compare_mode( GL_COMPARE_REF_TO_TEXTURE )
+            -> parameter_compare_func( GL_LESS )
+            ;
+        }
+        
+        auto _create_shadow_mapping_program()
+          -> void
         {
           _shadow_mapping_program.reset( new renderer::program_t() );
           _shadow_mapping_program -> attach( create_shader< vertex_shader_t   >( shader::shadow_mapping::vs_source() ) );
@@ -64,7 +95,8 @@ namespace wonder_rabbit_project
           _shadow_mapping_program -> link();
         }
         
-        auto _shadow_on() -> void
+        auto _shadow_on()
+          -> void
         {
           if ( not _shadow_mapping_program )
             try
@@ -79,12 +111,14 @@ namespace wonder_rabbit_project
           _shadow = true;
         }
         
-        auto _shadow_off() -> void
+        auto _shadow_off()
+          -> void
         {
           _shadow = false;
         }
         
-        auto _invoke_draw() -> void
+        auto _invoke_draw()
+          -> void
         {
           if ( _shadow )
             for ( const auto& draw_params : _draw_queue )
@@ -99,6 +133,11 @@ namespace wonder_rabbit_project
         auto _draw_shadow( const draw_params_t& draw_params )
           -> void
         {
+          //_shadow_mapping_program();
+          //_shadow_mapping_frame_buffer();
+          //_shadow_mapping_texture();
+          //_shadow_mapping_sampler();
+          /*
           const auto wv
             = _camera.view_transformation()
             * draw_params.world_transformation
@@ -114,6 +153,7 @@ namespace wonder_rabbit_project
           uniform( program_id, "view_direction", _camera.view_direction() );
           
           draw_params.model.draw( draw_params.animation_states );
+          */
         }
         
         auto _draw( const draw_params_t& draw_params )

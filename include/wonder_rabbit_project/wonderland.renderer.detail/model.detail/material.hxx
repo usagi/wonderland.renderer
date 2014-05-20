@@ -4,6 +4,7 @@
 
 #include <glm/vec3.hpp>
 #include <glm/gtx/vec1.hpp>
+#include <glm/gtc/constants.hpp>
 
 #include "../glew.detail/c.hxx"
 #include "../glew.detail/gl_type.hxx"
