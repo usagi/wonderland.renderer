@@ -6,6 +6,7 @@
 #include "../gl_type.hxx"
 #include "../../destruct_invoker.hxx"
 
+#include "get.hxx"
 #include "texture.hxx"
 
 namespace wonder_rabbit_project
@@ -18,6 +19,42 @@ namespace wonder_rabbit_project
       {
         struct frame_buffer_t
         {
+          
+          template < class T = void >
+          static inline auto check_frame_buffer_status()
+            -> void
+          {
+            if ( c::glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE )
+              throw std::runtime_error( "Frame buffer is not complete." );
+          }
+          
+          template < class T = void >
+          static inline auto draw_buffer( const gl_type::GLenum flag = GL_NONE )
+            -> void
+          { c::glDrawBuffer( flag ); }
+          
+          template < class T = void >
+          static inline auto scoped_draw_buffer( const gl_type::GLenum flag = GL_NONE )
+            -> destruct_invoker_t
+          {
+            const auto backup = get_t::get< GL_DRAW_BUFFER >();
+            draw_buffer( flag );
+            return destruct_invoker_t( [ backup ]{ draw_buffer( backup ); } );
+          }
+          
+          template < class T = void >
+          static inline auto read_buffer( const gl_type::GLenum flag = GL_NONE )
+            -> void
+          { c::glReadBuffer( flag ); }
+          
+          template < class T = void >
+          static inline auto scoped_read_buffer( const gl_type::GLenum flag = GL_NONE )
+            -> destruct_invoker_t
+          {
+            const auto backup = get_t::get< GL_READ_BUFFER >();
+            read_buffer( flag );
+            return destruct_invoker_t( [ backup ]{ read_buffer( backup ); } );
+          }
           
           template < typename gl_type::GLsizei T_count_of_frame_buffers = 1 >
           static inline auto generate_frame_buffers()

@@ -40,12 +40,12 @@ namespace wonder_rabbit_project
         
         bool _shadow;
         
-        using shadow_mapping_texture_t = renderer::texture2d_t< GL_DEPTH32F_STENCIL8 >;
+        using shadow_mapping_texture_t = renderer::texture2d_t< GL_DEPTH_COMPONENT24 >;
         
         renderer::program_t::const_shared_t         _shadow_mapping_program;
-        std::unique_ptr< shadow_mapping_texture_t > _shadow_mapping_texture;
-        std::unique_ptr< renderer::frame_buffer_t > _shadow_mapping_frame_buffer;
-        std::unique_ptr< renderer::sampler_t >      _shadow_mapping_sampler;
+        std::shared_ptr< shadow_mapping_texture_t > _shadow_mapping_texture;
+        std::shared_ptr< renderer::frame_buffer_t > _shadow_mapping_frame_buffer;
+        std::shared_ptr< renderer::sampler_t >      _shadow_mapping_sampler;
         
         struct draw_params_t
         {
@@ -73,28 +73,28 @@ namespace wonder_rabbit_project
           -> void
         {
           // create texture for shadow mapping
-          _shadow_mapping_texture.reset( new texture2d_t< GL_DEPTH32F_STENCIL8 >() );
-          _shadow_mapping_texture -> image_2d();
+          ( _shadow_mapping_texture = std::make_shared< shadow_mapping_texture_t >() )
+            -> image_2d()
+            ;
           
           // create frame buffer for shadow mapping
-          _shadow_mapping_frame_buffer.reset( new renderer::frame_buffer_t() );
-          _shadow_mapping_frame_buffer -> bind_texture( *_shadow_mapping_texture );
+          ( _shadow_mapping_frame_buffer = std::make_shared< renderer::frame_buffer_t >() )
+            -> bind_texture( _shadow_mapping_texture )
+            ;
           
           // create sampler
-          _shadow_mapping_sampler.reset( new renderer::sampler_t() );
-          _shadow_mapping_sampler
-            -> parameter_wrap_st( GL_CLAMP_TO_EDGE )
-            -> parameter_min_mag_filter( GL_LINEAR )
-            -> parameter_compare_mode( GL_COMPARE_REF_TO_TEXTURE )
-            -> parameter_compare_func( GL_LESS )
+          ( _shadow_mapping_sampler = std::make_shared< renderer::sampler_t>() )
+            -> parameter_wrap_st       ( GL_CLAMP_TO_EDGE          )
+            -> parameter_min_mag_filter( GL_LINEAR                 )
+            -> parameter_compare_mode  ( GL_COMPARE_REF_TO_TEXTURE )
+            -> parameter_compare_func  ( GL_LESS                   )
             ;
         }
         
         auto _create_shadow_mapping_program()
           -> void
         {
-          _shadow_mapping_program.reset( new renderer::program_t() );
-          _shadow_mapping_program
+          ( _shadow_mapping_program = std::make_shared< renderer::program_t >() )
             -> attach( create_shader< vertex_shader_t   >( shader::shadow_mapping::vs_source() ) )
             -> attach( create_shader< fragment_shader_t >( shader::shadow_mapping::fs_source() ) )
             -> link()
@@ -106,7 +106,10 @@ namespace wonder_rabbit_project
         {
           if ( not _shadow_mapping_program )
             try
-            { _create_shadow_mapping_program(); }
+            {
+              _create_shadow_mapping_program();
+              _create_shadow_mapping_buffer();
+            }
             catch ( const std::exception& e )
             {
               std::cerr << "warn: cannot use shadow program( to disable shadow ): " << e.what() << "\n";
@@ -124,8 +127,6 @@ namespace wonder_rabbit_project
         auto _invoke_draw()
           -> void
         {
-          clear();
-          
           if ( _shadow )
             _invoke_draw_shadow();
           
@@ -137,23 +138,36 @@ namespace wonder_rabbit_project
         auto _invoke_draw_shadow()
           -> void 
         {
-          auto scoped_programe_use = _shadow_mapping_program -> scoped_use();
+          auto scoped_viewport_ = scoped_viewport( _shadow_mapping_texture -> viewport() );
           
-          activate_lights();
+          auto scoped_programe_use      = _shadow_mapping_program      -> scoped_use();
+          auto scoped_frame_buffer_bind = _shadow_mapping_frame_buffer -> scoped_bind();
+          auto scoped_texture_bind      = _shadow_mapping_texture      -> scoped_bind();
           
-          for ( const auto& draw_params : _draw_queue )
-            _draw_shadow( draw_params );
+          _shadow_mapping_sampler -> bind();
+          
+          auto scoped_draw_buffer_ = scoped_draw_buffer();
+          auto scoped_read_buffer_ = scoped_read_buffer();
+          
+          check_frame_buffer_status();
+          
+          auto scoped_cull_face_  = scoped_cull_face();
+          auto scoped_color_mask_ = scoped_color_mask();
+          
+          //clear( GL_DEPTH_BUFFER_BIT );
+          
+          //for ( const auto& draw_params : _draw_queue )
+            //_draw_shadow( draw_params );
         }
         
         auto _invoke_draw_normal()
           -> void
         {
           auto scoped_programe_use = _default_program -> scoped_use();
-          //_shadow_mapping_frame_buffer();
-          //_shadow_mapping_texture();
-          //_shadow_mapping_sampler();
           
           activate_lights();
+          
+          clear();
           
           for ( const auto& draw_params : _draw_queue )
             _draw( draw_params );
@@ -162,30 +176,39 @@ namespace wonder_rabbit_project
         auto _draw_shadow( const draw_params_t& draw_params )
           -> void
         {
-          /*
-          const auto wv
-            = _camera.view_transformation()
-            * draw_params.world_transformation
-            ;
+          for ( const auto& light : _default_lights )
+          {
+            const auto point_light = std::dynamic_pointer_cast< point_light_t >( light );
             
-          const auto wvp = _projection_transformation * wv;
-          
-          const auto program_id = current_program();
-          
-          uniform( program_id, "world_view_projection_transformation", wvp );
-          uniform( program_id, "world_view_transformation", wv );
-          uniform( program_id, "world_transformation", draw_params.world_transformation );
-          uniform( program_id, "view_direction", _camera.view_direction() );
-          
-          draw_params.model.draw( draw_params.animation_states );
-          */
+            if ( point_light == nullptr )
+              continue;
+            
+            const auto shadow_camera = std::make_shared< camera_t >
+              ( point_light -> position
+              , _camera -> target()
+              , _camera -> up()
+              );
+            
+            const auto wvp
+              // = _projection_transformation
+              = shadow_camera -> view_transformation()
+              * draw_params.world_transformation
+              ;
+            
+            uniform( "world_view_projection_transformation", wvp );
+            
+            draw_params.model -> draw( draw_params.animation_states );
+          }
         }
         
         auto _draw( const draw_params_t& draw_params )
           -> void
         {
-          if ( _default_program not_eq draw_params.program )
-            draw_params.program -> scoped_use();
+          auto scoped_programe_use
+            = ( _default_program not_eq draw_params.program )
+              ? draw_params.program -> scoped_use()
+              : destruct_invoker_t([]{})
+              ;
           
           const auto wv
             = _camera -> view_transformation()
@@ -211,9 +234,11 @@ namespace wonder_rabbit_project
           , _projection_transformation( glm::mat4() )
         {
           glew::glew_init();
-          blend();
-          cull_face();
-          depth_test();
+          
+          enable< GL_BLEND >();
+          enable< GL_DEPTH_TEST >();
+          enable< GL_CULL_FACE >();
+          
           if ( multisample_capability() )
             multisample();
           

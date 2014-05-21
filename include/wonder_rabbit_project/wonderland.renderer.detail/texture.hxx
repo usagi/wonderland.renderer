@@ -1,5 +1,10 @@
 #pragma once
 
+#define GLM_SWIZZLE
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtx/vec1.hpp>
+
 #include "glew.detail/c.hxx"
 #include "glew.detail/gl_type.hxx"
 
@@ -41,9 +46,12 @@ namespace wonder_rabbit_project
         const glew::gl_type::GLuint _texture_id = 0;
         glew::gl_type::GLenum       _target     = 0;
         
+        glm::i32vec4 _viewport;
+        
       public:
         texture_base_t()
           : _texture_id( generate_texture() )
+          , _viewport( glm::i32vec4( 0 ) )
         { }
         
         virtual ~texture_base_t()
@@ -57,6 +65,9 @@ namespace wonder_rabbit_project
         
         auto scoped_bind() -> decltype( scoped_bind_texture( _texture_id ) )
         { return scoped_bind_texture< T_target >( _texture_id ); }
+        
+        auto viewport() -> const glm::i32vec4&
+        { return _viewport; }
       };
       
       // has class template partial specialization
@@ -83,6 +94,8 @@ namespace wonder_rabbit_project
         {
           parent_t::scoped_bind();
           glew::texture_t::texture_image_1d< T_internal_format >( width, data );
+          parent_t::_viewport[2] = width;
+          parent_t::_viewport[3] = 1;
         }
         
         auto image_1d()
@@ -90,6 +103,8 @@ namespace wonder_rabbit_project
         {
           parent_t::scoped_bind();
           glew::texture_t::texture_image_1d< T_internal_format >();
+          parent_t::_viewport[2] = glew::texture_t::max_texture_size();
+          parent_t::_viewport[3] = 1;
         }
         
       };
@@ -109,6 +124,8 @@ namespace wonder_rabbit_project
        {
           parent_t::scoped_bind();
           glew::texture_t::texture_image_2d< T_internal_format >( width, height, data );
+          parent_t::_viewport[2] = width;
+          parent_t::_viewport[3] = height;
         }
         
         auto image_2d( glew::gl_type::GLsizei size, const void* data = nullptr )
@@ -120,6 +137,7 @@ namespace wonder_rabbit_project
         {
           parent_t::scoped_bind();
           glew::texture_t::texture_image_2d< T_internal_format >();
+          parent_t::_viewport[2] = parent_t::_viewport[3] = glew::texture_t::max_texture_size();
         }
         
         auto image_2d_multisample( glew::gl_type::GLsizei width, glew::gl_type::GLsizei height, const void* data, glew::gl_type::GLsizei samples )
@@ -127,6 +145,8 @@ namespace wonder_rabbit_project
         {
           parent_t::scoped_bind();
           glew::texture_t::texture_image_2d_multisample< T_internal_format >( width, height, data, samples );
+          parent_t::_viewport[2] = width;
+          parent_t::_viewport[3] = height;
         }
         
         auto image_2d_multisample( glew::gl_type::GLsizei size, const void* data, glew::gl_type::GLsizei samples )
@@ -138,6 +158,8 @@ namespace wonder_rabbit_project
         {
           parent_t::scoped_bind();
           glew::texture_t::texture_image_2d_multisample< T_internal_format >( width, height, data );
+          parent_t::_viewport[2] = width;
+          parent_t::_viewport[3] = height;
         }
         
         auto image_2d_multisample( glew::gl_type::GLsizei size, const void* data )
@@ -161,6 +183,8 @@ namespace wonder_rabbit_project
         {
           parent_t::scoped_bind();
           glew::texture_t::texture_image_3d< T_internal_format >( width, height, depth, data );
+          parent_t::_viewport[2] = width;
+          parent_t::_viewport[3] = height;
         }
         
         auto image_3d( glew::gl_type::GLsizei size, glew::gl_type::GLsizei depth, const void* data = nullptr )
@@ -176,6 +200,7 @@ namespace wonder_rabbit_project
         {
           parent_t::scoped_bind();
           glew::texture_t::texture_image_3d< T_internal_format >();
+          parent_t::_viewport[2] = parent_t::_viewport[3] = glew::texture_t::max_texture_size();
         }
         
         auto image_3d_multisample( glew::gl_type::GLsizei width, glew::gl_type::GLsizei height, glew::gl_type::GLsizei depth, const void* data, glew::gl_type::GLsizei samples )
@@ -183,6 +208,8 @@ namespace wonder_rabbit_project
         {
           parent_t::scoped_bind();
           glew::texture_t::texture_image_3d_multisample< T_internal_format >( width, height, depth, data, samples );
+          parent_t::_viewport[2] = width;
+          parent_t::_viewport[3] = height;
         }
         
         auto image_3d_multisample( glew::gl_type::GLsizei size, glew::gl_type::GLsizei depth, const void* data, glew::gl_type::GLsizei samples )
@@ -198,6 +225,8 @@ namespace wonder_rabbit_project
         {
           parent_t::scoped_bind();
           glew::texture_t::texture_image_3d_multisample< T_internal_format >( width, height, depth, data );
+          parent_t::_viewport[2] = width;
+          parent_t::_viewport[3] = height;
         }
         
         auto image_3d_multisample( glew::gl_type::GLsizei size, glew::gl_type::GLsizei depth, const void* data )

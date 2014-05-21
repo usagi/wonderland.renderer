@@ -2,6 +2,7 @@
 
 #include "glew.detail/c.hxx"
 #include "glew.detail/gl_type.hxx"
+#include "glew.detail/error.hxx"
 #include "glew.detail/wrapper.detail/sampler.hxx"
 
 namespace wonder_rabbit_project
@@ -24,6 +25,16 @@ namespace wonder_rabbit_project
         
       public:
         
+        sampler_t()
+#if defined( GL_VERSION_3_3 )
+          : _sampler_id( glew::sampler_t::generate_sampler() )
+#endif
+        {
+#if defined( GL_VERSION_3_3 )
+          glew::test_error( __FILE__, __LINE__ );
+#endif
+        }
+        
         ~sampler_t()
         {
 #if defined( GL_VERSION_3_3 )
@@ -31,18 +42,21 @@ namespace wonder_rabbit_project
 #endif
         }
         
-        auto bind( glew::gl_type::GLuint unit )
+        auto bind( glew::gl_type::GLuint unit = 0 )
           -> void
         {
 #if defined( GL_VERSION_3_3 )
           bind_sampler( unit, _sampler_id );
 #else
           for ( const auto& param_pair : _param_pairs )
+          {
             texture_parameter
             ( param_pair.first
             , param_pair.second.which() ? param_pair.second.get< glew::gl_type::GLint   >
                                         : param_pair.second.get< glew::gl_type::GLfloat >
             );
+            glew::test_error( __FILE__, __LINE__ );
+          }
 #endif
         }
         
@@ -52,6 +66,7 @@ namespace wonder_rabbit_project
         {
 #if defined( GL_VERSION_3_3 )
           sampler_parameter( _sampler_id, pname, param );
+          glew::test_error( __FILE__, __LINE__ );
 #else
           _param_pairs[ pname ] = param;
 #endif

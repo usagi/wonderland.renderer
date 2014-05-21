@@ -24,8 +24,8 @@ namespace wonder_rabbit_project
           template < class T = void >
           static inline auto max_texture_units() -> gl_type::GLuint
           {
-#ifdef GL_MAX_TEXUTURE_UNITS
-            return get_t::gl_get< GL_MAX_TEXUTURE_UNITS >();
+#ifdef GL_MAX_TEXTURE_UNITS
+            return get_t::get< GL_MAX_TEXTURE_UNITS >();
 #else
             throw exception::unsupported_in_platform( "GL_MAX_TEXTURE_UNITS is not supported in the platform." );
 #endif
@@ -33,13 +33,13 @@ namespace wonder_rabbit_project
           
           template < class T = void >
           static inline auto max_array_texture_layers() -> gl_type::GLuint
-          { return get_t::gl_get< GL_MAX_ARRAY_TEXTURE_LAYERS >(); }
+          { return get_t::get< GL_MAX_ARRAY_TEXTURE_LAYERS >(); }
           
           template < class T = void >
           static inline auto max_texture_size() -> gl_type::GLuint
           {
-#ifdef GL_MAX_TEXUTURE_SIZE
-            return get_t::gl_get< GL_MAX_TEXUTURE_SIZE >();
+#ifdef GL_MAX_TEXTURE_SIZE
+            return get_t::get< GL_MAX_TEXTURE_SIZE >();
 #else
             throw exception::unsupported_in_platform( "GL_MAX_TEXTURE_SIZE is not supported in the platform." );
 #endif
@@ -48,8 +48,8 @@ namespace wonder_rabbit_project
           template < class T = void >
           static inline auto max_3d_texture_size() -> gl_type::GLuint
           {
-#ifdef GL_MAX_3D_TEXUTURE_SIZE
-            return get_t::gl_get< GL_MAX_3D_TEXUTURE_SIZE >();
+#ifdef GL_MAX_3D_TEXTURE_SIZE
+            return get_t::get< GL_MAX_3D_TEXTURE_SIZE >();
 #else
             throw exception::unsupported_in_platform( "GL_MAX_3D_TEXTURE_SIZE is not supported in the platform." );
 #endif
@@ -73,99 +73,99 @@ namespace wonder_rabbit_project
           
           template < class T = void >
           static inline auto max_compute_texture_image_units() -> gl_type::GLuint
-          { return get_t::gl_get< GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS >(); }
+          { return get_t::get< GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS >(); }
           
           template < class T = void >
           static inline auto max_color_texture_samples() -> gl_type::GLuint
-          { return get_t::gl_get< GL_MAX_COLOR_TEXTURE_SAMPLES >(); }
+          { return get_t::get< GL_MAX_COLOR_TEXTURE_SAMPLES >(); }
           
           template < class T = void >
           static inline auto max_combined_texture_image_units() -> gl_type::GLuint
-          { return get_t::gl_get< GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS >(); }
+          { return get_t::get< GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS >(); }
           
           template < class T = void >
           static inline auto max_cube_map_texture_size() -> gl_type::GLuint
-          { return get_t::gl_get< GL_MAX_CUBE_MAP_TEXTURE_SIZE >(); }
+          { return get_t::get< GL_MAX_CUBE_MAP_TEXTURE_SIZE >(); }
           
           template < class T = void >
           static inline auto max_depth_texture_samples() -> gl_type::GLuint
-          { return get_t::gl_get< GL_MAX_DEPTH_TEXTURE_SAMPLES >(); }
+          { return get_t::get< GL_MAX_DEPTH_TEXTURE_SAMPLES >(); }
           
           template < class T = void >
           static inline auto max_geometry_texture_image_units() -> gl_type::GLuint
-          { return get_t::gl_get< GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS >(); }
+          { return get_t::get< GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS >(); }
           
           template < class T = void >
           static inline auto max_program_texel_offset() -> gl_type::GLuint
-          { return get_t::gl_get< GL_MAX_PROGRAM_TEXEL_OFFSET >(); }
+          { return get_t::get< GL_MAX_PROGRAM_TEXEL_OFFSET >(); }
           
           template < class T = void >
           static inline auto max_rectangle_texture_size() -> gl_type::GLuint
-          { return get_t::gl_get< GL_MAX_RECTANGLE_TEXTURE_SIZE >(); }
+          { return get_t::get< GL_MAX_RECTANGLE_TEXTURE_SIZE >(); }
           
           template < class T = void >
           static inline auto max_texture_buffer_size() -> gl_type::GLuint
-          { return get_t::gl_get< GL_MAX_TEXTURE_BUFFER_SIZE >(); }
+          { return get_t::get< GL_MAX_TEXTURE_BUFFER_SIZE >(); }
           
           template < class T = void >
           static inline auto max_texture_image_units() -> gl_type::GLuint
-          { return get_t::gl_get< GL_MAX_TEXTURE_IMAGE_UNITS >(); }
+          { return get_t::get< GL_MAX_TEXTURE_IMAGE_UNITS >(); }
           
           template < class T = void >
           static inline auto max_texture_lod_bias() -> gl_type::GLuint
-          { return get_t::gl_get< GL_MAX_TEXTURE_LOD_BIAS >(); }
+          { return get_t::get< GL_MAX_TEXTURE_LOD_BIAS >(); }
           
           template < class T = void >
           static inline auto max_vertex_texture_image_units() -> gl_type::GLuint
-          { return get_t::gl_get< GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS >(); }
+          { return get_t::get< GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS >(); }
           
           template < class T = void >
           static inline auto sampler_binding() -> gl_type::GLuint
-          { return get_t::gl_get< GL_SAMPLER_BINDING >(); }
+          { return get_t::get< GL_SAMPLER_BINDING >(); }
           
           template < class T = void >
           static inline auto texture_binding_1d() -> gl_type::GLuint
-          { return get_t::gl_get< GL_TEXTURE_BINDING_1D >(); }
+          { return get_t::get< GL_TEXTURE_BINDING_1D >(); }
           
           template < class T = void >
           static inline auto texture_binding_1d_array() -> gl_type::GLuint
-          { return get_t::gl_get< GL_TEXTURE_BINDING_1D_ARRAY >(); }
+          { return get_t::get< GL_TEXTURE_BINDING_1D_ARRAY >(); }
           
           template < class T = void >
           static inline auto texture_binding_2d() -> gl_type::GLuint
-          { return get_t::gl_get< GL_TEXTURE_BINDING_2D >(); }
+          { return get_t::get< GL_TEXTURE_BINDING_2D >(); }
           
           template < class T = void >
           static inline auto texture_binding_2d_array() -> gl_type::GLuint
-          { return get_t::gl_get< GL_TEXTURE_BINDING_2D_ARRAY >(); }
+          { return get_t::get< GL_TEXTURE_BINDING_2D_ARRAY >(); }
           
           template < class T = void >
           static inline auto texture_binding_2d_multisample() -> gl_type::GLuint
-          { return get_t::gl_get< GL_TEXTURE_BINDING_2D_MULTISAMPLE >(); }
+          { return get_t::get< GL_TEXTURE_BINDING_2D_MULTISAMPLE >(); }
           
           template < class T = void >
           static inline auto texture_binding_2d_multisample_array() -> gl_type::GLuint
-          { return get_t::gl_get< GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY >(); }
+          { return get_t::get< GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY >(); }
           
           template < class T = void >
           static inline auto texture_binding_3d() -> gl_type::GLuint
-          { return get_t::gl_get< GL_TEXTURE_BINDING_3D >(); }
+          { return get_t::get< GL_TEXTURE_BINDING_3D >(); }
           
           template < class T = void >
           static inline auto texture_binding_buffer() -> gl_type::GLuint
-          { return get_t::gl_get< GL_TEXTURE_BINDING_BUFFER >(); }
+          { return get_t::get< GL_TEXTURE_BINDING_BUFFER >(); }
           
           template < class T = void >
           static inline auto texture_binding_cube_map() -> gl_type::GLuint
-          { return get_t::gl_get< GL_TEXTURE_BINDING_CUBE_MAP >(); }
+          { return get_t::get< GL_TEXTURE_BINDING_CUBE_MAP >(); }
           
           template < class T = void >
           static inline auto texture_binding_rectangle() -> gl_type::GLuint
-          { return get_t::gl_get< GL_TEXTURE_BINDING_RECTANGLE >(); }
+          { return get_t::get< GL_TEXTURE_BINDING_RECTANGLE >(); }
           
           template < class T = void >
           static inline auto texture_buffer_offset_alignment() -> gl_type::GLuint
-          { return get_t::gl_get< GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT >(); }
+          { return get_t::get< GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT >(); }
           
           template < typename gl_type::GLsizei T_count_of_textures = 1 >
           static inline auto generate_textures()

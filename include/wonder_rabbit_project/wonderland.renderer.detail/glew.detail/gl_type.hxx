@@ -13,7 +13,7 @@ namespace wonder_rabbit_project
       {
         namespace gl_type
         {
-          using GLboolean = bool;
+          using GLboolean = std::uint8_t;
           using GLbyte    = std::int8_t;
           using GLubyte   = std::uint8_t;
           using GLchar    = char;

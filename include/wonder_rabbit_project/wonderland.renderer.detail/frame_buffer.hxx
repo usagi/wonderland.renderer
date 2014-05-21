@@ -56,7 +56,7 @@ namespace wonder_rabbit_project
             default:
               throw std::logic_error( "_texture: unsupported T::target type." );
           }
-          glew::test_error();
+          glew::test_error( __FILE__, __LINE__ );
         }
         
         template < class T, class ... Ts >
@@ -80,13 +80,13 @@ namespace wonder_rabbit_project
         auto bind() -> void
         {
           bind_frame_buffer( _frame_buffer_id );
-          glew::test_error();
+          glew::test_error( __FILE__, __LINE__ );
         }
         
         auto scoped_bind() -> destruct_invoker_t
         {
           auto r = scoped_bind_frame_buffer( _frame_buffer_id );
-          glew::test_error();
+          glew::test_error( __FILE__, __LINE__ );
           return r;
         }
         
@@ -102,7 +102,7 @@ namespace wonder_rabbit_project
         {
           auto binding = scoped_bind();
           _texture( texture );
-          glew::test_error();
+          glew::test_error( __FILE__, __LINE__ );
         }
         
       };

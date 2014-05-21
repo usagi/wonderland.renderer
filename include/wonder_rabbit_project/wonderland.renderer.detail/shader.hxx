@@ -17,13 +17,6 @@ namespace wonder_rabbit_project
       struct shader_t
         : public std::enable_shared_from_this< shader_t< T_shader_type > >
       {
-        friend program_t;
-        
-        shader_t()
-          : _shader( glew::c::glCreateShader( shader_type ) )
-          , _finalizer( [this]{ glew::c::glDeleteShader( this->_shader ); } )
-        { }
-        
         glew::gl_type::GLuint _shader;
         std::function<void()> _finalizer;
         std::string           _source;
@@ -35,6 +28,11 @@ namespace wonder_rabbit_project
         using this_type = shader_t< T_shader_type >;
         using shared_t  = std::shared_ptr< this_type >;
 
+        shader_t()
+          : _shader( glew::c::glCreateShader( shader_type ) )
+          , _finalizer( [this]{ glew::c::glDeleteShader( this->_shader ); } )
+        { }
+        
         shader_t( this_type && o )
           : _shader( std::move( o._shader ) )
         { o.cancel(); }
@@ -46,6 +44,10 @@ namespace wonder_rabbit_project
         
         ~shader_t()
         { _finalizer(); }
+        
+        inline auto shader_id() const
+          -> glew::gl_type::GLuint
+        { return _shader; }
         
         auto cancel()
           -> std::shared_ptr< this_type >

@@ -91,20 +91,21 @@ namespace wonder_rabbit_project
           return shared_from_this();
         }
 
-        inline auto program_id() -> glew::gl_type::GLuint
+        inline auto program_id() const
+          -> glew::gl_type::GLuint
         { return _program; }
         
         template<class T>
         auto attach( std::shared_ptr<T> shader_ ) const
           -> const_shared_t
         {
-          glew::c::glAttachShader( _program, shader_ -> _shader );
-          glew::test_error();
+          glew::c::glAttachShader( _program, shader_ -> shader_id() );
+          glew::test_error( __FILE__, __LINE__ );
           return shared_from_this();
         }
 
         template<class T, class ... TS>
-        auto attach( std::shared_ptr<T> shader_, const TS& ... ts ) const
+        auto attach( std::shared_ptr<T> shader_, TS ... ts ) const
           -> const_shared_t
         {
           attach( shader_ );
@@ -180,7 +181,7 @@ namespace wonder_rabbit_project
           -> glew::gl_type::GLuint
         {
           auto r = glew::c::glGetAttribLocation( _program, s.data() );
-          glew::test_error();
+          glew::test_error( __FILE__, __LINE__ );
           return r;
         }
 
@@ -188,7 +189,7 @@ namespace wonder_rabbit_project
           -> glew::gl_type::GLuint
         {
           auto r = glew::c::glGetFragDataLocation( _program, s.data() );
-          glew::test_error();
+          glew::test_error( __FILE__, __LINE__ );
           return r;
         }
 
