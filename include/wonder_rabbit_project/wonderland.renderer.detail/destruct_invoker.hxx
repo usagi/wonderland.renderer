@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <memory>
+#include <iostream>
 
 namespace wonder_rabbit_project
 {
@@ -11,13 +12,25 @@ namespace wonder_rabbit_project
     {
       class destruct_invoker_t
       {
-        std::function<void()> f;
+        std::function< auto () -> void > f;
+        
+        static std::exception_ptr _pe;
         
       public:
         
+        static auto rethrow_if_deferred_exception()
+          -> void
+        {
+          if ( _pe )
+          {
+            std::cerr << "destruct_invoker_t: detect a deffered thrown exception, rethrow immediate.\n";
+            std::rethrow_exception( _pe );
+          }
+        }
+        
         destruct_invoker_t( std::function<void()> && f_ )
           : f( std::move( f_ ) )
-        { }
+        { rethrow_if_deferred_exception(); }
         
         destruct_invoker_t( const destruct_invoker_t& ) = delete;
         
@@ -26,12 +39,23 @@ namespace wonder_rabbit_project
         { t.cancel(); }
         
         ~destruct_invoker_t()
-        { f(); }
+        {
+          try
+          { f(); }
+          catch( ... )
+          {
+            std::cerr << "destruct_invoker_t: warning, catch an exception in ~destruct_invoker_t(), reserve rethrow in next ctor.\n";
+            _pe = std::current_exception();
+          }
+        }
         
         inline void cancel()
         { f = [] {}; }
         
       };
+      
+      std::exception_ptr destruct_invoker_t::_pe = nullptr;
+      
     }
   }
 }
