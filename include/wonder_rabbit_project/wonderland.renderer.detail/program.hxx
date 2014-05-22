@@ -100,7 +100,7 @@ namespace wonder_rabbit_project
           -> const_shared_t
         {
           glew::c::glAttachShader( _program, shader_ -> shader_id() );
-          glew::test_error( __FILE__, __LINE__ );
+          WRP_GLEW_TEST_ERROR
           return shared_from_this();
         }
 
@@ -147,6 +147,8 @@ namespace wonder_rabbit_project
           -> const_shared_t
         {
           glew::c::glLinkProgram( _program );
+          WRP_GLEW_TEST_ERROR
+          
           {
             glew::c::GLint result = false;
             glew::c::glGetProgramiv( _program, GL_LINK_STATUS, &result );
@@ -181,7 +183,7 @@ namespace wonder_rabbit_project
           -> glew::gl_type::GLuint
         {
           auto r = glew::c::glGetAttribLocation( _program, s.data() );
-          glew::test_error( __FILE__, __LINE__ );
+          WRP_GLEW_TEST_ERROR
           return r;
         }
 
@@ -189,7 +191,7 @@ namespace wonder_rabbit_project
           -> glew::gl_type::GLuint
         {
           auto r = glew::c::glGetFragDataLocation( _program, s.data() );
-          glew::test_error( __FILE__, __LINE__ );
+          WRP_GLEW_TEST_ERROR
           return r;
         }
 
@@ -206,6 +208,7 @@ namespace wonder_rabbit_project
           -> const_shared_t
         {
           glew::program_t::use_program( _program );
+          WRP_GLEW_TEST_ERROR
           return shared_from_this();
         }
         
