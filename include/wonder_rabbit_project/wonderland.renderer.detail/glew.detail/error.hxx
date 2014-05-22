@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <sstream>
+#include <iostream>
 
 #include "c.hxx"
 #include "gl_type.hxx"
@@ -35,7 +36,9 @@ namespace wonder_rabbit_project
           if ( is_error( e ) )
           {
             std::stringstream message;
+            
             message << "glGetError ( from " << file << " +" << line << " ) : " << e << " ";
+            
             switch ( e )
             {
               case GL_INVALID_ENUM     : message << "GL_INVALID_ENUM";      break;
@@ -44,10 +47,20 @@ namespace wonder_rabbit_project
               case GL_STACK_OVERFLOW   : message << "GL_STACK_OVERFLOW";    break;
               case GL_STACK_UNDERFLOW  : message << "GL_STACK_UNDERFLOW";   break;
               case GL_OUT_OF_MEMORY    : message << "GL_OUT_OF_MEMORY";     break;
+#ifdef GL_VERSION_3_0
+              case GL_INVALID_FRAMEBUFFER_OPERATION: message << "GL_INVALID_FRAMEBUFFER_OPERATION"; break;
+#endif
+              default                  : message << std::to_string( e );
             }
+            
             throw std::runtime_error( message.str() );
           }
         }
+#ifndef _NDEBUG
+  #define WRP_GLEW_TEST_ERROR wonder_rabbit_project::wonderland::renderer::glew::test_error( __FILE__, __LINE__ );
+#else
+  #define WRP_GLEW_TEST_ERROR
+#endif
         
       }
     }
