@@ -36,7 +36,7 @@ namespace wonder_rabbit_project
         }
         
         template < typename glew::gl_type::GLenum T_target, typename glew::gl_type::GLenum T_internal_format >
-        auto _texture( std::shared_ptr< renderer::texture_t< T_target, T_internal_format > > texture )
+        auto _bind_texture( std::shared_ptr< renderer::texture_t< T_target, T_internal_format > > texture )
           -> void
         {
           constexpr auto base_internal_format
@@ -60,10 +60,10 @@ namespace wonder_rabbit_project
         }
         
         template < class T, class ... Ts >
-        auto _bind_textures_bind( T texture, Ts ... textures ) -> void
+        auto _bind_textures( T texture, Ts ... textures ) -> void
         {
-          _texture( texture );
-          _bind_textures_bind( textures ... );
+          _bind_texture( texture );
+          _bind_textures( textures ... );
         }
         
       public:
@@ -91,17 +91,19 @@ namespace wonder_rabbit_project
         }
         
         template < class ... Ts >
-        auto bind_textures( Ts ... textures ) -> void
+        auto bind_textures( Ts ... textures )
+          -> void
         {
           auto binding = scoped_bind();
-          _bind_textures_bind( textures ... );
+          _bind_textures( textures ... );
         }
         
         template < typename glew::gl_type::GLenum T_target, typename glew::gl_type::GLenum T_internal_format >
-        auto bind_texture( std::shared_ptr< renderer::texture_t< T_target, T_internal_format > > texture ) -> void
+        auto bind_texture( std::shared_ptr< renderer::texture_t< T_target, T_internal_format > > texture )
+          -> void
         {
           auto binding = scoped_bind();
-          _texture( texture );
+          _bind_texture( texture );
           glew::test_error( __FILE__, __LINE__ );
         }
         
