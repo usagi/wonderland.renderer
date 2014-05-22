@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/variant.hpp>
+
 #include "glew.detail/c.hxx"
 #include "glew.detail/gl_type.hxx"
 #include "glew.detail/error.hxx"
@@ -51,9 +53,10 @@ namespace wonder_rabbit_project
           for ( const auto& param_pair : _param_pairs )
           {
             texture_parameter
-            ( param_pair.first
-            , param_pair.second.which() ? param_pair.second.get< glew::gl_type::GLint   >
-                                        : param_pair.second.get< glew::gl_type::GLfloat >
+            ( unit
+            , param_pair.first
+            , param_pair.second.which() ? boost::get< glew::gl_type::GLint   >( param_pair.second )
+                                        : boost::get< glew::gl_type::GLfloat >( param_pair.second )
             );
             glew::test_error( __FILE__, __LINE__ );
           }

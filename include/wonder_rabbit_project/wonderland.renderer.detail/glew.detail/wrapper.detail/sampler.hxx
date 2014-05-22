@@ -51,7 +51,14 @@ namespace wonder_rabbit_project
           template < class T_samplers >
           auto bind_samplers( T_samplers samplers, gl_type::GLuint first = 0 )
             -> void
+#ifdef GL_VERSION_4_4
           { c::glBindSamplers( first, samplers.size(), &samplers[0] ); }
+#else
+          {
+            for ( auto n = 0; n < samplers.size(); ++n )
+              bind_sampler( n, samplers[n] );
+          }
+#endif
           
           // has template specializing
           template < class T >

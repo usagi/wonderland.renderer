@@ -73,7 +73,11 @@ namespace wonder_rabbit_project
           
           template < class T = void >
           static inline auto max_compute_texture_image_units() -> gl_type::GLuint
+#ifdef GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS
           { return get_t::get< GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS >(); }
+#else
+          { throw exception::unsupported_in_platform( "GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS is not supported in the platform." ); }
+#endif
           
           template < class T = void >
           static inline auto max_color_texture_samples() -> gl_type::GLuint
@@ -161,11 +165,19 @@ namespace wonder_rabbit_project
           
           template < class T = void >
           static inline auto texture_binding_rectangle() -> gl_type::GLuint
+#ifdef GL_TEXTURE_BINDING_RECTANGLE
           { return get_t::get< GL_TEXTURE_BINDING_RECTANGLE >(); }
+#else
+          { throw exception::unsupported_in_platform( "GL_TEXTURE_BINDING_RECTANGLE is not supported in the platform." ); }
+#endif
           
           template < class T = void >
           static inline auto texture_buffer_offset_alignment() -> gl_type::GLuint
+#ifdef GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT
           { return get_t::get< GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT >(); }
+#else
+          { throw exception::unsupported_in_platform( "GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT is not supported in the platform." ); }
+#endif
           
           template < typename gl_type::GLsizei T_count_of_textures = 1 >
           static inline auto generate_textures()
