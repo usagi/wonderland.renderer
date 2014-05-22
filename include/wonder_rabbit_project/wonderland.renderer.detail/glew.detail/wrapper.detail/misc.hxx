@@ -9,6 +9,7 @@
 #include "../gl_type.hxx"
 
 #include "get.hxx"
+#include "enable.hxx"
 
 #include "../../destruct_invoker.hxx"
 
@@ -126,6 +127,32 @@ namespace wonder_rabbit_project
             cull_face( flag );
             return destruct_invoker_t( [ backup ]{ cull_face( backup ); } );
           }
+          
+          template < class T = void >
+          static inline auto polygon_offset( gl_type::GLfloat factor, gl_type::GLfloat units )
+            -> void
+          { c::glPolygonOffset( factor, units ); }
+          
+          template < class T = void >
+          static inline auto scoped_polygon_offset( gl_type::GLfloat factor, gl_type::GLfloat units )
+            -> destruct_invoker_t
+          {
+            const auto backup_factor = polygon_offset_factor();
+            const auto backup_units  = polygon_offset_units();
+            polygon_offset( factor, units );
+            return destruct_invoker_t( [ backup_factor, backup_units ]{ polygon_offset( backup_factor, backup_units ); } );
+          }
+          
+          template < class T = void >
+          static inline auto polygon_offset_factor()
+            -> gl_type::GLfloat
+          { return get_t::get< GL_POLYGON_OFFSET_FACTOR, gl_type::GLfloat >(); }
+          
+          template < class T = void >
+          static inline auto polygon_offset_units()
+            -> gl_type::GLfloat
+          { return get_t::get< GL_POLYGON_OFFSET_UNITS, gl_type::GLfloat >(); }
+          
           
         };
       }
