@@ -1,6 +1,8 @@
 #pragma once
 
 #include <array>
+#include <sstream>
+#include <iostream>
 
 #include "../c.hxx"
 #include "../gl_type.hxx"
@@ -20,12 +22,35 @@ namespace wonder_rabbit_project
         struct frame_buffer_t
         {
           
+#define WRP_GLEW_CHECK_FRAME_BUFFER_STATUS check_frame_buffer_status( __FILE__, __LINE__ );
+          
           template < class T = void >
-          static inline auto check_frame_buffer_status()
+          static inline auto check_frame_buffer_status( const std::string& file = "?", const unsigned line = 0 )
             -> void
           {
-            if ( c::glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE )
-              throw std::runtime_error( "Frame buffer is not complete." );
+            const auto status = c::glCheckFramebufferStatus( GL_FRAMEBUFFER );
+            if ( status != GL_FRAMEBUFFER_COMPLETE )
+            {
+              std::stringstream message;
+              message << "glCheckFramebufferStatus ( from " << file << " +" << line << " ) : " << status << " ";
+              switch ( status )
+              {
+#define WRP_TMP( x ) \
+                case x:\
+                  message << # x ;\
+                  break;
+                WRP_TMP( GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT         )
+                WRP_TMP( GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT )
+                WRP_TMP( GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER        )
+                WRP_TMP( GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER        )
+                WRP_TMP( GL_FRAMEBUFFER_UNSUPPORTED                   )
+                WRP_TMP( GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE        )
+                WRP_TMP( GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS      )
+#undef WRP_TMP
+                default: message << "(unexpected status)";
+              }
+              throw std::runtime_error( message.str() );
+            }
           }
           
           template < class T = void >
