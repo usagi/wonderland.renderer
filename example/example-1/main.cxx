@@ -25,6 +25,7 @@ try
        "[1]: shader program change to Wonderland.Renderer embedded <constant> shader program.\n"
        "[2]: shader program change to Wonderland.Renderer embedded <phong> shader program.\n"
        "[3]: shader program change to Wonderland.Renderer embedded <cartoon> shader program.\n"
+       "[9]/[0]: shadow on/off\n"
        "\n"
        "<compiled for>\n"
        "  OpenGL: " << wonder_rabbit_project::wonderland::renderer::shader::gl_version   << "\n"
@@ -184,6 +185,12 @@ try
     
     // light change
     light0 -> position = ( glm::mat4_cast( glm::quat( glm::vec3( light_phi, light_theta, 0.0f ) ) ) * glm::vec4( 0.0f, 0.0f, light_distance, 1.0f ) ).xyz();
+    
+    // shadow change
+    if ( subsystem -> keyboard_state< key::_9 >() )
+      renderer -> shadow( true  );
+    if ( subsystem -> keyboard_state< key::_0 >() )
+      renderer -> shadow( false );
     
     // program change
     const auto program_change =
