@@ -86,7 +86,7 @@ namespace wonder_rabbit_project
             }
             
             // テクスチャー
-            const auto count_of_textures = material -> GetTextureCount(aiTextureType_DIFFUSE);
+            const auto count_of_textures = material -> GetTextureCount( aiTextureType_DIFFUSE );
             
             _texblends.resize( count_of_textures, 0.0f );
             
