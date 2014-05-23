@@ -1,4 +1,4 @@
-u8R"(#version 100
+u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
 
 attribute vec4 position;
 attribute vec4 color;
