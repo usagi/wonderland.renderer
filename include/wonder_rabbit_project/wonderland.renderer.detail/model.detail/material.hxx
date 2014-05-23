@@ -264,6 +264,7 @@ namespace wonder_rabbit_project
               {
                 std::array< float, shader::count_of_textures > texblends;
                 std::copy( std::begin( _texblends ), std::end( _texblends), texblends.begin() );
+                std::fill( std::begin( texblends ) + _texblends.size(), std::end( texblends ), 0.0f );
                 
                 glew::wrapper_t::uniform( program_id, "texblends", texblends );
               }
