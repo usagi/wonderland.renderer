@@ -233,7 +233,7 @@ namespace wonder_rabbit_project
               glew::test_error( __FILE__, __LINE__ );
               glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
               glew::test_error( __FILE__, __LINE__ );
-              #elif defined( GL_VERSION_1_4 )
+#elif defined( GL_VERSION_1_4 )
               // nothing to do. this step done before at this version.
 #else
               // no mipmap
