@@ -23,10 +23,12 @@ varying vec3 var_position;
 varying vec4 var_color;
 varying vec3 var_normal;
 varying vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+varying vec4 var_shadow_position;
 
 uniform mat4 world_view_projection_transformation;
 uniform mat4 world_transformation;
 uniform mat4 bones[ )" + std::to_string( max_bones ) + u8R"( ];
+uniform mat4 shadow_transformation;
 
 void main(void)
 {
@@ -54,5 +56,7 @@ void main(void)
   //  var_texcoords[ 5 ] = texcoord5;
   //  var_texcoords[ 6 ] = texcoord6;
   //  var_texcoords[ 7 ] = texcoord7;
+  
+  var_shadow_position = shadow_transformation * local_position;
 }
 )"

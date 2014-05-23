@@ -2,6 +2,10 @@
 
 #include <array>
 
+#define GLM_SWIZZLE
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtx/vec1.hpp>
 #include <glm/gtc/constants.hpp>
 
 #include "../c.hxx"
@@ -81,10 +85,58 @@ namespace wonder_rabbit_project
         { c::glSamplerParameterf( sampler, pname, param ); }
         
         template < >
+        auto sampler_t::sampler_parameter< glm::vec1 >
+        ( gl_type::GLuint sampler, gl_type::GLenum pname, glm::vec1 param )
+          -> void
+        { c::glSamplerParameterfv( sampler, pname, &param[0] ); }
+        
+        template < >
+        auto sampler_t::sampler_parameter< glm::vec2 >
+        ( gl_type::GLuint sampler, gl_type::GLenum pname, glm::vec2 param )
+          -> void
+        { c::glSamplerParameterfv( sampler, pname, &param[0] ); }
+        
+        template < >
+        auto sampler_t::sampler_parameter< glm::vec3 >
+        ( gl_type::GLuint sampler, gl_type::GLenum pname, glm::vec3 param )
+          -> void
+        { c::glSamplerParameterfv( sampler, pname, &param[0] ); }
+        
+        template < >
+        auto sampler_t::sampler_parameter< glm::vec4 >
+        ( gl_type::GLuint sampler, gl_type::GLenum pname, glm::vec4 param )
+          -> void
+        { c::glSamplerParameterfv( sampler, pname, &param[0] ); }
+        
+        template < >
         auto sampler_t::sampler_parameter< gl_type::GLint >
         ( gl_type::GLuint sampler, gl_type::GLenum pname, gl_type::GLint param )
           -> void
         { c::glSamplerParameteri( sampler, pname, param ); }
+        
+        template < >
+        auto sampler_t::sampler_parameter< glm::i32vec1 >
+        ( gl_type::GLuint sampler, gl_type::GLenum pname, glm::i32vec1 param )
+          -> void
+        { c::glSamplerParameteriv( sampler, pname, &param[0] ); }
+        
+        template < >
+        auto sampler_t::sampler_parameter< glm::i32vec2 >
+        ( gl_type::GLuint sampler, gl_type::GLenum pname, glm::i32vec2 param )
+          -> void
+        { c::glSamplerParameteriv( sampler, pname, &param[0] ); }
+        
+        template < >
+        auto sampler_t::sampler_parameter< glm::i32vec3 >
+        ( gl_type::GLuint sampler, gl_type::GLenum pname, glm::i32vec3 param )
+          -> void
+        { c::glSamplerParameteriv( sampler, pname, &param[0] ); }
+        
+        template < >
+        auto sampler_t::sampler_parameter< glm::i32vec4 >
+        ( gl_type::GLuint sampler, gl_type::GLenum pname, glm::i32vec4 param )
+          -> void
+        { c::glSamplerParameteriv( sampler, pname, &param[0] ); }
         
         template < >
         auto sampler_t::texture_parameter< gl_type::GLfloat >
@@ -93,10 +145,58 @@ namespace wonder_rabbit_project
         { c::glTexParameterf( target, pname, param ); }
         
         template < >
+        auto sampler_t::texture_parameter< glm::vec1 >
+        ( gl_type::GLenum target, gl_type::GLenum pname, glm::vec1 param )
+          -> void
+        { c::glTexParameterfv( target, pname, &param[0] ); }
+        
+        template < >
+        auto sampler_t::texture_parameter< glm::vec2 >
+        ( gl_type::GLenum target, gl_type::GLenum pname, glm::vec2 param )
+          -> void
+        { c::glTexParameterfv( target, pname, &param[0] ); }
+        
+        template < >
+        auto sampler_t::texture_parameter< glm::vec3 >
+        ( gl_type::GLenum target, gl_type::GLenum pname, glm::vec3 param )
+          -> void
+        { c::glTexParameterfv( target, pname, &param[0] ); }
+        
+        template < >
+        auto sampler_t::texture_parameter< glm::vec4 >
+        ( gl_type::GLenum target, gl_type::GLenum pname, glm::vec4 param )
+          -> void
+        { c::glTexParameterfv( target, pname, &param[0] ); }
+        
+        template < >
         auto sampler_t::texture_parameter< gl_type::GLint >
         ( gl_type::GLenum target, gl_type::GLenum pname, gl_type::GLint param )
           -> void
         { c::glTexParameterf( target, pname, param ); }
+        
+        template < >
+        auto sampler_t::texture_parameter< glm::i32vec1 >
+        ( gl_type::GLenum target, gl_type::GLenum pname, glm::i32vec1 param )
+          -> void
+        { c::glTexParameteriv( target, pname, &param[0] ); }
+        
+        template < >
+        auto sampler_t::texture_parameter< glm::i32vec2 >
+        ( gl_type::GLenum target, gl_type::GLenum pname, glm::i32vec2 param )
+          -> void
+        { c::glTexParameteriv( target, pname, &param[0] ); }
+        
+        template < >
+        auto sampler_t::texture_parameter< glm::i32vec3 >
+        ( gl_type::GLenum target, gl_type::GLenum pname, glm::i32vec3 param )
+          -> void
+        { c::glTexParameteriv( target, pname, &param[0] ); }
+        
+        template < >
+        auto sampler_t::texture_parameter< glm::i32vec4 >
+        ( gl_type::GLenum target, gl_type::GLenum pname, glm::i32vec4 param )
+          -> void
+        { c::glTexParameteriv( target, pname, &param[0] ); }
         
       }
     }

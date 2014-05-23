@@ -21,7 +21,12 @@ namespace wonder_rabbit_project
 #if defined( GL_VERSION_3_3 )
         const glew::gl_type::GLuint _sampler_id = 0;
 #else
-        using param_t = boost::variant< glew::gl_type::GLfloat, glew::gl_type::GLint >;
+        using param_t = boost::variant
+        < glew::gl_type::GLfloat
+        , glew::gl_type::GLint
+        , glm::vec4
+        >
+        ;
         std::unordered_map< glew::gl_type::GLenum, param_t > _param_pairs;
 #endif
         
@@ -44,7 +49,7 @@ namespace wonder_rabbit_project
 #endif
         }
         
-        auto bind( glew::gl_type::GLuint unit = 0 )
+        auto bind( glew::gl_type::GLuint unit = 0, typename glew::gl_type::GLenum target = GL_TEXTURE_2D )
           -> void
         {
 #if defined( GL_VERSION_3_3 )
@@ -53,7 +58,7 @@ namespace wonder_rabbit_project
           for ( const auto& param_pair : _param_pairs )
           {
             texture_parameter
-            ( unit
+            ( target
             , param_pair.first
             , param_pair.second.which() ? boost::get< glew::gl_type::GLint   >( param_pair.second )
                                         : boost::get< glew::gl_type::GLfloat >( param_pair.second )

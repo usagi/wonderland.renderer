@@ -1,5 +1,7 @@
 u8R"(#version 100
 
+//#extension GL_EXT_shadow_samplers : enable
+
 #ifdef GL_FRAGMENT_PRECISION_HIGH
   precision highp float;
 #else
@@ -10,6 +12,7 @@ varying vec3 var_position;
 varying vec4 var_color;
 varying vec3 var_normal;
 varying vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+varying vec4 var_shadow_position;
 
 uniform vec3 diffuse;
 uniform vec3 ambient;
@@ -26,7 +29,9 @@ uniform vec3 view_direction;
 uniform float texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
 
 uniform sampler2D sampler;
+uniform sampler2D shadow_sampler;
 
+float calc_shadow_rate();
 vec3 hsv_add( vec3, vec3 );
 vec4 hsva_add( vec4, vec4 );
 vec3 from_rgb_to_hsv( vec3 );
@@ -80,7 +85,22 @@ void main(void)
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( ambient  ) );
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( emissive ) );
   
+  hsva.z *= calc_shadow_rate();
+  
   gl_FragColor = from_hsva_to_rgba( hsva );
+  
+  gl_FragColor = vec4( calc_shadow_rate(), 0.0, 0.0, 1.0 );
+}
+
+float calc_shadow_rate()
+{
+  vec3 shadow_coord = var_shadow_position.xyz / var_shadow_position.w;
+  
+  float depth_from_light = shadow_coord.z;
+  
+  float min_depth_from_light = texture2D( shadow_sampler,  shadow_coord.xy).z;
+  
+  return 1.0 - 0.5 * ( depth_from_light < min_depth_from_light ? 0.0 : 1.0 );
 }
 
 vec3 hsv_add( vec3 a, vec3 b )
