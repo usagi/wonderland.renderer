@@ -1,3 +1,5 @@
+#include <cstring>
+
 /* stbi-1.33 - public domain JPEG/PNG reader - http://nothings.org/stb_image.c
  *   when you control the images you're loading
  *                                     no warranty implied; use at your own risk
@@ -4169,7 +4171,8 @@ static int length_base[31] = {
     static stbi_uc *stbi_gif_load(stbi *s, int *x, int *y, int *comp, int req_comp)
     {
       uint8 *u = 0;
-      stbi_gif g={0};
+      stbi_gif g;
+      std::memset( &g, 0, sizeof( stbi_gif ) );
       
       u = stbi_gif_load_next(s, &g, comp, req_comp);
       if (u == (void *) 1) u = 0;  // end of animated gif marker

@@ -174,7 +174,7 @@ namespace wonder_rabbit_project
             
             constexpr auto indices_of_triangle = 3;
             
-            for ( auto n_vertex = 0; n_vertex < mesh -> mNumVertices; ++ n_vertex )
+            for ( auto n_vertex = 0u; n_vertex < mesh -> mNumVertices; ++ n_vertex )
               vb.emplace_back
               ( std::move( helper::to_glm_vec4( mesh -> mVertices           + n_vertex ) )
               , std::move( mesh -> mColors[ 0 ]        ? helper::to_glm_vec4( mesh -> mColors[ 0 ]        + n_vertex ) : glm::vec4( std::nanf("") ) )
@@ -193,7 +193,7 @@ namespace wonder_rabbit_project
               , std::move( glm::vec4( 0.0f ) )
               );
             
-            for ( auto n_face = 0; n_face < mesh -> mNumFaces; ++ n_face )
+            for ( auto n_face = 0u; n_face < mesh -> mNumFaces; ++ n_face )
             {
               const auto face = mesh -> mFaces + n_face;
               
@@ -220,7 +220,7 @@ namespace wonder_rabbit_project
             
             const auto bones = mesh -> mBones;
             
-            for ( auto n_bone = 0; n_bone < mesh -> mNumBones; ++n_bone )
+            for ( auto n_bone = 0u; n_bone < mesh -> mNumBones; ++n_bone )
             {
               const auto bone = bones[ n_bone ];
               
@@ -250,7 +250,7 @@ namespace wonder_rabbit_project
               _bone_offsets[ bone_index ] = glm::transpose( helper::to_glm_mat4( bone -> mOffsetMatrix ) );
               //_bone_offsets[ bone_index ] = helper::to_glm_mat4( bone -> mOffsetMatrix );
               
-              for ( auto n_weight = 0; n_weight < bone -> mNumWeights; ++n_weight )
+              for ( auto n_weight = 0u; n_weight < bone -> mNumWeights; ++n_weight )
               {
                 const auto& weight = bone -> mWeights[ n_weight ];
                 

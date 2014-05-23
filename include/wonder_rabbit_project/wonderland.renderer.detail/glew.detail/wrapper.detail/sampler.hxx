@@ -1,6 +1,8 @@
 #pragma once
 
 #include <array>
+#include <typeinfo>
+#include <sstream>
 
 #define GLM_SWIZZLE
 #define GLM_FORCE_RADIANS
@@ -68,13 +70,33 @@ namespace wonder_rabbit_project
           template < class T >
           auto sampler_parameter( gl_type::GLuint sampler, gl_type::GLenum pname, T param )
             -> void
-          { throw std::logic_error( "sampler_parameter: unsupported T." ); }
+          {
+            std::stringstream message;
+            message
+              << "sampler_parameter: unsupported T."
+                 " T_internal_format=" << typeid( T ).name() << " "
+                 " sampler=" << sampler << " "
+                 " pname=" << pname << " "
+                 " param=" << param << " "
+              ;
+            throw std::logic_error( message.str() );
+          }
           
           // has template specializing
           template < class T >
           auto texture_parameter( gl_type::GLenum target, gl_type::GLenum pname, T param )
             -> void
-          { throw std::logic_error( "texture_parameter: unsupported T." ); }
+          {
+            std::stringstream message;
+            message
+              << "texture_parameter: unsupported T."
+                 " T_internal_format=" << typeid( T ).name() << " "
+                 " target=" << target << " "
+                 " pname=" << pname << " "
+                 " param=" << param << " "
+              ;
+            throw std::logic_error( message.str() );
+          }
           
         };
         

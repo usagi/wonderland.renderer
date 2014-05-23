@@ -179,7 +179,10 @@ namespace wonder_rabbit_project
           
           active_texture< shadow_mapping_texture_unit >();
           auto scoped_texture_bind = _shadow_mapping_texture -> scoped_bind();
-          _shadow_mapping_sampler -> bind( shadow_mapping_texture_unit, _shadow_mapping_texture -> target );
+          _shadow_mapping_sampler
+            -> bind< decltype(_shadow_mapping_texture)::element_type::target >
+              ( shadow_mapping_texture_unit )
+            ;
           
           activate_lights();
           

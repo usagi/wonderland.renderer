@@ -147,12 +147,12 @@ namespace wonder_rabbit_project
           {
             // シーンからマテリアル群を _materials に生成
             _materials.reserve( scene -> mNumMaterials );
-            for ( auto n = 0; n < scene -> mNumMaterials; ++n )
+            for ( auto n = 0u; n < scene -> mNumMaterials; ++n )
               _materials.emplace_back( scene -> mMaterials[ n ], path_prefix );
 
             // シーンからメッシュ群を _meshes に生成
             _meshes.reserve( scene -> mNumMeshes );
-            for ( auto n = 0; n < scene -> mNumMeshes; ++n )
+            for ( auto n = 0u; n < scene -> mNumMeshes; ++n )
               _meshes.emplace_back
               ( scene -> mMeshes[ n ]
               , _materials
@@ -162,7 +162,7 @@ namespace wonder_rabbit_project
               );
             
             // アニメーション情報群を保存
-            for ( auto n = 0; n < scene -> mNumAnimations; ++n )
+            for ( auto n = 0u; n < scene -> mNumAnimations; ++n )
             {
               const auto animation = scene -> mAnimations[ n ];
               
@@ -171,13 +171,13 @@ namespace wonder_rabbit_project
               data.duration         = animation -> mDuration;
               data.ticks_per_second = animation -> mTicksPerSecond == 0.0f ? 25.0f : animation -> mTicksPerSecond;
               
-              for ( auto n_channels = 0; n_channels < animation -> mNumChannels; ++n_channels )
+              for ( auto n_channels = 0u; n_channels < animation -> mNumChannels; ++n_channels )
               {
                 const auto channel = animation -> mChannels[ n_channels ];
                 
                 animation_t::channel_t ch;
                 
-                for ( auto n_key = 0; n_key < channel -> mNumScalingKeys; ++ n_key )
+                for ( auto n_key = 0u; n_key < channel -> mNumScalingKeys; ++ n_key )
                 {
                   const auto key = channel -> mScalingKeys[ n_key ];
                   ch.scalings.emplace( std::move( key.mTime ), helper::to_glm_vec3( &key.mValue ) );
@@ -186,7 +186,7 @@ namespace wonder_rabbit_project
                 if ( ch.scalings.empty() )
                   throw std::runtime_error( std::string("animation[") + animation -> mName.C_Str() + "], bone[" + channel -> mNodeName.C_Str() + "] scaling keyframes are empty." );
                 
-                for ( auto n_key = 0; n_key < channel -> mNumRotationKeys; ++ n_key )
+                for ( auto n_key = 0u; n_key < channel -> mNumRotationKeys; ++ n_key )
                 {
                   const auto key = channel -> mRotationKeys[ n_key ];
                   ch.rotations.emplace( std::move( key.mTime ), helper::to_glm_quat( &key.mValue ) );
@@ -195,7 +195,7 @@ namespace wonder_rabbit_project
                 if ( ch.rotations.empty() )
                   throw std::runtime_error( std::string("animation[") + animation -> mName.C_Str() + "], bone[" + channel -> mNodeName.C_Str() + "] rotations keyframes are empty." );
                 
-                for ( auto n_key = 0; n_key < channel -> mNumPositionKeys; ++ n_key )
+                for ( auto n_key = 0u; n_key < channel -> mNumPositionKeys; ++ n_key )
                 {
                   const auto key = channel -> mPositionKeys[ n_key ];
                   ch.translations.emplace( std::move( key.mTime ), helper::to_glm_vec3( &key.mValue ) );
@@ -270,7 +270,7 @@ namespace wonder_rabbit_project
           
           // ファイルからモデルデータを生成
           static auto create( const std::string& file_path, unsigned int importer_readfile_flags = default_importer_readfile_flags )
-          -> std::shared_ptr< model_t >
+            -> std::shared_ptr< model_t >
           {
             // Assimp::Importer ctor
             //  http://assimp.sourceforge.net/lib_html/class_assimp_1_1_importer.html#a2c207299ed05f1db1ad1e6dab005f719
@@ -310,7 +310,7 @@ namespace wonder_rabbit_project
             //      aiProcess_Debone                  : ボーンをロスレスないし閾値まで除去
             //  このポストプロセスは ApplyPostProcessing() を後で呼んで行う事もできる。
             
-            auto flags = default_importer_readfile_flags;
+            auto flags = importer_readfile_flags;
             auto transpose_node = false;
             
             {

@@ -330,7 +330,16 @@ namespace wonder_rabbit_project
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_1d( gl_type::GLsizei width, const void* data = nullptr )
             -> void
-          { throw std::logic_error( "texture_image_1d_depth: T_internal_format is not implemented" ); }
+          {
+            std::stringstream message;
+            message
+              << "texture_image_1d_depth: T_internal_format is not implemented"
+                 " T_internal_format=" << typeid( T_internal_format ).name() << " "
+                 " width=" << width << " "
+                 " data=" << data
+              ;
+            throw std::logic_error( message.str() );
+          }
           
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_1d()
@@ -341,7 +350,17 @@ namespace wonder_rabbit_project
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_2d( gl_type::GLsizei width, gl_type::GLsizei height, const void* data = nullptr )
             -> void
-          { throw std::logic_error( "texture_image_2d: T_internal_format is not implemented" ); }
+          {
+            std::stringstream message;
+            message
+              << "texture_image_2d: T_internal_format is not implemented"
+                 " T_internal_format=" << typeid( T_internal_format ).name() << " "
+                 " width=" << width << " "
+                 " height=" << height << " "
+                 " data=" << data
+              ;
+            throw std::logic_error( message.str() );
+          }
           
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_2d()
@@ -357,10 +376,21 @@ namespace wonder_rabbit_project
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_2d_multisample( gl_type::GLsizei width, gl_type::GLsizei height, const void* data, gl_type::GLsizei samples )
             -> void
-          { throw std::logic_error( "texture_image_2d_multisample: T_internal_format is not implemented" ); }
+          {
+            std::stringstream message;
+            message
+              << "texture_image_2d_multisample: T_internal_format is not implemented"
+                 " T_internal_format=" << typeid( T_internal_format ).name() << " "
+                 " width=" << width << " "
+                 " height=" << height << " "
+                 " data=" << data << " "
+                 " samples=" << samples
+              ;
+            throw std::logic_error( message.str() );
+          }
           
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
-          static inline auto texture_image_2d_multisample( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei size, const void* data, gl_type::GLsizei samples )
+          static inline auto texture_image_2d_multisample( gl_type::GLsizei width, gl_type::GLsizei height, const void* data )
             -> void
           { texture_image_2d_multisample< T_internal_format >( width, height, data, glm::log2<float>( std::min( width, height ) ) ); }
           
@@ -378,7 +408,18 @@ namespace wonder_rabbit_project
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_3d( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data = nullptr )
             -> void
-          { throw std::logic_error( "texture_image_3d: T_internal_format is not implemented" ); }
+          {
+            std::stringstream message;
+            message
+              << "texture_image_3d: T_internal_format is not implemented"
+                 " T_internal_format=" << typeid( T_internal_format ).name() << " "
+                 " width=" << width << " "
+                 " height=" << height << " "
+                 " depth=" << depth << " "
+                 " data=" << data
+              ;
+            throw std::logic_error( message.str() );
+          }
           
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_3d()
@@ -399,7 +440,19 @@ namespace wonder_rabbit_project
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_3d_multisample( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data, gl_type::GLsizei samples )
             -> void
-          { throw std::logic_error( "texture_image_3d_multisample: T_internal_format is not implemented" ); }
+          {
+            std::stringstream message;
+            message
+              << "texture_image_3d: T_internal_format is not implemented"
+                 " T_internal_format=" << typeid( T_internal_format ).name() << " "
+                 " width=" << width << " "
+                 " height=" << height << " "
+                 " depth=" << depth << " "
+                 " data=" << data << " "
+                 " samples=" << samples
+              ;
+            throw std::logic_error( message.str() );
+          }
           
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_3d_multisample( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data )
@@ -412,7 +465,7 @@ namespace wonder_rabbit_project
           { texture_image_3d_multisample< T_internal_format >( size, size, depth, data, glm::log2<float>( std::min( size, depth ) ) ); }
           
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
-          static inline auto texture_image_3d_multisample( gl_type::GLsizei size, const void* data, gl_type::GLsizei samples )
+          static inline auto texture_image_3d_multisample( gl_type::GLsizei size, const void* data )
             -> void
           { texture_image_3d_multisample< T_internal_format >( size, size, size, data, glm::log2<float>( size ) ); }
           

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <sstream>
+#include <typeinfo>
+
 #define GLM_SWIZZLE
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -37,7 +40,16 @@ namespace wonder_rabbit_project
           template < class T >
           static inline auto uniform( const gl_type::GLuint program_id, const gl_type::GLint location )
             -> T
-          { throw std::logic_error( "uniform<T>: unsupported type T." ); }
+          {
+            std::stringstream message;
+            message
+              << "uniform<T>: unsupported type T."
+                 " T=" << typeid( T ).name() << " "
+                 " program_id=" << program_id << " "
+                 " location=" << location
+              ;
+            throw std::logic_error( message.str() );
+          }
           
           template < class T >
           static inline auto uniform( const gl_type::GLint location )

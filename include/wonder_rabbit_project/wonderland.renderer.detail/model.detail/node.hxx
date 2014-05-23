@@ -46,11 +46,11 @@ namespace wonder_rabbit_project
             , _animations( animations )
           {
             _nodes.reserve( node -> mNumMeshes );
-            for ( auto n = 0; n < node -> mNumChildren; ++n)
+            for ( auto n = 0u; n < node -> mNumChildren; ++n)
               _nodes.emplace_back( node -> mChildren[ n ], animations, transpose_node );
             
             _indices.reserve( node -> mNumMeshes );
-            for ( auto n = 0; n < node -> mNumMeshes; ++n )
+            for ( auto n = 0u; n < node -> mNumMeshes; ++n )
               _indices.emplace_back( node -> mMeshes[ n ] );
             
             _transformation = transpose_node

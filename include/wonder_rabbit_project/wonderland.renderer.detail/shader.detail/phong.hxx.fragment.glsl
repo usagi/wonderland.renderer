@@ -89,7 +89,8 @@ void main(void)
   
   gl_FragColor = from_hsva_to_rgba( hsva );
   
-  gl_FragColor = vec4( calc_shadow_rate(), 0.0, 0.0, 1.0 );
+  vec4 a = nomalize( var_shadow_position );
+  gl_FragColor = vec4( a.zyx, 1.0 );
 }
 
 float calc_shadow_rate()

@@ -87,7 +87,7 @@ try
     for ( const auto& animation_name : animation_names )
       std::cout << "has animation: " << animation_name << std::endl;
     
-    for ( auto n = 1; n < model_instance_states.size(); ++n )
+    for ( auto n = 1ull; n < model_instance_states.size(); ++n )
     {
       auto& s = model_instance_states[ n ];
       

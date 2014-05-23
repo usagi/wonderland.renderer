@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <stdexcept>
+#include <sstream>
+#include <typeinfo>
 
 #define GLM_SWIZZLE
 #define GLM_FORCE_RADIANS
@@ -269,7 +271,15 @@ namespace wonder_rabbit_project
           template < class T = gl_type::GLint >
           static inline auto get( typename gl_type::GLenum pname )
             -> T
-          { throw std::logic_error( "get: unsupported T" ); }
+          {
+            std::stringstream message;
+            message
+              << "uniform<T>: unsupported type T."
+                 " T=" << typeid( T ).name() << " "
+                 " pname=" << pname << " "
+              ;
+            throw std::logic_error( message.str() );
+          }
           
         };
         

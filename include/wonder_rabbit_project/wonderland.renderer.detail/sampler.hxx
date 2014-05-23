@@ -49,7 +49,8 @@ namespace wonder_rabbit_project
 #endif
         }
         
-        auto bind( glew::gl_type::GLuint unit = 0, typename glew::gl_type::GLenum target = GL_TEXTURE_2D )
+        template < typename glew::gl_type::GLenum T_target = GL_TEXTURE_2D >
+        auto bind( glew::gl_type::GLuint unit = 0 )
           -> void
         {
 #if defined( GL_VERSION_3_3 )
@@ -58,7 +59,7 @@ namespace wonder_rabbit_project
           for ( const auto& param_pair : _param_pairs )
           {
             texture_parameter
-            ( target
+            ( T_target
             , param_pair.first
             , param_pair.second.which() ? boost::get< glew::gl_type::GLint   >( param_pair.second )
                                         : boost::get< glew::gl_type::GLfloat >( param_pair.second )
