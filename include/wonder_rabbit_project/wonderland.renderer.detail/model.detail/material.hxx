@@ -31,12 +31,12 @@ namespace wonder_rabbit_project
       {
         class material_t
         {
-          boost::optional< glm::vec3 > _diffuse;
-          boost::optional< glm::vec3 > _ambient;
-          boost::optional< glm::vec3 > _specular;
-          boost::optional< glm::vec3 > _emissive;
-          boost::optional< glm::vec1 > _transparent;
-          boost::optional< glm::vec1 > _reflective;
+          glm::vec3 _diffuse;
+          glm::vec3 _ambient;
+          glm::vec3 _specular;
+          glm::vec3 _emissive;
+          glm::vec1 _transparent;
+          glm::vec1 _reflective;
           
           std::vector< glew::gl_type::GLuint > _texture_ids;
 #ifdef GL_VERSION_3_3
@@ -59,19 +59,30 @@ namespace wonder_rabbit_project
           {
             // マテリアルカラー
             {
-              aiColor3D result;
-              if( material -> Get( AI_MATKEY_COLOR_DIFFUSE, result ) == aiReturn_SUCCESS )
-                _diffuse = { result.r, result.g, result.b };
-              if( material -> Get( AI_MATKEY_COLOR_AMBIENT, result ) == aiReturn_SUCCESS )
-                _ambient = { result.r, result.g, result.b };
-              if( material -> Get( AI_MATKEY_COLOR_SPECULAR, result ) == aiReturn_SUCCESS )
-                _specular = { result.r, result.g, result.b };
-              if( material -> Get( AI_MATKEY_COLOR_EMISSIVE, result ) == aiReturn_SUCCESS )
-                _emissive = { result.r, result.g, result.b };
-              if( material -> Get( AI_MATKEY_COLOR_TRANSPARENT, result ) == aiReturn_SUCCESS )
-                _transparent = result.r;
-              if( material -> Get( AI_MATKEY_COLOR_REFLECTIVE, result ) == aiReturn_SUCCESS )
-                _reflective = result.r;
+              // Note: Assimpの aiMaterial::Get のパラメーターは
+              // カンマを含む黒魔法 AI_MATKEY_COLOR_DIFFUSE などで
+              // ( const char* pkey, unsigned type, unsigned idx) を渡そうとする。
+              const auto get_material_color_to_glm_vec3 =
+              [ material ]
+              ( const char* pkey, unsigned type, unsigned idx, float default_value )
+                -> glm::vec3
+              {
+                aiColor3D color;
+                
+                const auto succeeded = material -> Get( pkey, type, idx, color );
+                
+                return ( succeeded == aiReturn_SUCCESS )
+                  ? glm::vec3( color.r, color.g, color.b )
+                  : glm::vec3( default_value )
+                  ;
+              };
+              
+              _diffuse  = get_material_color_to_glm_vec3( AI_MATKEY_COLOR_DIFFUSE , 1.0f );
+              _ambient  = get_material_color_to_glm_vec3( AI_MATKEY_COLOR_AMBIENT , 0.0f );
+              _specular = get_material_color_to_glm_vec3( AI_MATKEY_COLOR_SPECULAR, 0.0f );
+              _emissive = get_material_color_to_glm_vec3( AI_MATKEY_COLOR_EMISSIVE, 0.0f );
+              _transparent = get_material_color_to_glm_vec3( AI_MATKEY_COLOR_TRANSPARENT, 1.0f )[0];
+              _reflective  = get_material_color_to_glm_vec3( AI_MATKEY_COLOR_REFLECTIVE , 0.0f )[0];
             }
             
             // テクスチャー
@@ -243,32 +254,19 @@ namespace wonder_rabbit_project
           {
             if ( program_id )
             {
-
-#define WRP_TMP( WRP_TMP_X, WRP_TMP_Y, WRP_TMP_Z ) \
-              const auto location_of_ ## WRP_TMP_X = glew::c::glGetUniformLocation( program_id, # WRP_TMP_X ); \
-              if ( location_of_ ## WRP_TMP_X not_eq -1 ) \
-              { \
-                if ( _ ## WRP_TMP_X ) \
-                  glew::c::glUniform ## WRP_TMP_Y ## fv( location_of_ ## WRP_TMP_X , 1, & _ ## WRP_TMP_X .get().x ); \
-                else \
-                  glew::c::glUniform ## WRP_TMP_Y ## fv( location_of_ ## WRP_TMP_X , 1, & WRP_TMP_Z [0] ); \
-              }
-              
-              WRP_TMP( diffuse    , 3, glm::vec3( 1.0f ) )
-              WRP_TMP( ambient    , 3, glm::vec3( 0.0f ) )
-              WRP_TMP( specular   , 3, glm::vec3( 0.0f ) )
-              WRP_TMP( emissive   , 3, glm::vec3( 0.0f ) )
-              WRP_TMP( transparent, 1, glm::vec1( 1.0f ) )
-              WRP_TMP( reflective , 1, glm::vec1( 0.0f ) )
-              
-#undef WRP_TMP
-            }
+              glew::uniform_t::uniform( program_id, "diffuse"    , _diffuse     );
+              glew::uniform_t::uniform( program_id, "ambient"    , _ambient     );
+              glew::uniform_t::uniform( program_id, "specular"   , _specular    );
+              glew::uniform_t::uniform( program_id, "emissive"   , _emissive    );
+              glew::uniform_t::uniform( program_id, "transparent", _transparent );
+              glew::uniform_t::uniform( program_id, "reflective" , _reflective  );
             
-            {
-              std::array< float, shader::count_of_textures > texblends;
-              std::copy( std::begin( _texblends ), std::end( _texblends), texblends.begin() );
-              
-              glew::wrapper_t::uniform( program_id, "texblends", texblends );
+              {
+                std::array< float, shader::count_of_textures > texblends;
+                std::copy( std::begin( _texblends ), std::end( _texblends), texblends.begin() );
+                
+                glew::wrapper_t::uniform( program_id, "texblends", texblends );
+              }
             }
             
             for ( glew::gl_type::GLuint n = 0u; n < _texture_ids.size(); ++n )
