@@ -31,7 +31,7 @@ uniform vec3 view_direction;
 uniform float texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
 
 uniform sampler2D shadow_sampler;
-uniform sampler2D       sampler;
+uniform sampler2D sampler;
 
 //float calc_shadow_rate();
 vec3 hsv_add( vec3, vec3 );

@@ -1,13 +1,18 @@
 u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
 
+//#extension GL_EXT_shadow_samplers : enable
+
 #ifdef GL_FRAGMENT_PRECISION_HIGH
   precision highp float;
 #else
   precision mediump float;
 #endif
 
-varying vec4 var_color;
-varying vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+in vec4 var_color;
+in vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+in vec4 var_shadow_position;
+
+out vec4 fragment_color;
 
 uniform vec3 diffuse;
 uniform vec3 ambient;
@@ -15,6 +20,7 @@ uniform vec3 emissive;
 uniform float transparent;
 uniform float texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
 
+uniform sampler2D shadow_sampler;
 uniform sampler2D sampler;
 
 vec3 hsv_add( vec3, vec3 );
@@ -31,7 +37,8 @@ void main()
   vec4 hsva = hsva_calc_diffuse();
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( ambient  ) );
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( emissive ) );
-  gl_FragColor = from_hsva_to_rgba( hsva );
+  //fragment_color = from_hsva_to_rgba( hsva );
+  fragment_color = vec4( texture( shadow_sampler, var_shadow_position.xy ).y, 0.0, hsva.z, 1.0 );
 }
 
 vec3 hsv_add( vec3 a, vec3 b )

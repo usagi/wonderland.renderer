@@ -275,14 +275,14 @@ namespace wonder_rabbit_project
               if ( _texture_ids[ n ] )
               {
 #ifdef GL_VERSION_1_3
-                glew::c::glActiveTexture( GL_TEXTURE0 + n );
+                glew::texture_t::active_texture<>( GL_TEXTURE0 + n + 1 );
 #endif
                 // GL_1_1
-                glew::c::glBindTexture( GL_TEXTURE_2D, _texture_ids[ n ] );
+                glew::texture_t::bind_texture< GL_TEXTURE_2D >( _texture_ids[ n ] );
               }
 #ifdef GL_VERSION_3_3
               if ( _sampler_ids[ n ] )
-                glew::c::glBindSampler( n, _sampler_ids[ n ] );
+                glew::sampler_t::bind_sampler( n + 1, _sampler_ids[ n ] );
 #endif
             }
           }

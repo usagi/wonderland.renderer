@@ -22,7 +22,7 @@ namespace wonder_rabbit_project
       protected:
         const glew::gl_type::GLuint _frame_buffer_id = 0;
         
-        static constexpr auto attachment( const glew::gl_type::GLenum base_internal_format )
+        static constexpr auto _attachment( const glew::gl_type::GLenum base_internal_format )
           -> glew::gl_type::GLenum
         {
           return
@@ -105,7 +105,7 @@ namespace wonder_rabbit_project
         < typename glew::gl_type::GLenum T_target
         , typename glew::gl_type::GLenum T_internal_format
         , typename glew::gl_type::GLenum T_attachment
-          = attachment( renderer::texture_t< T_target, T_internal_format >::base_internal_format )
+          = _attachment( renderer::texture_t< T_target, T_internal_format >::base_internal_format )
         >
         auto bind_texture( std::shared_ptr< renderer::texture_t< T_target, T_internal_format > > texture )
           -> void

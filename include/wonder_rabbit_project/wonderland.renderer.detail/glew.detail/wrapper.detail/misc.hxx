@@ -29,6 +29,11 @@ namespace wonder_rabbit_project
           { c::glFlush(); }
           
           template < class T = void >
+          static inline auto clear_color()
+            -> glm::vec4
+          { return get_t::get< GL_COLOR_CLEAR_VALUE, glm::vec4 >(); }
+          
+          template < class T = void >
           static inline auto clear_color( const glm::vec4& color )
             -> void
           { c::glClearColor( color.r, color.g, color.b, color.a ); }
@@ -47,6 +52,15 @@ namespace wonder_rabbit_project
           static inline auto clear_color( const float color )
             -> void
           { c::glClearColor( color, color, color, 1.0f ); }
+          
+          template < class T >
+          static inline auto scoped_clear_color( const T& color )
+            -> destruct_invoker_t
+          {
+            auto backup = clear_color();
+            clear_color( color );
+            return destruct_invoker_t( [ backup ]{ clear_color( backup ); } );
+          }
           
           template < class T = void >
           static inline auto clear

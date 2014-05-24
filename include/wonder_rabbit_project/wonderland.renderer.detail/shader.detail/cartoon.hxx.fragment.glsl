@@ -25,6 +25,7 @@ uniform float point_light_quadratic_attenuation0;
 uniform vec3 view_direction;
 uniform float texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
 
+uniform sampler2D shadow_sampler;
 uniform sampler2D sampler;
 
 vec3 hsv_add( vec3, vec3 );
@@ -93,7 +94,6 @@ void main(void)
   
   gl_FragColor = from_hsva_to_rgba( hsva );
 }
-
 
 vec3 hsv_add( vec3 a, vec3 b )
 {
