@@ -162,6 +162,10 @@ try
                        || subsystem -> keyboard_state< key::right_shift >()
                        ;
     
+    // TODO: for debug
+    if ( subsystem -> keyboard_state< key::z >() )
+      renderer -> _shadow_save = true;
+    
     // camera change
     if      ( wheel.y > 0 or key_home )
       ( shift ? light_distance : camera_distance ) -= 10.0f;

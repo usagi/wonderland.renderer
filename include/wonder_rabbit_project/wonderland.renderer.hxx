@@ -20,6 +20,7 @@
 #include "wonderland.renderer.detail/sampler.hxx"
 #include "wonderland.renderer.detail/frame_buffer.hxx"
 #include "wonderland.renderer.detail/texture.hxx"
+#include "wonderland.renderer.detail/pnm.hxx"
 
 #include "wonderland.renderer.detail/shader.detail/all.hxx"
 
@@ -37,6 +38,11 @@ namespace wonder_rabbit_project
         
         renderer::program_t::const_shared_t     _default_program;
         std::list< std::shared_ptr< light_t > > _default_lights;
+        
+        // TODO: for debug
+      public:
+        bool _shadow_save;
+      private:
         
         bool _shadow;
         
@@ -190,7 +196,7 @@ namespace wonder_rabbit_project
           
           // TODO: for debug
           {
-            std::vector<float> data( _shadow_mapping_texture -> count_of_data_elements() );
+            std::vector< float > data( _shadow_mapping_texture -> count_of_data_elements() );
             
             active_texture< _shadow_mapping_texture_unit >();
             auto t = _shadow_mapping_texture -> scoped_bind();
@@ -201,9 +207,15 @@ namespace wonder_rabbit_project
             
             std::cerr
               << "shadow texture data sum(size=" << std::distance( data.cbegin(), data.cend() ) << "): "
-              << std::accumulate( data.cbegin(), data.cend(), 0.0f )
+              << std::accumulate( data.cbegin(), data.cend(), 0.0 )
               << "\n"
               ;
+            
+            if ( _shadow_save )
+            {
+              pnm_t::save( data, v[2] );
+              _shadow_save = false;
+            }
           }
         }
         
