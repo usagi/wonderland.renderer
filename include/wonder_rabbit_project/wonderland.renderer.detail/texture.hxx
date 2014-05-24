@@ -68,6 +68,10 @@ namespace wonder_rabbit_project
         
         auto viewport() -> const glm::i32vec4&
         { return _viewport; }
+        
+        auto count_of_data_elements() -> const std::size_t
+        { return _viewport[2] * _viewport[3]; }
+        
       };
       
       // has class template partial specialization

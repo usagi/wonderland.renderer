@@ -40,8 +40,11 @@ namespace wonder_rabbit_project
         
         bool _shadow;
         
-        //using shadow_mapping_texture_t = renderer::texture2d_t< GL_DEPTH_COMPONENT32F >;
-        using shadow_mapping_texture_t = renderer::texture2d_t< GL_DEPTH32F_STENCIL8 >;
+        static constexpr auto _shadow_mapping_texture_internal_format
+          //= GL_DEPTH_COMPONENT16;
+          = GL_DEPTH_COMPONENT32F;
+          //= GL_DEPTH32F_STENCIL8;
+        using shadow_mapping_texture_t = renderer::texture2d_t< _shadow_mapping_texture_internal_format >;
         
         renderer::program_t::const_shared_t         _shadow_mapping_program;
         std::shared_ptr< shadow_mapping_texture_t > _shadow_mapping_texture;
@@ -70,29 +73,6 @@ namespace wonder_rabbit_project
         
         std::list< draw_params_t > _draw_queue;
         
-        auto _create_shadow_mapping_buffer()
-          -> void
-        {
-          // create texture for shadow mapping
-          ( _shadow_mapping_texture = std::make_shared< shadow_mapping_texture_t >() )
-            -> image_2d()
-            ;
-          
-          // create frame buffer for shadow mapping
-          ( _shadow_mapping_frame_buffer = std::make_shared< renderer::frame_buffer_t >() )
-            -> bind_texture( _shadow_mapping_texture )
-            ;
-          
-          // create sampler
-          ( _shadow_mapping_sampler = std::make_shared< renderer::sampler_t>() )
-            -> parameter_wrap_st( GL_CLAMP_TO_BORDER )
-            -> parameter_min_mag_filter( GL_NEAREST )
-            //-> parameter_compare_mode( GL_COMPARE_REF_TO_TEXTURE )
-            //-> parameter_compare_func( GL_LESS )
-            -> parameter_border_color( glm::vec4( 1.0f ) )
-            ;
-        }
-        
         auto _create_shadow_mapping_program()
           -> void
         {
@@ -103,6 +83,49 @@ namespace wonder_rabbit_project
             ;
         }
         
+        auto _create_shadow_mapping_texture()
+          -> void
+        {
+          // create texture for shadow mapping
+          ( _shadow_mapping_texture = std::make_shared< shadow_mapping_texture_t >() )
+            // TODO: for debug 256. to release, no params(system maximum size automatically).
+            -> image_2d( 256 )
+            ;
+          
+          // create sampler
+          ( _shadow_mapping_sampler = std::make_shared< renderer::sampler_t>() )
+            -> parameter_wrap_st( GL_CLAMP_TO_BORDER )
+            -> parameter_min_mag_filter( GL_NEAREST )
+            //-> parameter_compare_mode( GL_COMPARE_REF_TO_TEXTURE )
+            //-> parameter_compare_func( GL_LESS )
+            //-> parameter_mode( GL_LUMINANCE )
+            -> parameter_border_color( glm::vec4( 1.0f ) )
+            ;
+          
+          // bind samplar
+          {
+            auto p = _shadow_mapping_program -> scoped_use();
+            active_texture<7>();
+            _shadow_mapping_sampler -> bind();
+          }
+        }
+        
+        auto _create_shadow_mapping_buffer()
+          -> void
+        {
+          // create frame buffer for shadow mapping
+          ( _shadow_mapping_frame_buffer = std::make_shared< renderer::frame_buffer_t >() )
+            -> bind_texture( _shadow_mapping_texture )
+            ;
+          
+          {
+            auto f = _shadow_mapping_frame_buffer -> scoped_bind();
+            // TODO: glDrawBuffer and glReadBuffer is not supported on Emscripten!
+            draw_buffer();
+            read_buffer();
+          }
+        }
+        
         auto _shadow_on()
           -> void
         {
@@ -110,6 +133,7 @@ namespace wonder_rabbit_project
             try
             {
               _create_shadow_mapping_program();
+              _create_shadow_mapping_texture();
               _create_shadow_mapping_buffer();
             }
             catch ( const std::exception& e )
@@ -132,7 +156,7 @@ namespace wonder_rabbit_project
           if ( _shadow )
             _invoke_draw_shadow();
           
-          _invoke_draw_normal();
+          //_invoke_draw_normal();
           
           _draw_queue.clear();
         }
@@ -143,16 +167,22 @@ namespace wonder_rabbit_project
           auto scoped_viewport_ = scoped_viewport( _shadow_mapping_texture -> viewport() );
 
           auto scoped_programe_use      = _shadow_mapping_program      -> scoped_use();
-          auto scoped_frame_buffer_bind = _shadow_mapping_frame_buffer -> scoped_bind();
           
-          active_texture< 0 >();
+          auto scoped_frame_buffer_bind = _shadow_mapping_frame_buffer -> scoped_bind< GL_FRAMEBUFFER >();
+          WRP_GLEW_TEST_ERROR
+          
           _shadow_mapping_frame_buffer -> bind_texture( _shadow_mapping_texture );
+          WRP_GLEW_TEST_ERROR
+          
+          //_shadow_mapping_texture -> bind();
           
           //auto scoped_texture_bind      = _shadow_mapping_texture      -> scoped_bind();
           
           // TODO: glDrawBuffer and glReadBuffer is not supported on Emscripten!
-          auto scoped_draw_buffer_ = scoped_draw_buffer();
-          auto scoped_read_buffer_ = scoped_read_buffer();
+          //auto scoped_draw_buffer_ = scoped_draw_buffer();
+          //auto scoped_read_buffer_ = scoped_read_buffer();
+          draw_buffer();
+          read_buffer();
           
           WRP_GLEW_CHECK_FRAME_BUFFER_STATUS
           
@@ -162,10 +192,43 @@ namespace wonder_rabbit_project
           auto scoped_enable_polygon_offset = scoped_enable< GL_POLYGON_OFFSET_FILL >();
           auto scoped_polygon_offset_       = scoped_polygon_offset( 1.1f, 4.0f );
           
+          enable<GL_DEPTH_TEST>();
+          WRP_GLEW_TEST_ERROR
+          
+          // clear();
           clear( GL_DEPTH_BUFFER_BIT );
+          WRP_GLEW_TEST_ERROR
           
           for ( const auto& draw_params : _draw_queue )
             _draw_shadow( draw_params );
+          
+          // TODO: for debug
+          {
+            WRP_GLEW_TEST_ERROR
+            
+            std::vector<glew::gl_type::GLfloat> data( _shadow_mapping_texture -> count_of_data_elements() );
+            
+            active_texture<7>();
+            WRP_GLEW_TEST_ERROR
+            
+            _shadow_mapping_texture -> bind();
+            WRP_GLEW_TEST_ERROR
+            
+            glew::c::glGetTexImage
+            ( GL_TEXTURE_2D
+            , 0
+            , GL_DEPTH_COMPONENT
+            , GL_FLOAT
+            , &data[0]
+            );
+            WRP_GLEW_TEST_ERROR
+            
+            std::cerr
+              << "shadow texture data sum(size=" << std::distance( data.cbegin(), data.cend() ) << "): "
+              << std::accumulate( data.cbegin(), data.cend(), 0.0f )
+              << "\n"
+              ;
+          }
         }
         
         auto _invoke_draw_normal()
@@ -175,10 +238,12 @@ namespace wonder_rabbit_project
           
           enable< GL_TEXTURE_2D >();
           
-          constexpr auto shadow_mapping_texture_unit = 7;
+          constexpr auto shadow_mapping_texture_unit = 0;
           
           active_texture< shadow_mapping_texture_unit >();
+          
           auto scoped_texture_bind = _shadow_mapping_texture -> scoped_bind();
+          
           _shadow_mapping_sampler
             -> bind< decltype(_shadow_mapping_texture)::element_type::target >
               ( shadow_mapping_texture_unit )
@@ -219,23 +284,26 @@ namespace wonder_rabbit_project
             uniform( program_id, "world_view_projection_transformation", wvp );
             
             draw_params.model -> draw( draw_params.animation_states );
+            
+            // TODO: support multiple lights
+            break;
           }
         }
         
         auto _draw_normal( const draw_params_t& draw_params )
           -> void
-        {
+        {/*
           auto scoped_programe_use
             = ( _default_program not_eq draw_params.program )
               ? draw_params.program -> scoped_use()
               : destruct_invoker_t([]{})
-              ;
+              ;*/
           
           const auto wv
             = _camera -> view_transformation()
             * draw_params.world_transformation
             ;
-            
+          
           const auto wvp = _projection_transformation * wv;
           
           // TODO: support multiple lights for shadow mapping
@@ -352,7 +420,7 @@ namespace wonder_rabbit_project
         inline auto create_program( T_shaders&& ... shaders )
           -> std::shared_ptr< const renderer::program_t >
         {
-          return _default_program = create_program()
+          return ( _default_program = create_program() )
             -> attach( shaders ... )
             -> link()
             ;

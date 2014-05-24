@@ -129,7 +129,7 @@ try
     const auto fov_y = glm::pi<float>() / 4.0f;
     constexpr auto screen_aspect_ratio = float( screen_width ) / float( screen_height );
     constexpr auto near_clip = 1.0e-1f;
-    constexpr auto far_clip  = 1.0e+3f;
+    constexpr auto far_clip  = 1.0e+4f;
     renderer -> projection_transformation( glm::perspective( fov_y, screen_aspect_ratio, near_clip, far_clip ) );
   }
   

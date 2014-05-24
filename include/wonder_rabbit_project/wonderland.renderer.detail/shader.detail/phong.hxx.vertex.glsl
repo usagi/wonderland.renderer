@@ -19,11 +19,11 @@ attribute vec3 bitangent;
 attribute vec4 bone_ids;
 attribute vec4 bone_weights;
 
-varying vec3 var_position;
-varying vec4 var_color;
-varying vec3 var_normal;
-varying vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
-varying vec4 var_shadow_position;
+out vec3 var_position;
+out vec4 var_color;
+out vec3 var_normal;
+out vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+out vec4 var_shadow_position;
 
 uniform mat4 world_view_projection_transformation;
 uniform mat4 world_transformation;

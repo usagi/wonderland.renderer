@@ -8,11 +8,13 @@ u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
   precision mediump float;
 #endif
 
-varying vec3 var_position;
-varying vec4 var_color;
-varying vec3 var_normal;
-varying vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
-varying vec4 var_shadow_position;
+in vec3 var_position;
+in vec4 var_color;
+in vec3 var_normal;
+in vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+in vec4 var_shadow_position;
+
+out vec4 fragment_color;
 
 uniform vec3 diffuse;
 uniform vec3 ambient;
@@ -28,8 +30,8 @@ uniform float point_light_quadratic_attenuation0;
 uniform vec3 view_direction;
 uniform float texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
 
+uniform sampler2D shadow_sampler;
 uniform sampler2D       sampler;
-uniform sampler2DShadow shadow_sampler;
 
 //float calc_shadow_rate();
 vec3 hsv_add( vec3, vec3 );
@@ -87,7 +89,7 @@ void main(void)
   
   //hsva.z *= calc_shadow_rate();
   
-  gl_FragColor = from_hsva_to_rgba( hsva );
+  fragment_color = from_hsva_to_rgba( hsva );
   
   // TODO: for debug
   
@@ -97,7 +99,9 @@ void main(void)
   //vec4 a = normalize( var_shadow_position );
   //gl_FragColor = vec4( a.zyx, 1.0 );
   //gl_FragColor = vec4( texture2D( shadow_sampler, vec2( 0.3, 0.3 )).r, 0.0, 0.0, 1.0 );
-  gl_FragColor = vec4( textureProj( shadow_sampler, var_shadow_position ), 0.0, 0.0, 1.0 );
+  //fragment_color = vec4( textureProj( shadow_sampler, var_shadow_position ), 0.0, hsva.z, 1.0 );
+  fragment_color = vec4( texture( shadow_sampler, normalize( var_shadow_position.xy ) ).x, 0.0, hsva.z, 1.0 );
+  //fragment_color = vec4( normalize( var_shadow_position.xy ), hsva.z, 1.0 );
   
 }
 

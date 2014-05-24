@@ -35,23 +35,24 @@ namespace wonder_rabbit_project
             : GL_COLOR_ATTACHMENT0;
         }
         
-        template < typename glew::gl_type::GLenum T_target, typename glew::gl_type::GLenum T_internal_format >
+        template
+        < typename glew::gl_type::GLenum T_target
+        , typename glew::gl_type::GLenum T_internal_format
+        , typename glew::gl_type::GLenum T_attachment
+        >
         auto _bind_texture( std::shared_ptr< renderer::texture_t< T_target, T_internal_format > > texture )
           -> void
         {
-          constexpr auto base_internal_format
-            = renderer::texture_t< T_target, T_internal_format >::base_internal_format;
-          
           switch( T_target )
           {
             case GL_TEXTURE_1D:
-              frame_buffer_texture_1d< attachment( base_internal_format ) >( texture -> texture_id() );
+              frame_buffer_texture_1d< T_attachment >( texture -> texture_id() );
               break;
             case GL_TEXTURE_2D:
-              frame_buffer_texture_2d< attachment( base_internal_format ) >( texture -> texture_id() );
+              frame_buffer_texture_2d< T_attachment >( texture -> texture_id() );
               break;
             case GL_TEXTURE_3D:
-              frame_buffer_texture_3d< attachment( base_internal_format ) >( texture -> texture_id() );
+              frame_buffer_texture_3d< T_attachment >( texture -> texture_id() );
               break;
             default:
               throw std::logic_error( "_texture: unsupported T::target type." );
@@ -77,15 +78,17 @@ namespace wonder_rabbit_project
         auto frame_buffer_id() -> decltype( _frame_buffer_id )
         { return _frame_buffer_id; }
         
+        template < typename glew::gl_type::GLenum T_target = GL_FRAMEBUFFER >
         auto bind() -> void
         {
-          bind_frame_buffer( _frame_buffer_id );
+          bind_frame_buffer< T_target >( _frame_buffer_id );
           glew::test_error( __FILE__, __LINE__ );
         }
         
+        template < typename glew::gl_type::GLenum T_target = GL_FRAMEBUFFER >
         auto scoped_bind() -> destruct_invoker_t
         {
-          auto r = scoped_bind_frame_buffer( _frame_buffer_id );
+          auto r = scoped_bind_frame_buffer< T_target >( _frame_buffer_id );
           glew::test_error( __FILE__, __LINE__ );
           return r;
         }
@@ -98,12 +101,17 @@ namespace wonder_rabbit_project
           _bind_textures( textures ... );
         }
         
-        template < typename glew::gl_type::GLenum T_target, typename glew::gl_type::GLenum T_internal_format >
+        template
+        < typename glew::gl_type::GLenum T_target
+        , typename glew::gl_type::GLenum T_internal_format
+        , typename glew::gl_type::GLenum T_attachment
+          = attachment( renderer::texture_t< T_target, T_internal_format >::base_internal_format )
+        >
         auto bind_texture( std::shared_ptr< renderer::texture_t< T_target, T_internal_format > > texture )
           -> void
         {
           auto binding = scoped_bind();
-          _bind_texture( texture );
+          _bind_texture< T_target, T_internal_format, T_attachment >( texture );
           glew::test_error( __FILE__, __LINE__ );
         }
         

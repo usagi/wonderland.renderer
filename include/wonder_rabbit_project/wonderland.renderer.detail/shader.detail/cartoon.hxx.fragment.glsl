@@ -81,15 +81,13 @@ void main(void)
   
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( ambient  ) );
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( emissive ) );
-
-  vec3 hsv = from_rgb_to_hsv( gl_FragColor.rgb );
   
   hsva.xyz = vec3
   ( float(int( hsva.x * 16.0 )) / 16.0
   , float(int( hsva.y * 16.0 )) / 16.0
-  , float(int( hsva.z * 3.0 )) / 3.0
+  , float(int( hsva.z *  3.0 )) /  3.0
   );
-
+  
   if ( pow( edge_factor, 4.0 ) < 0.10 )
     hsva.z *= 0.20;
   
@@ -161,13 +159,13 @@ vec4 hsva_calc_diffuse()
       vec4 current_blend_color = from_rgba_to_hsva( sampled_rgba_color * texblends[ n ] );
       texture_color = hsva_add( texture_color, current_blend_color );
     }
-
+  
   if ( texblend > 0.0 )
   {
     result *= 1.0 - texblend;
     result += texture_color * texblend;
   }
-
+  
   return result;
 }
 
