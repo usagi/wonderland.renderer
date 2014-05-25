@@ -29,18 +29,7 @@ namespace wonder_rabbit_project
       public:
         static constexpr glew::gl_type::GLenum target               = GL_TEXTURE_2D;
         static constexpr glew::gl_type::GLenum internal_format      = T_internal_format;
-        static constexpr glew::gl_type::GLenum base_internal_format
-          = (  internal_format == GL_DEPTH_COMPONENT16
-            or internal_format == GL_DEPTH_COMPONENT24
-            or internal_format == GL_DEPTH_COMPONENT32
-            or internal_format == GL_DEPTH_COMPONENT32F
-            )  ? GL_DEPTH_COMPONENT
-          : (  internal_format == GL_DEPTH24_STENCIL8
-            or internal_format == GL_DEPTH32F_STENCIL8
-            )  ? GL_DEPTH_STENCIL
-          : (  internal_format == GL_STENCIL_INDEX8
-            )  ? GL_STENCIL
-          : 0;
+        static constexpr glew::gl_type::GLenum base_internal_format = glew::texture_t::base_internal_format( T_internal_format );
         
       protected:
         const glew::gl_type::GLuint _texture_id = 0;

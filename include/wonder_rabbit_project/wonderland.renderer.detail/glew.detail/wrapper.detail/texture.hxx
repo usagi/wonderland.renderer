@@ -21,6 +21,24 @@ namespace wonder_rabbit_project
       {
         struct texture_t
         {
+          
+          static constexpr auto base_internal_format( gl_type::GLenum internal_format )
+            -> gl_type::GLenum
+          {
+            return
+              (  internal_format == GL_DEPTH_COMPONENT16
+              or internal_format == GL_DEPTH_COMPONENT24
+              or internal_format == GL_DEPTH_COMPONENT32
+              or internal_format == GL_DEPTH_COMPONENT32F
+              )  ? GL_DEPTH_COMPONENT
+            : (  internal_format == GL_DEPTH24_STENCIL8
+              or internal_format == GL_DEPTH32F_STENCIL8
+              )  ? GL_DEPTH_STENCIL
+            : (  internal_format == GL_STENCIL_INDEX8
+              )  ? GL_STENCIL
+            : 0;
+          }
+          
           template < class T = void >
           static inline auto max_texture_units() -> gl_type::GLuint
           {

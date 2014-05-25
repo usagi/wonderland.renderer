@@ -72,7 +72,15 @@ namespace wonder_rabbit_project
           if ( _internal_format )
             return *_internal_format;
           
-          throw std::logic_error( "render_buffer_t::internal_format: _internal_format is not set." );
+          throw std::logic_error( "render_buffer_t::internal_format: _internal_format is not set yet." );
+        }
+        
+        template < class T >
+        auto internal_format( std::shared_ptr< T > texture )
+          -> void
+        {
+          constexpr auto f = T::internal_format;
+          _internal_format = f;
         }
         
       };

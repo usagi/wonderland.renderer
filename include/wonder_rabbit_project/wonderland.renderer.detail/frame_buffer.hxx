@@ -24,19 +24,6 @@ namespace wonder_rabbit_project
       protected:
         const glew::gl_type::GLuint _frame_buffer_id = 0;
         
-        static constexpr auto _attachment( const glew::gl_type::GLenum base_internal_format )
-          -> glew::gl_type::GLenum
-        {
-          return
-              base_internal_format == GL_DEPTH_COMPONENT
-            ? GL_DEPTH_ATTACHMENT
-            : base_internal_format == GL_DEPTH_STENCIL
-            ? GL_DEPTH_STENCIL_ATTACHMENT
-            : base_internal_format == GL_STENCIL_INDEX
-            ? GL_STENCIL_ATTACHMENT
-            : GL_COLOR_ATTACHMENT0;
-        }
-        
         template
         < typename glew::gl_type::GLenum T_target
         , typename glew::gl_type::GLenum T_internal_format
@@ -114,12 +101,12 @@ namespace wonder_rabbit_project
         < typename glew::gl_type::GLenum T_target
         , typename glew::gl_type::GLenum T_internal_format
         , typename glew::gl_type::GLenum T_attachment
-          = _attachment( renderer::texture_t< T_target, T_internal_format >::base_internal_format )
+          = attachment( renderer::texture_t< T_target, T_internal_format >::base_internal_format )
         >
         auto bind_texture( std::shared_ptr< renderer::texture_t< T_target, T_internal_format > > texture = nullptr )
           -> void
         {
-          auto binding = scoped_bind();
+          //auto binding = scoped_bind();
           _bind_texture< T_target, T_internal_format, T_attachment >( texture );
           glew::test_error( __FILE__, __LINE__ );
         }
@@ -128,7 +115,7 @@ namespace wonder_rabbit_project
         < typename glew::gl_type::GLenum T_target
         , typename glew::gl_type::GLenum T_internal_format
         , typename glew::gl_type::GLenum T_attachment
-          = _attachment( renderer::texture_t< T_target, T_internal_format >::base_internal_format )
+          = attachment( renderer::texture_t< T_target, T_internal_format >::base_internal_format )
         >
         auto scoped_bind_texture( std::shared_ptr< renderer::texture_t< T_target, T_internal_format > > texture )
           -> destruct_invoker_t
@@ -140,7 +127,10 @@ namespace wonder_rabbit_project
         
         auto render_buffer( std::shared_ptr< render_buffer_t > render_buffer )
           -> void
-        { frame_buffer_render_buffer( _attachment( render_buffer -> internal_format() ) , render_buffer -> render_buffer_id() ); }
+        {
+          const auto f = glew::texture_t::base_internal_format( render_buffer -> internal_format() );
+          frame_buffer_render_buffer( attachment( f ) , render_buffer -> render_buffer_id() );
+        }
         
       };
       

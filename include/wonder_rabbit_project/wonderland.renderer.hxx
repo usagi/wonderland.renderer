@@ -121,20 +121,54 @@ namespace wonder_rabbit_project
         auto _create_shadow_mapping_buffer()
           -> void
         {
-          // create frame buffer
-          _shadow_mapping_frame_buffer = std::make_shared< renderer::frame_buffer_t >();
+          // create frame buffer and scoped bind
+          auto f = (_shadow_mapping_frame_buffer = std::make_shared< renderer::frame_buffer_t >() )
+            -> scoped_bind();
           
           // scoped bind frame buffer
-          auto f = _shadow_mapping_frame_buffer -> scoped_bind();
+          //auto f = _shadow_mapping_frame_buffer -> scoped_bind();
           
-          // bind texture to frame buffer
+          // bind texture
+          _shadow_mapping_texture -> bind();
+          
+          // attach texture to frame buffer
           _shadow_mapping_frame_buffer -> bind_texture( _shadow_mapping_texture );
+          
+          /*
+          {
+            auto v = _shadow_mapping_texture -> viewport();
+            unsigned c = 0;
+            
+            glew::c::glGenTextures(1, &c);
+            glew::c::glBindTexture(GL_TEXTURE_2D, c);
+            glew::c::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, v[2], v[3], 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+            glew::c::glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, c, 0);
+            glew::c::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glew::c::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glew::c::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glew::c::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+          }
+          */
           
           // create render buffer
           _shadow_mapping_render_buffer = std::make_shared< renderer::render_buffer_t >();
           
-          // bind render buffer to frame buffer
+          //_shadow_mapping_frame_buffer
+          //  -> bind_render_buffer_with_texture( _shadow_mapping_render_buffer, _shadow_mapping_texture );
+          
+          // bind render buffer
           _shadow_mapping_render_buffer -> bind();
+          
+          // set internal internal format to render buffer
+          _shadow_mapping_render_buffer -> internal_format( _shadow_mapping_texture );
+          
+          // attach render buffer to frame buffer
+          _shadow_mapping_frame_buffer -> render_buffer( _shadow_mapping_render_buffer );
+          
+          {
+            //glew::c::glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _shadow_mapping_render_buffer -> render_buffer_id() );
+            //frame_buffer_render_buffer( GL_DEPTH_ATTACHMENT, _shadow_mapping_render_buffer -> render_buffer_id() );
+          }
           
           // storage from texture to render buffer
           _shadow_mapping_render_buffer -> storage( _shadow_mapping_texture );

@@ -22,6 +22,19 @@ namespace wonder_rabbit_project
         struct frame_buffer_t
         {
           
+          static constexpr auto attachment( gl_type::GLenum base_internal_format )
+            -> gl_type::GLenum
+          {
+            return
+                base_internal_format == GL_DEPTH_COMPONENT
+              ? GL_DEPTH_ATTACHMENT
+              : base_internal_format == GL_DEPTH_STENCIL
+              ? GL_DEPTH_STENCIL_ATTACHMENT
+              : base_internal_format == GL_STENCIL_INDEX
+              ? GL_STENCIL_ATTACHMENT
+              : GL_COLOR_ATTACHMENT0;
+          }
+          
 #define WRP_GLEW_CHECK_FRAME_BUFFER_STATUS check_frame_buffer_status( __FILE__, __LINE__ );
           
           template < class T = void >
