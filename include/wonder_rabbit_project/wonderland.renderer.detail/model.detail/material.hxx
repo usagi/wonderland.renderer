@@ -208,7 +208,6 @@ namespace wonder_rabbit_project
               // glGenerateMipmap / GL_3_0
               //  http://www.opengl.org/wiki/GLAPI/glGenerateMipmap
               glew::c::glGenerateMipmap( GL_TEXTURE_2D );
-              
               glew::test_error( __FILE__, __LINE__ );
               
 #endif

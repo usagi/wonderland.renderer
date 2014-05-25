@@ -82,7 +82,18 @@ namespace wonder_rabbit_project
         }
         
         template < typename glew::gl_type::GLenum T_target = GL_FRAMEBUFFER >
-        auto scoped_bind() -> destruct_invoker_t
+        auto unbind()
+          -> std::shared_ptr< frame_buffer_t >
+        {
+          bind_frame_buffer< T_target >();
+          glew::test_error( __FILE__, __LINE__ );
+          
+          return shared_from_this();
+        }
+        
+        template < typename glew::gl_type::GLenum T_target = GL_FRAMEBUFFER >
+        auto scoped_bind()
+          -> destruct_invoker_t
         {
           auto r = scoped_bind_frame_buffer< T_target >( _frame_buffer_id );
           glew::test_error( __FILE__, __LINE__ );
@@ -104,11 +115,13 @@ namespace wonder_rabbit_project
           = attachment( renderer::texture_t< T_target, T_internal_format >::base_internal_format )
         >
         auto bind_texture( std::shared_ptr< renderer::texture_t< T_target, T_internal_format > > texture = nullptr )
-          -> void
+          -> std::shared_ptr< frame_buffer_t >
         {
           //auto binding = scoped_bind();
           _bind_texture< T_target, T_internal_format, T_attachment >( texture );
           glew::test_error( __FILE__, __LINE__ );
+          
+          return shared_from_this();
         }
         
         template

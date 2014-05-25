@@ -80,19 +80,26 @@ try
     glm::mat4         world_transformation;
   };
   
-  std::array< model_instance_state_t, 9 > model_instance_states;
+  std::array< model_instance_state_t, 10 > model_instance_states;
   
   {
-    model_instance_states[0].model = model1;
+    model_instance_states[0].model = model0;
     model_instance_states[0].world_transformation
-      = glm::translate( glm::mat4(), glm::vec3( 0.0f, 80.0f, 0.0f ) );
+      = glm::scale( glm::mat4(), glm::vec3( 4.0f ) )
+      ;
+    
+    model_instance_states[1].model = model1;
+    model_instance_states[1].world_transformation
+      = glm::translate( glm::mat4(), glm::vec3( 0.0f, 1.0f, 0.0f ) )
+      * glm::scale( glm::mat4(), glm::vec3( 0.5f ) )
+      ;
       
     auto animation_names = model2 -> animation_names();
     
     for ( const auto& animation_name : animation_names )
       std::cout << "has animation: " << animation_name << std::endl;
     
-    for ( auto n = 1ull; n < model_instance_states.size(); ++n )
+    for ( auto n = 2ull; n < model_instance_states.size(); ++n )
     {
       auto& s = model_instance_states[ n ];
       
@@ -104,35 +111,35 @@ try
         s.animation_state.time = animation_state_t::fseconds( float(n) * 19937 );
       }
       
-      s.world_transformation = glm::scale( glm::mat4(), glm::vec3( 25.f ) );
+      s.world_transformation = glm::scale( glm::mat4(), glm::vec3( 1.f ) );
       switch ( n )
-      { case 1: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 1.0f,  0.0f ) ); break;
-        case 2: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 1.0f,  0.0f ) ); break;
-        case 3: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 0.0f,  5.0f ) ); break;
-        case 4: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  0.0f, 1.0f,  5.0f ) ); break;
-        case 5: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 1.0f,  5.0f ) ); break;
-        case 6: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 1.0f, -5.0f ) ); break;
-        case 7: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  0.0f, 0.0f, -5.0f ) ); break;
-        case 8: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 1.0f, -5.0f ) );
+      { case 2: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 1.0f,  0.0f ) ); break;
+        case 3: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 0.0f,  0.0f ) ); break;
+        case 4: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 1.0f,  5.0f ) ); break;
+        case 5: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  0.0f, 1.0f,  5.0f ) ); break;
+        case 6: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 1.0f,  5.0f ) ); break;
+        case 7: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 0.0f, -5.0f ) ); break;
+        case 8: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  0.0f, 1.0f, -5.0f ) ); break;
+        case 9: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 1.0f, -5.0f ) );
       }
     }
   }
   
   // clear color
-  {
-    const auto color = glm::vec4( 0.8f, 0.8f, 1.0f, 1.0f );
-    renderer -> clear_color( color );
-  }
+  renderer
+    -> clear_color( glm::vec4( 0.8f, 0.8f, 1.0f, 1.0f ) )
+    ;
   
   // projection transformation
-  {
-    const auto fov_y = glm::pi<float>() / 4.0f;
-    constexpr auto screen_aspect_ratio = float( screen_width ) / float( screen_height );
-    constexpr auto near_clip = 1.0e-1f;
-    constexpr auto far_clip  = 1.0e+4f;
-    renderer -> projection_transformation( glm::perspective( fov_y, screen_aspect_ratio, near_clip, far_clip ) );
-  }
-  
+  renderer
+    -> projection()
+      -> fov_y( glm::pi< float >() / 4.0f )
+      -> aspect_ratio( float( screen_width ) / float( screen_height ) )
+      -> near_clip( 1.0e-1f )
+      -> far_clip ( 1.0e+3f )
+      -> update()
+    ;
+  std::cerr << "hogehogehogehoge";
   subsystem -> update_functors.emplace_front
   ( [ subsystem, renderer
     , &model_instance_states
@@ -144,12 +151,12 @@ try
   {
     static auto camera_theta           = glm::half_pi< float >();
     static auto camera_phi             = glm::half_pi< float >() * -0.5f;
-    static auto camera_distance        = 300.0f;
+    static auto camera_distance        = 10.0f;
     static auto camera_auto_orbitation = false;
     
     static auto light_theta           = glm::half_pi< float >();
     static auto light_phi             = glm::half_pi< float >() * -0.5f;
-    static auto light_distance        = 1000.0f;
+    static auto light_distance        = 10.0f;
     static auto light_auto_orbitation = false;
     
     for ( auto& model_instance_state : model_instance_states )
@@ -168,9 +175,9 @@ try
     
     // camera change
     if      ( wheel.y > 0 or key_home )
-      ( shift ? light_distance : camera_distance ) -= 10.0f;
+      ( shift ? light_distance : camera_distance ) -= 1.0f;
     else if ( wheel.y < 0 or key_end  )
-      ( shift ? light_distance : camera_distance ) += 10.0f;
+      ( shift ? light_distance : camera_distance ) += 1.0f;
     
     if ( subsystem -> keyboard_state< key::left_arrow >() )
       ( shift ? light_theta : camera_theta ) -= 0.05f;
@@ -182,9 +189,9 @@ try
       ( shift ? light_phi : camera_phi ) += 0.05f;
     
     renderer -> camera()
-      -> target( { 0.0f, 25.0f, 0.0f } )
+      -> target( { 0.0f, 0.0f, 0.0f } )
       -> eye_from_orbit_of_target( camera_theta, camera_phi, camera_distance )
-      -> up    ( { 0.0f,  1.0f, 0.0f } )
+      -> up    ( { 0.0f, 1.0f, 0.0f } )
       ;
     
     // light change
@@ -244,7 +251,6 @@ try
   
   subsystem -> render_functors.emplace_front
   ( [ renderer
-    , model0
     , &model_instance_states
     ]
   {
@@ -258,9 +264,6 @@ try
     //  automatic set
     //   1. uniform(world_view_projection_transformation) if shader program has uniform world_view_projection_transformation
     //   2. uniform(world_transformation) if shader program has uniform world_transformation
-    
-    renderer -> draw( model0 , glm::mat4(), { } );
-    
     for ( const auto& model_instance_state : model_instance_states )
       renderer -> draw( model_instance_state.model , model_instance_state.world_transformation, { model_instance_state.animation_state } );
   }

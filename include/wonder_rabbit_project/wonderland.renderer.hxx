@@ -11,6 +11,7 @@
 #include <glm/gtx/vec1.hpp>
 
 #include "wonderland.renderer.detail/glew.hxx"
+#include "wonderland.renderer.detail/projection.hxx"
 #include "wonderland.renderer.detail/camera.hxx"
 #include "wonderland.renderer.detail/destruct_invoker.hxx"
 #include "wonderland.renderer.detail/shader.hxx"
@@ -34,8 +35,8 @@ namespace wonder_rabbit_project
       class renderer_t
         : public glew::wrapper_t
       {
-        camera_t::shared_t _camera;
-        glm::mat4          _projection_transformation;
+        camera_t::shared_t     _camera;
+        projection_t::shared_t _projection;
         
         renderer::program_t::const_shared_t     _default_program;
         std::list< std::shared_ptr< light_t > > _default_lights;
@@ -49,6 +50,7 @@ namespace wonder_rabbit_project
         
         static constexpr auto _shadow_mapping_texture_unit = 0;
         static constexpr auto _shadow_mapping_texture_internal_format
+          //= GL_DEPTH_COMPONENT32;
           = GL_DEPTH_COMPONENT32F;
           //= GL_DEPTH32F_STENCIL8;
         using shadow_mapping_texture_t = renderer::texture2d_t< _shadow_mapping_texture_internal_format >;
@@ -81,6 +83,69 @@ namespace wonder_rabbit_project
         
         std::list< draw_params_t > _draw_queue;
         
+        auto _initialize_shadow_mapping()
+          -> void
+        {
+          // program
+          ( _shadow_mapping_program = std::make_shared< renderer::program_t >() )
+            -> attach( create_shader< vertex_shader_t   >( shader::shadow_mapping::vs_source() ) )
+            -> attach( create_shader< fragment_shader_t >( shader::shadow_mapping::fs_source() ) )
+            -> link()
+            ;
+          
+          // fbo
+          ( _shadow_mapping_frame_buffer = std::make_shared< renderer::frame_buffer_t >() )
+            -> bind()
+            ;
+          
+          // texture
+          ( _shadow_mapping_texture = std::make_shared< shadow_mapping_texture_t >() )
+            -> bind()
+            // TODO: for debug 512. to release, no params(system maximum size automatically).
+            //-> storage_2d( 512 )
+            //-> image_2d( 512 )
+            ;
+          
+#if defined( GL_VERSION_4_2 )
+          glew::c::glTexStorage2D
+          ( GL_TEXTURE_2D
+          , glm::log2<float>(512)
+          , _shadow_mapping_texture_internal_format
+          , 512
+          , 512
+          );
+          _shadow_mapping_texture -> viewport( glm::i32vec4( 0, 0, 512, 512 ) );
+#elif defined( GL_VERSION_3_0 )
+          _shadow_mapping_frame_buffer -> image_2d( 512 );
+          glew::c::glGenerateMipmap( GL_TEXTURE_2D );
+#endif
+          // create sampler
+          ( _shadow_mapping_sampler = std::make_shared< renderer::sampler_t>() )
+            -> parameter_wrap_st( GL_CLAMP_TO_BORDER )
+            -> parameter_min_mag_filter( GL_NEAREST )
+            -> parameter_compare_mode( GL_COMPARE_REF_TO_TEXTURE )
+            //-> parameter_compare_mode( GL_COMPARE_R_TO_TEXTURE )
+            //-> parameter_compare_func( GL_LESS )
+            -> parameter_border_color( glm::vec4( 1.0f ) )
+            ;
+          
+          // bind samplar
+          {
+            auto p = _shadow_mapping_program -> scoped_use();
+            active_texture< _shadow_mapping_texture_unit >();
+            _shadow_mapping_sampler -> bind();
+          }
+          
+          _shadow_mapping_frame_buffer
+            -> bind_texture( _shadow_mapping_texture )
+            -> unbind()
+            ;
+          
+          _shadow_mapping_texture
+            -> unbind()
+            ;
+        }
+        /*
         auto _create_shadow_mapping_program()
           -> void
         {
@@ -98,7 +163,7 @@ namespace wonder_rabbit_project
           
           // create texture for shadow mapping
           ( _shadow_mapping_texture = std::make_shared< shadow_mapping_texture_t >() )
-            // TODO: for debug 256. to release, no params(system maximum size automatically).
+            // TODO: for debug 512. to release, no params(system maximum size automatically).
             -> image_2d( 512 )
             ;
           
@@ -106,9 +171,9 @@ namespace wonder_rabbit_project
           ( _shadow_mapping_sampler = std::make_shared< renderer::sampler_t>() )
             -> parameter_wrap_st( GL_CLAMP_TO_BORDER )
             -> parameter_min_mag_filter( GL_NEAREST )
-            //-> parameter_compare_mode( GL_COMPARE_REF_TO_TEXTURE )
+            -> parameter_compare_mode( GL_COMPARE_REF_TO_TEXTURE )
+            //-> parameter_compare_mode( GL_COMPARE_R_TO_TEXTURE )
             //-> parameter_compare_func( GL_LESS )
-            //-> parameter_mode( GL_LUMINANCE )
             -> parameter_border_color( glm::vec4( 1.0f ) )
             ;
           
@@ -133,22 +198,6 @@ namespace wonder_rabbit_project
           // attach texture to frame buffer
           _shadow_mapping_frame_buffer -> bind_texture( _shadow_mapping_texture );
           
-          /*
-          {
-            auto v = _shadow_mapping_texture -> viewport();
-            unsigned c = 0;
-            
-            glew::c::glGenTextures(1, &c);
-            glew::c::glBindTexture(GL_TEXTURE_2D, c);
-            glew::c::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, v[2], v[3], 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-            glew::c::glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, c, 0);
-            glew::c::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glew::c::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glew::c::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glew::c::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-          }
-          */
-          
           // create render buffer
           _shadow_mapping_render_buffer = std::make_shared< renderer::render_buffer_t >();
           
@@ -163,16 +212,17 @@ namespace wonder_rabbit_project
           
           WRP_GLEW_CHECK_FRAME_BUFFER_STATUS
         }
-        
+        */
         auto _shadow_on()
           -> void
         {
           if ( not _shadow_mapping_program )
             try
             {
-              _create_shadow_mapping_program();
-              _create_shadow_mapping_texture();
-              _create_shadow_mapping_buffer();
+              _initialize_shadow_mapping();
+              //_create_shadow_mapping_program();
+              //_create_shadow_mapping_texture();
+              //_create_shadow_mapping_buffer();
             }
             catch ( const std::exception& e )
             {
@@ -225,6 +275,11 @@ namespace wonder_rabbit_project
           
           // TODO: for debug
           {
+            auto f = _shadow_mapping_frame_buffer -> scoped_bind();
+            WRP_GLEW_TEST_ERROR
+            
+            //read_buffer( GL_DEPTH_ATTACHMENT );
+            //WRP_GLEW_TEST_ERROR
             
             std::vector< float > data( _shadow_mapping_texture -> count_of_data_elements() );
             
@@ -280,6 +335,8 @@ namespace wonder_rabbit_project
         {
           const auto program_id = _shadow_mapping_program -> program_id();
           
+          _uniform_z_trick( program_id );
+          
           for ( const auto& light : _default_lights )
           {
             const auto point_light = std::dynamic_pointer_cast< point_light_t >( light );
@@ -293,16 +350,10 @@ namespace wonder_rabbit_project
               , _camera -> up()
               );
             
-            const auto fov_y = glm::pi<float>() / 4.0f;
-            const auto screen_aspect_ratio = 1.0f;//960.f / 540.f ;
-            const auto near_clip = 1.0e+0f;//1.0e-1f;
-            const auto far_clip  = 1.0e+2f;//1.0e+3f;
-            
             const auto wvp
-              = glm::perspective( fov_y, screen_aspect_ratio, near_clip, far_clip )
-              //= _projection_transformation
-              // TODO: for debug
-              * _camera -> view_transformation()
+              = projection_transformation()
+              // TODO: for debug. in proper, use shadow_camera.
+              * view_transformation()
               //* shadow_camera -> view_transformation()
               * draw_params.world_transformation
               ;
@@ -326,11 +377,11 @@ namespace wonder_rabbit_project
               ;
           
           const auto wv
-            = _camera -> view_transformation()
+            = view_transformation()
             * draw_params.world_transformation
             ;
           
-          const auto wvp = _projection_transformation * wv;
+          const auto wvp = projection_transformation() * wv;
           
           // TODO: support multiple lights for shadow mapping
           const auto shadow_camera = std::make_shared< camera_t >
@@ -345,23 +396,47 @@ namespace wonder_rabbit_project
           uniform( program_id, "world_view_transformation", wv );
           uniform( program_id, "world_transformation", draw_params.world_transformation );
           uniform( program_id, "view_direction", _camera -> view_direction() );
-          uniform( program_id, "shadow_transformation", shadow_camera -> view_transformation() );
+          //uniform( program_id, "shadow_transformation", shadow_camera -> view_transformation() );
+          uniform( program_id, "shadow_transformation", _camera -> view_transformation() );
+          
+          _uniform_z_trick( program_id );
           
           draw_params.model -> draw( draw_params.animation_states );
+        }
+        
+        auto _uniform_z_trick() const
+          -> void
+        { _uniform_z_trick( current_program() ); }
+        
+        auto _uniform_z_trick( const glew::gl_type::GLuint program_id ) const
+          -> void
+        {
+          uniform
+          ( program_id
+          , "z_log_trick_near_inversed"
+          , _projection -> z_log_trick_near_inversed()
+          );
+          
+          uniform
+          ( program_id
+          , "z_log_trick_log_far_div_near_inversed"
+          , _projection -> z_log_trick_log_far_div_near_inversed()
+          );
         }
         
       public:
         
         explicit renderer_t()
           : _camera( std::make_shared< camera_t >() )
-          , _projection_transformation( glm::mat4() )
+          , _projection( std::make_shared< projection_t >() )
         {
           glew::glew_init();
           
           // Wonderland.Renderer default enable GL features.
           enable< GL_BLEND >();
-          enable< GL_DEPTH_TEST >();
           enable< GL_CULL_FACE >();
+          enable< GL_DEPTH_TEST >();
+          glew::c::glDepthFunc(GL_LEQUAL);
           
           if ( multisample_capability() )
             multisample();
@@ -381,47 +456,47 @@ namespace wonder_rabbit_project
         }
         
         template < class T_shader , class T_embedded_shader_type_tag = shader::constant >
-        inline auto create_shader_from_embedded()
+        auto create_shader_from_embedded()
           -> std::shared_ptr< const T_shader >
         { throw std::logic_error( "create_shader_from_embedded: invalid template parameter." ); }
         
         template < class T_embedded_shader_type_tag = shader::constant >
-        inline auto create_program_from_embedded()
+        auto create_program_from_embedded()
           -> std::shared_ptr< const renderer::program_t >
         { throw std::logic_error( "create_program_from_embedded: invalid template parameter." ); }
         
-        inline auto view_projection_transformation()
-          -> glm::mat4
-        { return _projection_transformation * _camera -> view_transformation(); }
-        
-        inline auto projection_transformation()
-          -> const glm::mat4&
-        { return _projection_transformation; }
-        
-        inline auto projection_transformation( const glm::mat4& v)
-          -> void
-        { _projection_transformation = v; }
-        
-        inline auto camera()
-          -> std::shared_ptr< camera_t >
+        auto camera()
+          -> camera_t::shared_t
         { return _camera; }
         
-        inline auto view_transformation()
+        auto view_transformation() const
           -> glm::mat4
         { return _camera -> view_transformation(); }
         
+        auto projection()
+          -> projection_t::shared_t
+        { return _projection; }
+        
+        auto projection_transformation() const
+          -> glm::mat4
+        { return _projection -> projection_transformation(); }
+        
+        auto view_projection_transformation()
+          -> glm::mat4
+        { return projection_transformation() * view_transformation(); }
+        
         template<class T_shader>
-        inline auto create_shader() const
+        auto create_shader() const
           -> std::shared_ptr< T_shader >
         { return std::make_shared< T_shader >(); }
         
         template<class T_shader>
-        inline auto create_shader( const std::string& source ) const
+        auto create_shader( const std::string& source ) const
           -> std::shared_ptr< T_shader >
         { return std::make_shared< T_shader >() -> compile( source ); }
         
         template<class T_shader>
-        inline auto create_shader( std::string&& source ) const
+        auto create_shader( std::string&& source ) const
           -> std::shared_ptr< const T_shader >
         {
           return std::make_shared< T_shader >()
@@ -430,7 +505,7 @@ namespace wonder_rabbit_project
         }
         
         template<class T_shader>
-        inline auto create_shader( std::istream&& source ) const
+        auto create_shader( std::istream&& source ) const
           -> std::shared_ptr< const T_shader >
         {
           return std::make_shared< T_shader >()
@@ -438,12 +513,12 @@ namespace wonder_rabbit_project
             ;
         }
         
-        inline auto create_program()
+        auto create_program()
           -> std::shared_ptr< renderer::program_t >
         { return std::make_shared< renderer::program_t >(); }
         
         template< class ... T_shaders >
-        inline auto create_program( T_shaders&& ... shaders )
+        auto create_program( T_shaders&& ... shaders )
           -> std::shared_ptr< const renderer::program_t >
         {
           return ( _default_program = create_program() )
@@ -453,11 +528,11 @@ namespace wonder_rabbit_project
         }
         
         template < class T >
-        inline auto create_model( T t )
+        auto create_model( T t )
           -> std::shared_ptr< model_t >
         { return model_t::create(t); }
         
-        inline auto enable_vertex_attribute( glew::gl_type::GLuint v )
+        auto enable_vertex_attribute( glew::gl_type::GLuint v )
           -> destruct_invoker_t
         {
           std::vector<glew::gl_type::GLuint> list;
@@ -465,7 +540,7 @@ namespace wonder_rabbit_project
           return enable_vertex_attributes( std::move( list ) );
         }
         
-        inline auto enable_vertex_attributes( std::vector<glew::gl_type::GLuint> && list )
+        auto enable_vertex_attributes( std::vector<glew::gl_type::GLuint> && list )
           -> destruct_invoker_t
         {
           for ( const auto & n : list )
@@ -567,7 +642,7 @@ namespace wonder_rabbit_project
           };
         }
         
-        inline auto flusher() const
+        auto flusher() const
           -> destruct_invoker_t
         { return { [ ]{ glew::wrapper_t::flush(); } }; }
         

@@ -100,7 +100,7 @@ void main(void)
   //gl_FragColor = vec4( a.zyx, 1.0 );
   //gl_FragColor = vec4( texture2D( shadow_sampler, vec2( 0.3, 0.3 )).r, 0.0, 0.0, 1.0 );
   //fragment_color = vec4( textureProj( shadow_sampler, var_shadow_position ), 0.0, hsva.z, 1.0 );
-  fragment_color = vec4( texture( shadow_sampler, normalize( var_shadow_position.xy ) ).x, 0.0, hsva.z, 1.0 );
+  //fragment_color = vec4( texture( shadow_sampler, normalize( var_shadow_position.xy ) ).x, 0.0, hsva.z, 1.0 );
   //fragment_color = vec4( normalize( var_shadow_position.xy ), hsva.z, 1.0 );
   
 }

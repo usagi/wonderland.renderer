@@ -20,7 +20,8 @@ uniform vec3 emissive;
 uniform float transparent;
 uniform float texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
 
-uniform sampler2D shadow_sampler;
+uniform sampler2DShadow shadow_sampler;
+//uniform sampler2D shadow_sampler;
 uniform sampler2D sampler;
 
 vec3 hsv_add( vec3, vec3 );
@@ -38,7 +39,13 @@ void main()
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( ambient  ) );
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( emissive ) );
   //fragment_color = from_hsva_to_rgba( hsva );
-  fragment_color = vec4( texture( shadow_sampler, var_shadow_position.xy ).x, 0.0, hsva.z, 1.0 );
+  //fragment_color = vec4( texture( shadow_sampler, var_shadow_position.xyz ), 0.0, 0.0, 1.0 );
+  vec4 a = normalize( var_shadow_position );
+  //fragment_color = vec4( texture( shadow_sampler, a.xz ).x, a.x, a.z, 1.0 );
+  hsva.x = 0.0;
+  hsva.y = 0.0;
+  hsva.z = texture( shadow_sampler, a.xzy );
+  fragment_color = from_hsva_to_rgba( hsva );
 }
 
 vec3 hsv_add( vec3 a, vec3 b )

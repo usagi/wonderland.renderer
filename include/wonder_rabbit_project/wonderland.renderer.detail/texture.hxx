@@ -52,11 +52,18 @@ namespace wonder_rabbit_project
         auto bind() -> void
         { bind_texture< T_target >( _texture_id ); }
         
+        auto unbind() -> void
+        { bind_texture< T_target >(); }
+        
         auto scoped_bind() -> decltype( scoped_bind_texture( _texture_id ) )
         { return scoped_bind_texture< T_target >( _texture_id ); }
         
         auto viewport() -> const glm::i32vec4&
         { return _viewport; }
+        
+        auto viewport( const glm::i32vec4& viewport_ )
+          -> void
+        { _viewport = viewport_; }
         
         auto count_of_data_elements() -> const std::size_t
         { return _viewport[2] * _viewport[3]; }
