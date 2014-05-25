@@ -76,7 +76,7 @@ namespace wonder_rabbit_project
         }
         
         template < class T >
-        auto internal_format( std::shared_ptr< T > texture )
+        auto internal_format()
           -> void
         {
           constexpr auto f = T::internal_format;

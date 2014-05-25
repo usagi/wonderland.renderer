@@ -132,6 +132,23 @@ namespace wonder_rabbit_project
           frame_buffer_render_buffer( attachment( f ) , render_buffer -> render_buffer_id() );
         }
         
+        template < class T_render_buffer, class T_texture >
+        auto bind_render_buffer_with_texture( std::shared_ptr< T_render_buffer > render_buffer, std::shared_ptr< T_texture > texture )
+          -> void
+        {
+          // bind render buffer
+          render_buffer -> bind();
+          
+          // set internal internal format to render buffer
+          render_buffer -> template internal_format< T_texture >();
+          
+          // attach render buffer to frame buffer
+          frame_buffer_t::render_buffer( render_buffer );
+          
+          // storage from texture to render buffer
+          render_buffer -> storage( texture );
+        }
+        
       };
       
     }

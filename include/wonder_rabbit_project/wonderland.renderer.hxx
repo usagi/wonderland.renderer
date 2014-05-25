@@ -94,6 +94,8 @@ namespace wonder_rabbit_project
         auto _create_shadow_mapping_texture()
           -> void
         {
+          //active_texture< _shadow_mapping_texture_unit >();
+          
           // create texture for shadow mapping
           ( _shadow_mapping_texture = std::make_shared< shadow_mapping_texture_t >() )
             // TODO: for debug 256. to release, no params(system maximum size automatically).
@@ -125,9 +127,6 @@ namespace wonder_rabbit_project
           auto f = (_shadow_mapping_frame_buffer = std::make_shared< renderer::frame_buffer_t >() )
             -> scoped_bind();
           
-          // scoped bind frame buffer
-          //auto f = _shadow_mapping_frame_buffer -> scoped_bind();
-          
           // bind texture
           _shadow_mapping_texture -> bind();
           
@@ -153,20 +152,11 @@ namespace wonder_rabbit_project
           // create render buffer
           _shadow_mapping_render_buffer = std::make_shared< renderer::render_buffer_t >();
           
-          //_shadow_mapping_frame_buffer
-          //  -> bind_render_buffer_with_texture( _shadow_mapping_render_buffer, _shadow_mapping_texture );
-          
-          // bind render buffer
-          _shadow_mapping_render_buffer -> bind();
-          
-          // set internal internal format to render buffer
-          _shadow_mapping_render_buffer -> internal_format( _shadow_mapping_texture );
-          
-          // attach render buffer to frame buffer
-          _shadow_mapping_frame_buffer -> render_buffer( _shadow_mapping_render_buffer );
-          
-          // storage from texture to render buffer
-          _shadow_mapping_render_buffer -> storage( _shadow_mapping_texture );
+          _shadow_mapping_frame_buffer
+            -> bind_render_buffer_with_texture
+              ( _shadow_mapping_render_buffer
+              , _shadow_mapping_texture
+              );
           
           draw_buffer();
           read_buffer();
@@ -212,45 +202,29 @@ namespace wonder_rabbit_project
         auto _invoke_draw_shadow()
           -> void 
         {
-          //{
+          {
             std::vector< destruct_invoker_t > scopers;
-            scopers.reserve( 16 );
+            scopers.reserve( 10 );
             
             scopers.emplace_back( scoped_viewport( _shadow_mapping_texture -> viewport() ) );
             scopers.emplace_back( _shadow_mapping_program -> scoped_use() );
             scopers.emplace_back( _shadow_mapping_frame_buffer -> scoped_bind() );
-            //scopers.emplace_back( _shadow_mapping_render_buffer -> scoped_bind() );
-            //scopers.emplace_back( _shadow_mapping_frame_buffer -> scoped_bind_texture( _shadow_mapping_texture ) );
-            
-            // TODO: glDrawBuffer and glReadBuffer is not supported on Emscripten(GLES2)!
-            //scopers.emplace_back( scoped_draw_buffer() );
-            //scopers.emplace_back( scoped_read_buffer() );
-            
-            WRP_GLEW_CHECK_FRAME_BUFFER_STATUS
-            WRP_GLEW_TEST_ERROR
-            
             scopers.emplace_back( scoped_enable< GL_CULL_FACE >() );
             scopers.emplace_back( scoped_cull_face() );
             scopers.emplace_back( scoped_color_mask() );
-            
             scopers.emplace_back( scoped_enable< GL_POLYGON_OFFSET_FILL >() );
             scopers.emplace_back( scoped_polygon_offset( 1.1f, 4.0f ) );
-            
             scopers.emplace_back( scoped_enable< GL_DEPTH_TEST >() );
-            
             scopers.emplace_back( scoped_clear_color( 1.0f ) );
-            clear
-            ( GL_DEPTH_BUFFER_BIT
-            & GL_COLOR_BUFFER_BIT
-            );
+            
+            clear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
             
             for ( const auto& draw_params : _draw_queue )
               _draw_shadow( draw_params );
-          //}
+          }
           
           // TODO: for debug
           {
-            
             
             std::vector< float > data( _shadow_mapping_texture -> count_of_data_elements() );
             

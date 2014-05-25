@@ -38,7 +38,7 @@ void main()
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( ambient  ) );
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( emissive ) );
   //fragment_color = from_hsva_to_rgba( hsva );
-  fragment_color = vec4( texture( shadow_sampler, var_shadow_position.xy ).y, 0.0, hsva.z, 1.0 );
+  fragment_color = vec4( texture( shadow_sampler, var_shadow_position.xy ).x, 0.0, hsva.z, 1.0 );
 }
 
 vec3 hsv_add( vec3 a, vec3 b )
