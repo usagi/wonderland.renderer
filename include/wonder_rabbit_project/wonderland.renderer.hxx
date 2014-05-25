@@ -165,16 +165,11 @@ namespace wonder_rabbit_project
           // attach render buffer to frame buffer
           _shadow_mapping_frame_buffer -> render_buffer( _shadow_mapping_render_buffer );
           
-          {
-            //glew::c::glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _shadow_mapping_render_buffer -> render_buffer_id() );
-            //frame_buffer_render_buffer( GL_DEPTH_ATTACHMENT, _shadow_mapping_render_buffer -> render_buffer_id() );
-          }
-          
           // storage from texture to render buffer
           _shadow_mapping_render_buffer -> storage( _shadow_mapping_texture );
           
-          //draw_buffer();
-          //read_buffer();
+          draw_buffer();
+          read_buffer();
           
           WRP_GLEW_CHECK_FRAME_BUFFER_STATUS
         }
