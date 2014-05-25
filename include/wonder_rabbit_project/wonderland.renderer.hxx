@@ -19,6 +19,7 @@
 #include "wonderland.renderer.detail/light.hxx"
 #include "wonderland.renderer.detail/sampler.hxx"
 #include "wonderland.renderer.detail/frame_buffer.hxx"
+#include "wonderland.renderer.detail/render_buffer.hxx"
 #include "wonderland.renderer.detail/texture.hxx"
 #include "wonderland.renderer.detail/pnm.hxx"
 
@@ -52,10 +53,11 @@ namespace wonder_rabbit_project
           //= GL_DEPTH32F_STENCIL8;
         using shadow_mapping_texture_t = renderer::texture2d_t< _shadow_mapping_texture_internal_format >;
         
-        renderer::program_t::const_shared_t         _shadow_mapping_program;
-        std::shared_ptr< shadow_mapping_texture_t > _shadow_mapping_texture;
-        std::shared_ptr< renderer::frame_buffer_t > _shadow_mapping_frame_buffer;
-        std::shared_ptr< renderer::sampler_t >      _shadow_mapping_sampler;
+        renderer::program_t::const_shared_t          _shadow_mapping_program;
+        std::shared_ptr< shadow_mapping_texture_t >  _shadow_mapping_texture;
+        std::shared_ptr< renderer::frame_buffer_t >  _shadow_mapping_frame_buffer;
+        std::shared_ptr< renderer::render_buffer_t > _shadow_mapping_render_buffer;
+        std::shared_ptr< renderer::sampler_t >       _shadow_mapping_sampler;
         
         struct draw_params_t
         {
@@ -119,10 +121,28 @@ namespace wonder_rabbit_project
         auto _create_shadow_mapping_buffer()
           -> void
         {
-          // create frame buffer for shadow mapping
-          ( _shadow_mapping_frame_buffer = std::make_shared< renderer::frame_buffer_t >() )
-            -> bind_texture( _shadow_mapping_texture )
-            ;
+          // create frame buffer
+          _shadow_mapping_frame_buffer = std::make_shared< renderer::frame_buffer_t >();
+          
+          // scoped bind frame buffer
+          auto f = _shadow_mapping_frame_buffer -> scoped_bind();
+          
+          // bind texture to frame buffer
+          _shadow_mapping_frame_buffer -> bind_texture( _shadow_mapping_texture );
+          
+          // create render buffer
+          _shadow_mapping_render_buffer = std::make_shared< renderer::render_buffer_t >();
+          
+          // bind render buffer to frame buffer
+          _shadow_mapping_render_buffer -> bind();
+          
+          // storage from texture to render buffer
+          _shadow_mapping_render_buffer -> storage( _shadow_mapping_texture );
+          
+          //draw_buffer();
+          //read_buffer();
+          
+          WRP_GLEW_CHECK_FRAME_BUFFER_STATUS
         }
         
         auto _shadow_on()
@@ -163,46 +183,54 @@ namespace wonder_rabbit_project
         auto _invoke_draw_shadow()
           -> void 
         {
-          std::vector< destruct_invoker_t > scopers;
-          scopers.reserve( 10 );
-          
-          scopers.emplace_back( scoped_viewport( _shadow_mapping_texture -> viewport() ) );
-          scopers.emplace_back( _shadow_mapping_program -> scoped_use() );
-          scopers.emplace_back( _shadow_mapping_frame_buffer -> scoped_bind() );
-          _shadow_mapping_frame_buffer -> bind_texture( _shadow_mapping_texture );
-          
-          // TODO: glDrawBuffer and glReadBuffer is not supported on Emscripten(GLES2)!
-          scopers.emplace_back( scoped_draw_buffer() );
-          scopers.emplace_back( scoped_read_buffer() );
-          
-          WRP_GLEW_CHECK_FRAME_BUFFER_STATUS
-          
-          scopers.emplace_back( scoped_cull_face() );
-          scopers.emplace_back( scoped_color_mask() );
-          
-          scopers.emplace_back( scoped_enable< GL_POLYGON_OFFSET_FILL >() );
-          scopers.emplace_back( scoped_polygon_offset( 1.1f, 4.0f ) );
-          
-          scopers.emplace_back( scoped_enable< GL_DEPTH_TEST >() );
-          
-          scopers.emplace_back( scoped_clear_color( 1.0f ) );
-          clear
-          ( GL_DEPTH_BUFFER_BIT
-          & GL_COLOR_BUFFER_BIT
-          );
-          
-          for ( const auto& draw_params : _draw_queue )
-            _draw_shadow( draw_params );
+          //{
+            std::vector< destruct_invoker_t > scopers;
+            scopers.reserve( 16 );
+            
+            scopers.emplace_back( scoped_viewport( _shadow_mapping_texture -> viewport() ) );
+            scopers.emplace_back( _shadow_mapping_program -> scoped_use() );
+            scopers.emplace_back( _shadow_mapping_frame_buffer -> scoped_bind() );
+            //scopers.emplace_back( _shadow_mapping_render_buffer -> scoped_bind() );
+            //scopers.emplace_back( _shadow_mapping_frame_buffer -> scoped_bind_texture( _shadow_mapping_texture ) );
+            
+            // TODO: glDrawBuffer and glReadBuffer is not supported on Emscripten(GLES2)!
+            //scopers.emplace_back( scoped_draw_buffer() );
+            //scopers.emplace_back( scoped_read_buffer() );
+            
+            WRP_GLEW_CHECK_FRAME_BUFFER_STATUS
+            WRP_GLEW_TEST_ERROR
+            
+            scopers.emplace_back( scoped_enable< GL_CULL_FACE >() );
+            scopers.emplace_back( scoped_cull_face() );
+            scopers.emplace_back( scoped_color_mask() );
+            
+            scopers.emplace_back( scoped_enable< GL_POLYGON_OFFSET_FILL >() );
+            scopers.emplace_back( scoped_polygon_offset( 1.1f, 4.0f ) );
+            
+            scopers.emplace_back( scoped_enable< GL_DEPTH_TEST >() );
+            
+            scopers.emplace_back( scoped_clear_color( 1.0f ) );
+            clear
+            ( GL_DEPTH_BUFFER_BIT
+            & GL_COLOR_BUFFER_BIT
+            );
+            
+            for ( const auto& draw_params : _draw_queue )
+              _draw_shadow( draw_params );
+          //}
           
           // TODO: for debug
           {
+            
+            
             std::vector< float > data( _shadow_mapping_texture -> count_of_data_elements() );
             
             active_texture< _shadow_mapping_texture_unit >();
             auto t = _shadow_mapping_texture -> scoped_bind();
             
             auto v = _shadow_mapping_texture -> viewport();
-            glew::c::glReadPixels( v[0], v[1], v[2], v[3], GL_DEPTH_COMPONENT, GL_FLOAT, &data[0] );
+            glew::c::glGetTexImage( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, &data[0] );
+            //glew::c::glReadPixels( v[0], v[1], v[2], v[3], GL_DEPTH_COMPONENT, GL_FLOAT, &data[0] );
             WRP_GLEW_TEST_ERROR
             
             std::cerr

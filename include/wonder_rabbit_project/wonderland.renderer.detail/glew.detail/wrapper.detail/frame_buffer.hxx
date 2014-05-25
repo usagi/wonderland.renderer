@@ -91,7 +91,7 @@ namespace wonder_rabbit_project
           }
           
           template < class T = void >
-          auto generate_frame_buffer()
+          static inline auto generate_frame_buffer()
             -> gl_type::GLuint
           {
             gl_type::GLuint frame_buffer;
@@ -100,55 +100,68 @@ namespace wonder_rabbit_project
           }
           
           template < typename gl_type::GLenum T_target = GL_FRAMEBUFFER >
-          auto bind_frame_buffer( gl_type::GLuint frame_buffer_id = 0 )
+          static inline auto bind_frame_buffer( gl_type::GLuint frame_buffer_id = 0 )
             -> void
           { c::glBindFramebuffer( T_target, frame_buffer_id ); }
           
           template < typename gl_type::GLenum T_target = GL_FRAMEBUFFER >
-          auto scoped_bind_frame_buffer( gl_type::GLuint frame_buffer_id )
+          static inline auto scoped_bind_frame_buffer( gl_type::GLuint frame_buffer_id )
             -> destruct_invoker_t
           {
+            const auto backup = get_t::get< GL_FRAMEBUFFER_BINDING >();
             bind_frame_buffer< T_target >( frame_buffer_id );
-            return destruct_invoker_t( [ this ]{ bind_frame_buffer(); } );
+            return destruct_invoker_t( [ backup ]{ bind_frame_buffer( backup ); } );
           }
           
+#ifdef GL_VERSION_3_2
           template < typename gl_type::GLenum T_attachment >
-          auto frame_buffer_texture_1d( gl_type::GLuint texture_id )
+          static inline auto frame_buffer_texture( gl_type::GLuint texture_id = 0 )
             -> void
-          { c::glFramebufferTexture1D( GL_DRAW_FRAMEBUFFER, T_attachment, GL_TEXTURE_1D, texture_id, 0 ); }
+          { c::glFramebufferTexture( GL_FRAMEBUFFER, T_attachment, texture_id, 0 ); }
+#endif
           
           template < typename gl_type::GLenum T_attachment >
-          auto frame_buffer_texture_2d( gl_type::GLuint texture_id )
+          static inline auto frame_buffer_texture_1d( gl_type::GLuint texture_id = 0 )
             -> void
-          { c::glFramebufferTexture2D( GL_DRAW_FRAMEBUFFER, T_attachment, GL_TEXTURE_2D, texture_id, 0 ); }
+          { c::glFramebufferTexture1D( GL_FRAMEBUFFER, T_attachment, GL_TEXTURE_1D, texture_id, 0 ); }
           
           template < typename gl_type::GLenum T_attachment >
-          auto frame_buffer_texture_3d( gl_type::GLuint texture_id )
+          static inline auto frame_buffer_texture_2d( gl_type::GLuint texture_id = 0 )
             -> void
-          { c::glFramebufferTexture3D( GL_DRAW_FRAMEBUFFER, T_attachment, GL_TEXTURE_3D, texture_id, 0, 0 ); }
+          { c::glFramebufferTexture2D( GL_FRAMEBUFFER, T_attachment, GL_TEXTURE_2D, texture_id, 0 ); }
+          
+          template < typename gl_type::GLenum T_attachment >
+          static inline auto frame_buffer_texture_3d( gl_type::GLuint texture_id = 0 )
+            -> void
+          { c::glFramebufferTexture3D( GL_FRAMEBUFFER, T_attachment, GL_TEXTURE_3D, texture_id, 0, 0 ); }
 
           template < class T = void >
-          auto is_frame_buffer( gl_type::GLuint frame_buffer_id )
+          static inline auto is_frame_buffer( gl_type::GLuint frame_buffer_id )
             -> bool
           { return c::glIsFramebuffer( frame_buffer_id ); }
           
           template < class T = void >
-          auto delete_frame_buffer( gl_type::GLuint frame_buffer_id )
+          static inline auto delete_frame_buffer( gl_type::GLuint frame_buffer_id )
             -> void
           { c::glDeleteFramebuffers( 1, &frame_buffer_id ); }
           
           template < class T >
-          auto delete_frame_buffers( T frame_buffer_ids )
+          static inline auto delete_frame_buffers( T frame_buffer_ids )
             -> void
           { c::glDeleteFramebuffers( frame_buffer_ids.size(), &frame_buffer_ids[0] ); }
           
           template < class T = void >
-          auto safe_delete_frame_buffer( gl_type::GLuint frame_buffer_id )
+          static inline auto safe_delete_frame_buffer( gl_type::GLuint frame_buffer_id )
             -> void
           {
             if ( is_frame_buffer( frame_buffer_id ) )
               delete_frame_buffer( frame_buffer_id );
           }
+          
+          template < class T = void >
+          static inline auto frame_buffer_render_buffer( gl_type::GLenum attachment, gl_type::GLuint render_buffer_id )
+            -> void
+          { c::glFramebufferRenderbuffer( GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, render_buffer_id ); }
           
         };
         

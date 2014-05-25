@@ -81,6 +81,7 @@ namespace wonder_rabbit_project
       >
       class texture_t
         : public texture_base_t< T_target, T_internal_format >
+        , public std::enable_shared_from_this< texture_t< T_target, T_internal_format > >
       { };
       
       // specialize to GL_TEXTURE_1D
