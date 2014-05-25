@@ -145,74 +145,7 @@ namespace wonder_rabbit_project
             -> unbind()
             ;
         }
-        /*
-        auto _create_shadow_mapping_program()
-          -> void
-        {
-          ( _shadow_mapping_program = std::make_shared< renderer::program_t >() )
-            -> attach( create_shader< vertex_shader_t   >( shader::shadow_mapping::vs_source() ) )
-            -> attach( create_shader< fragment_shader_t >( shader::shadow_mapping::fs_source() ) )
-            -> link()
-            ;
-        }
         
-        auto _create_shadow_mapping_texture()
-          -> void
-        {
-          //active_texture< _shadow_mapping_texture_unit >();
-          
-          // create texture for shadow mapping
-          ( _shadow_mapping_texture = std::make_shared< shadow_mapping_texture_t >() )
-            // TODO: for debug 512. to release, no params(system maximum size automatically).
-            -> image_2d( 512 )
-            ;
-          
-          // create sampler
-          ( _shadow_mapping_sampler = std::make_shared< renderer::sampler_t>() )
-            -> parameter_wrap_st( GL_CLAMP_TO_BORDER )
-            -> parameter_min_mag_filter( GL_NEAREST )
-            -> parameter_compare_mode( GL_COMPARE_REF_TO_TEXTURE )
-            //-> parameter_compare_mode( GL_COMPARE_R_TO_TEXTURE )
-            //-> parameter_compare_func( GL_LESS )
-            -> parameter_border_color( glm::vec4( 1.0f ) )
-            ;
-          
-          // bind samplar
-          {
-            auto p = _shadow_mapping_program -> scoped_use();
-            active_texture< _shadow_mapping_texture_unit >();
-            _shadow_mapping_sampler -> bind();
-          }
-        }
-        
-        auto _create_shadow_mapping_buffer()
-          -> void
-        {
-          // create frame buffer and scoped bind
-          auto f = (_shadow_mapping_frame_buffer = std::make_shared< renderer::frame_buffer_t >() )
-            -> scoped_bind();
-          
-          // bind texture
-          _shadow_mapping_texture -> bind();
-          
-          // attach texture to frame buffer
-          _shadow_mapping_frame_buffer -> bind_texture( _shadow_mapping_texture );
-          
-          // create render buffer
-          _shadow_mapping_render_buffer = std::make_shared< renderer::render_buffer_t >();
-          
-          _shadow_mapping_frame_buffer
-            -> bind_render_buffer_with_texture
-              ( _shadow_mapping_render_buffer
-              , _shadow_mapping_texture
-              );
-          
-          draw_buffer();
-          read_buffer();
-          
-          WRP_GLEW_CHECK_FRAME_BUFFER_STATUS
-        }
-        */
         auto _shadow_on()
           -> void
         {
@@ -220,9 +153,6 @@ namespace wonder_rabbit_project
             try
             {
               _initialize_shadow_mapping();
-              //_create_shadow_mapping_program();
-              //_create_shadow_mapping_texture();
-              //_create_shadow_mapping_buffer();
             }
             catch ( const std::exception& e )
             {
