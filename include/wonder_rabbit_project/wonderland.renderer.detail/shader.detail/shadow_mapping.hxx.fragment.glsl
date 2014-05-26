@@ -8,6 +8,7 @@ u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
 
 in vec4 var_color;
 in vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+in float var_log_z;
 
 out vec4 fragment_color;
 
@@ -34,6 +35,7 @@ void main()
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( ambient  ) );
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( emissive ) );
   fragment_color = from_hsva_to_rgba( hsva );
+  gl_FragDepth = var_log_z;
 }
 
 

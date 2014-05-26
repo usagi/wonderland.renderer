@@ -13,6 +13,7 @@ in vec4 var_color;
 in vec3 var_normal;
 in vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
 in vec4 var_shadow_position;
+in float var_log_z;
 
 out vec4 fragment_color;
 
@@ -90,6 +91,7 @@ void main(void)
   //hsva.z *= calc_shadow_rate();
   
   fragment_color = from_hsva_to_rgba( hsva );
+  gl_FragDepth = var_log_z;
   
   // TODO: for debug
   

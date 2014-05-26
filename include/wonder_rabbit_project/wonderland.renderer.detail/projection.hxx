@@ -28,31 +28,15 @@ namespace wonder_rabbit_project
         float _near_clip;
         float _far_clip;
         
-        float _z_log_trick_near_inversed;
-        float _z_log_trick_log_far_div_near_inversed;
-        
         glm::mat4 _projection_transformation;
         
         auto _update_projection_transform()
           -> void
         { _projection_transformation = glm::perspective( _fov_y, _aspect_ratio, _near_clip, _far_clip ); }
         
-        auto _update_z_log_trick()
-          -> void
-        {
-          _z_log_trick_near_inversed = 1.0f / _near_clip;
-          _z_log_trick_log_far_div_near_inversed = 1.0f / std::log( _far_clip / _near_clip );
-        }
-        
       public:
         projection_t()
-        /*
-          : _fov_y( glm::pi< float >() / 3.0f )
-          , _aspect_ratio( 16.f / 9.f )
-          , _near_clip( 1.0e+1f )
-          , _far_clip ( 1.0e+3f )
-        */
-        { /*update();*/ }
+        { }
         
         auto projection_transformation() const
           -> glm::mat4
@@ -64,7 +48,6 @@ namespace wonder_rabbit_project
           -> shared_t
         {
           _update_projection_transform();
-          _update_z_log_trick();
           return shared_from_this();
         }
         
@@ -118,18 +101,6 @@ namespace wonder_rabbit_project
           -> float
         {
           return _far_clip;
-        }
-        
-        auto z_log_trick_log_far_div_near_inversed() const
-          -> float
-        {
-          return _z_log_trick_log_far_div_near_inversed;
-        }
-        
-        auto z_log_trick_near_inversed() const
-          -> float
-        {
-          return _z_log_trick_near_inversed;
         }
         
       };

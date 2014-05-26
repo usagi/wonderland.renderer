@@ -16,13 +16,16 @@ in vec4 bone_weights;
 
 out vec4 var_color;
 out vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+out float var_log_z;
 
 uniform mat4 world_view_projection_transformation;
 uniform mat4 bones[ )" + std::to_string( max_bones ) + u8R"( ];
-uniform float z_log_trick_near_inversed;
-uniform float z_log_trick_log_far_div_near_inversed;
+uniform float z_log_trick_far;
 
-vec4 z_log_trick( vec4 );
+const float C = 1.0e-3; 
+
+float z_log_trick_calc_log_z ( float, vec4 );
+vec4  z_log_trick_apply_log_z( float, vec4 );
 
 void main(void)
 {
@@ -37,7 +40,10 @@ void main(void)
     
   vec4 local_position = animation_transformation * position;
   gl_Position = world_view_projection_transformation * local_position;
-  gl_Position = z_log_trick( gl_Position );
+  
+  // log-z trick
+  var_log_z   = z_log_trick_calc_log_z ( z_log_trick_far, gl_Position );
+  gl_Position = z_log_trick_apply_log_z( var_log_z      , gl_Position );
   
   var_color = color;
   
@@ -51,12 +57,16 @@ void main(void)
   //  var_texcoords[ 7 ] = texcoord7;
 }
 
-vec4 z_log_trick( vec4 p )
+float z_log_trick_calc_log_z( float far, vec4 position )
 {
-  p.z = 2.0 * log( p.w * z_log_trick_near_inversed ) * z_log_trick_log_far_div_near_inversed - 1; 
-  p.z *= p.w;
-  
-  return p;
+  float FC = 1.0 / log( far * C + 1.0 );
+  return log( position.w * C + 1.0 ) * FC;
+}
+
+vec4 z_log_trick_apply_log_z( float log_z, vec4 position )
+{
+  position.z = ( 2.0 * log_z - 1.0 ) * position.w;
+  return position;
 }
 
 )"

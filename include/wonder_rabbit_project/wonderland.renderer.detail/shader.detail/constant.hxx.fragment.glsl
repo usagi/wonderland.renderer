@@ -11,6 +11,7 @@ u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
 in vec4 var_color;
 in vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
 in vec4 var_shadow_position;
+in float var_log_z;
 
 out vec4 fragment_color;
 
@@ -20,8 +21,8 @@ uniform vec3 emissive;
 uniform float transparent;
 uniform float texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
 
-uniform sampler2DShadow shadow_sampler;
-//uniform sampler2D shadow_sampler;
+uniform sampler2D shadow_sampler;
+//uniform sampler2DShadow shadow_sampler;
 uniform sampler2D sampler;
 
 vec3 hsv_add( vec3, vec3 );
@@ -35,16 +36,17 @@ bool is_nan( float );
 
 void main()
 {
+  gl_FragDepth = var_log_z;
   vec4 hsva = hsva_calc_diffuse();
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( ambient  ) );
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( emissive ) );
-  //fragment_color = from_hsva_to_rgba( hsva );
-  //fragment_color = vec4( texture( shadow_sampler, var_shadow_position.xyz ), 0.0, 0.0, 1.0 );
-  vec4 a = normalize( var_shadow_position );
-  //fragment_color = vec4( texture( shadow_sampler, a.xz ).x, a.x, a.z, 1.0 );
-  hsva.x = 0.0;
-  hsva.y = 0.0;
-  hsva.z = texture( shadow_sampler, a.xzy );
+  vec3 shadow_position = var_shadow_position.xyz / var_shadow_position.w;
+  //shadow_position.z = var_log_z;
+  float s = ( texture( shadow_sampler, shadow_position.xy ).r < shadow_position.z ) ? 1.0 : 0.0;
+  //float s = ( textureProj( shadow_sampler, var_shadow_position ) > 0.0 ) ? 1.0 : 0.0;
+  //float s = textureProj( shadow_sampler, var_shadow_position );
+  //hsva.z *= s;
+  hsva.x = ( texture2D( shadow_sampler, shadow_position.xy ) == 1.0 ) ? 0.0 : 0.6666;
   fragment_color = from_hsva_to_rgba( hsva );
 }
 

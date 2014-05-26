@@ -116,9 +116,10 @@ namespace wonder_rabbit_project
           );
           _shadow_mapping_texture -> viewport( glm::i32vec4( 0, 0, 512, 512 ) );
 #elif defined( GL_VERSION_3_0 )
-          _shadow_mapping_frame_buffer -> image_2d( 512 );
+          _shadow_mapping_texture -> image_2d( 512 );
           glew::c::glGenerateMipmap( GL_TEXTURE_2D );
 #endif
+          
           // create sampler
           ( _shadow_mapping_sampler = std::make_shared< renderer::sampler_t>() )
             -> parameter_wrap_st( GL_CLAMP_TO_BORDER )
@@ -204,28 +205,27 @@ namespace wonder_rabbit_project
           }
           
           // TODO: for debug
+          //*
           {
             auto f = _shadow_mapping_frame_buffer -> scoped_bind();
             WRP_GLEW_TEST_ERROR
-            
-            //read_buffer( GL_DEPTH_ATTACHMENT );
-            //WRP_GLEW_TEST_ERROR
             
             std::vector< float > data( _shadow_mapping_texture -> count_of_data_elements() );
             
             active_texture< _shadow_mapping_texture_unit >();
             auto t = _shadow_mapping_texture -> scoped_bind();
+            //glew::c::glGenerateMipmap( GL_TEXTURE_2D );
             
             auto v = _shadow_mapping_texture -> viewport();
             glew::c::glGetTexImage( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, &data[0] );
             //glew::c::glReadPixels( v[0], v[1], v[2], v[3], GL_DEPTH_COMPONENT, GL_FLOAT, &data[0] );
             WRP_GLEW_TEST_ERROR
             
-            std::cerr
-              << "shadow texture data sum(size=" << std::distance( data.cbegin(), data.cend() ) << "): "
-              << std::accumulate( data.cbegin(), data.cend(), 0.0 )
-              << "\n"
-              ;
+            const auto dis = std::distance( data.cbegin(), data.cend() );
+            const auto sum = std::accumulate( data.cbegin(), data.cend(), 0.0 );
+            const auto ave = sum / dis;
+            
+            std::cerr << "shadow texture data sum(size=" << dis << "): " << sum << " : " << ave << "\n";
             
             if ( _shadow_save )
             {
@@ -233,6 +233,7 @@ namespace wonder_rabbit_project
               _shadow_save = false;
             }
           }
+          //*/
         }
         
         auto _invoke_draw_normal()
@@ -240,17 +241,15 @@ namespace wonder_rabbit_project
         {
           auto scoped_programe_use = _default_program -> scoped_use();
           
-          //enable< GL_TEXTURE_2D >();
+          auto scoped_enable_texture = scoped_enable< GL_TEXTURE_2D >();
           
-          constexpr auto shadow_mapping_texture_unit = 0;
-          
-          active_texture< shadow_mapping_texture_unit >();
+          active_texture< _shadow_mapping_texture_unit >();
           auto scoped_texture_bind = _shadow_mapping_texture -> scoped_bind();
           
-          _shadow_mapping_sampler
-            -> bind< decltype(_shadow_mapping_texture)::element_type::target >
-              ( shadow_mapping_texture_unit )
-            ;
+          //_shadow_mapping_sampler
+          //  -> bind< decltype(_shadow_mapping_texture)::element_type::target >
+          //    ( _shadow_mapping_texture_unit )
+          //  ;
           
           activate_lights();
           
@@ -265,7 +264,7 @@ namespace wonder_rabbit_project
         {
           const auto program_id = _shadow_mapping_program -> program_id();
           
-          _uniform_z_trick( program_id );
+          _uniform_log_z_trick( program_id );
           
           for ( const auto& light : _default_lights )
           {
@@ -282,9 +281,7 @@ namespace wonder_rabbit_project
             
             const auto wvp
               = projection_transformation()
-              // TODO: for debug. in proper, use shadow_camera.
-              * view_transformation()
-              //* shadow_camera -> view_transformation()
+              * shadow_camera -> view_transformation()
               * draw_params.world_transformation
               ;
             
@@ -326,31 +323,32 @@ namespace wonder_rabbit_project
           uniform( program_id, "world_view_transformation", wv );
           uniform( program_id, "world_transformation", draw_params.world_transformation );
           uniform( program_id, "view_direction", _camera -> view_direction() );
-          //uniform( program_id, "shadow_transformation", shadow_camera -> view_transformation() );
-          uniform( program_id, "shadow_transformation", _camera -> view_transformation() );
           
-          _uniform_z_trick( program_id );
+          const auto shadow_transformation
+            = glm::translate( glm::mat4(), glm::vec3( 0.5f ) ) * glm::scale( glm::mat4(), glm::vec3( 0.5f, 0.5f, 0.5f ) )
+            * projection_transformation()
+            * shadow_camera -> view_transformation()
+            //* glm::inverse( view_transformation() )
+            ;
+          
+          uniform( program_id, "shadow_transformation", shadow_transformation );
+          
+          _uniform_log_z_trick( program_id );
           
           draw_params.model -> draw( draw_params.animation_states );
         }
         
-        auto _uniform_z_trick() const
+        auto _uniform_log_z_trick() const
           -> void
-        { _uniform_z_trick( current_program() ); }
+        { _uniform_log_z_trick( current_program() ); }
         
-        auto _uniform_z_trick( const glew::gl_type::GLuint program_id ) const
+        auto _uniform_log_z_trick( const glew::gl_type::GLuint program_id ) const
           -> void
         {
           uniform
           ( program_id
-          , "z_log_trick_near_inversed"
-          , _projection -> z_log_trick_near_inversed()
-          );
-          
-          uniform
-          ( program_id
-          , "z_log_trick_log_far_div_near_inversed"
-          , _projection -> z_log_trick_log_far_div_near_inversed()
+          , "z_log_trick_far"
+          , _projection -> far_clip()
           );
         }
         

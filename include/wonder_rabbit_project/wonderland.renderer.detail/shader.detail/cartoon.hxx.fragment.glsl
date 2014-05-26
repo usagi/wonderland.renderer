@@ -6,10 +6,11 @@ u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
   precision mediump float;
 #endif
 
-varying vec3 var_position;
-varying vec4 var_color;
-varying vec3 var_normal;
-varying vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+in vec3 var_position;
+in vec4 var_color;
+in vec3 var_normal;
+in vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+in float var_log_z;
 
 uniform vec3 diffuse;
 uniform vec3 ambient;
@@ -93,6 +94,7 @@ void main(void)
     hsva.z *= 0.20;
   
   gl_FragColor = from_hsva_to_rgba( hsva );
+  gl_FragDepth = var_log_z;
 }
 
 vec3 hsv_add( vec3 a, vec3 b )

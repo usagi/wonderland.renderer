@@ -133,13 +133,14 @@ try
   // projection transformation
   renderer
     -> projection()
-      -> fov_y( glm::pi< float >() / 4.0f )
+      //-> fov_y( glm::pi< float >() / 4.0f )
+      -> fov_y( glm::pi< float >() / 3.0f )
       -> aspect_ratio( float( screen_width ) / float( screen_height ) )
       -> near_clip( 1.0e-1f )
-      -> far_clip ( 1.0e+3f )
+      -> far_clip ( 1.0e+2f )
       -> update()
     ;
-  std::cerr << "hogehogehogehoge";
+  
   subsystem -> update_functors.emplace_front
   ( [ subsystem, renderer
     , &model_instance_states
