@@ -125,9 +125,9 @@ vec3 hsv_add( vec3 a, vec3 b )
   if ( b.z == 0.0 )
     return a;
   
-  float v_ratio = a.z / b.z;
+  float v_ratio = a.z / (a.z + b.z);
   
-  return vec3( mix( a.x, b.x, v_ratio), mix( a.y, b.y, v_ratio ), a.z + b.z );
+  return vec3( mix( a.x, b.x, v_ratio), mix( a.y, b.y, 1.0 - v_ratio ), a.z + b.z );
 }
 
 vec4 hsva_add( vec4 a, vec4 b )

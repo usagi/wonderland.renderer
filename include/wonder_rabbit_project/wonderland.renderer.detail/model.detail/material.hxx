@@ -249,8 +249,12 @@ namespace wonder_rabbit_project
             }
           }
           
-          auto draw( glew::gl_type::GLint program_id ) const -> void
+          auto draw( glew::gl_type::GLint program_id ) const
+            -> std::vector< destruct_invoker_t >
           {
+            std::vector< destruct_invoker_t > ds;
+            ds.reserve( _texture_ids.size() );
+            
             if ( program_id )
             {
               glew::uniform_t::uniform( program_id, "diffuse"    , _diffuse     );
@@ -259,13 +263,15 @@ namespace wonder_rabbit_project
               glew::uniform_t::uniform( program_id, "emissive"   , _emissive    );
               glew::uniform_t::uniform( program_id, "transparent", _transparent );
               glew::uniform_t::uniform( program_id, "reflective" , _reflective  );
-            
+              WRP_GLEW_TEST_ERROR
+              
               {
                 std::array< float, shader::count_of_textures > texblends;
                 std::copy( std::begin( _texblends ), std::end( _texblends), texblends.begin() );
                 std::fill( std::begin( texblends ) + _texblends.size(), std::end( texblends ), 0.0f );
                 
                 glew::wrapper_t::uniform( program_id, "texblends", texblends );
+                WRP_GLEW_TEST_ERROR
               }
             }
             
@@ -274,16 +280,28 @@ namespace wonder_rabbit_project
               if ( _texture_ids[ n ] )
               {
 #ifdef GL_VERSION_1_3
-                glew::texture_t::active_texture<>( GL_TEXTURE0 + n + 1 );
+                glew::texture_t::active_texture<>( n );
+                WRP_GLEW_TEST_ERROR
 #endif
                 // GL_1_1
-                glew::texture_t::bind_texture< GL_TEXTURE_2D >( _texture_ids[ n ] );
+                ds.emplace_back( glew::texture_t::scoped_bind_texture( _texture_ids[ n ] ) );
+                WRP_GLEW_TEST_ERROR
               }
 #ifdef GL_VERSION_3_3
               if ( _sampler_ids[ n ] )
-                glew::sampler_t::bind_sampler( n + 1, _sampler_ids[ n ] );
+              {
+                if ( program_id )
+                {
+                  glew::uniform_t::uniform( program_id, "diffuse_sampler", signed( n ) );
+                  WRP_GLEW_TEST_ERROR
+                }
+                glew::sampler_t::bind_sampler( n, _sampler_ids[ n ] );
+                WRP_GLEW_TEST_ERROR
+              }
 #endif
             }
+            
+            return ds;
           }
         };
       }

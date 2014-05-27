@@ -48,7 +48,7 @@ namespace wonder_rabbit_project
         
         bool _shadow;
         
-        static constexpr auto _shadow_mapping_texture_unit = 0;
+        static constexpr auto _shadow_mapping_texture_unit = 7;
         static constexpr auto _shadow_mapping_texture_internal_format
           //= GL_DEPTH_COMPONENT32;
           = GL_DEPTH_COMPONENT32F;
@@ -101,22 +101,22 @@ namespace wonder_rabbit_project
           // texture
           ( _shadow_mapping_texture = std::make_shared< shadow_mapping_texture_t >() )
             -> bind()
-            // TODO: for debug 512. to release, no params(system maximum size automatically).
-            //-> storage_2d( 512 )
-            //-> image_2d( 512 )
+            // TODO: for debug 4096. to release, no params(system maximum size automatically).
+            //-> storage_2d( 4096 )
+            //-> image_2d( 4096 )
             ;
           
 #if defined( GL_VERSION_4_2 )
           glew::c::glTexStorage2D
           ( GL_TEXTURE_2D
-          , glm::log2<float>(512)
+          , glm::log2<float>(4096)
           , _shadow_mapping_texture_internal_format
-          , 512
-          , 512
+          , 4096
+          , 4096
           );
-          _shadow_mapping_texture -> viewport( glm::i32vec4( 0, 0, 512, 512 ) );
+          _shadow_mapping_texture -> viewport( glm::i32vec4( 0, 0, 4096, 4096 ) );
 #elif defined( GL_VERSION_3_0 )
-          _shadow_mapping_texture -> image_2d( 512 );
+          _shadow_mapping_texture -> image_2d( 4096 );
           glew::c::glGenerateMipmap( GL_TEXTURE_2D );
 #endif
           
@@ -125,7 +125,6 @@ namespace wonder_rabbit_project
             -> parameter_wrap_st( GL_CLAMP_TO_BORDER )
             -> parameter_min_mag_filter( GL_NEAREST )
             -> parameter_compare_mode( GL_COMPARE_REF_TO_TEXTURE )
-            //-> parameter_compare_mode( GL_COMPARE_R_TO_TEXTURE )
             //-> parameter_compare_func( GL_LESS )
             -> parameter_border_color( glm::vec4( 1.0f ) )
             ;
@@ -205,7 +204,7 @@ namespace wonder_rabbit_project
           }
           
           // TODO: for debug
-          //*
+          /*
           {
             auto f = _shadow_mapping_frame_buffer -> scoped_bind();
             WRP_GLEW_TEST_ERROR
@@ -241,15 +240,15 @@ namespace wonder_rabbit_project
         {
           auto scoped_programe_use = _default_program -> scoped_use();
           
-          auto scoped_enable_texture = scoped_enable< GL_TEXTURE_2D >();
-          
           active_texture< _shadow_mapping_texture_unit >();
           auto scoped_texture_bind = _shadow_mapping_texture -> scoped_bind();
           
-          //_shadow_mapping_sampler
-          //  -> bind< decltype(_shadow_mapping_texture)::element_type::target >
-          //    ( _shadow_mapping_texture_unit )
-          //  ;
+          constexpr auto shadow_mapping_texture_unit = _shadow_mapping_texture_unit;
+          uniform( _default_program -> program_id(), "shadow_sampler", shadow_mapping_texture_unit );
+          
+          _shadow_mapping_sampler -> bind();
+          
+          WRP_GLEW_TEST_ERROR
           
           activate_lights();
           
@@ -325,10 +324,11 @@ namespace wonder_rabbit_project
           uniform( program_id, "view_direction", _camera -> view_direction() );
           
           const auto shadow_transformation
-            = glm::translate( glm::mat4(), glm::vec3( 0.5f ) ) * glm::scale( glm::mat4(), glm::vec3( 0.5f, 0.5f, 0.5f ) )
+            = glm::translate( glm::mat4(), glm::vec3( 0.5f ) )
+            * glm::scale    ( glm::mat4(), glm::vec3( 0.5f ) )
             * projection_transformation()
             * shadow_camera -> view_transformation()
-            //* glm::inverse( view_transformation() )
+            * glm::inverse( view_transformation() )
             ;
           
           uniform( program_id, "shadow_transformation", shadow_transformation );
@@ -361,6 +361,7 @@ namespace wonder_rabbit_project
           glew::glew_init();
           
           // Wonderland.Renderer default enable GL features.
+          enable< GL_TEXTURE_2D >();
           enable< GL_BLEND >();
           enable< GL_CULL_FACE >();
           enable< GL_DEPTH_TEST >();

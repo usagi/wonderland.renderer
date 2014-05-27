@@ -12,6 +12,7 @@ in vec4 var_color;
 in vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
 in vec4 var_shadow_position;
 in float var_log_z;
+in float var_log_z_shadow;
 
 out vec4 fragment_color;
 
@@ -23,7 +24,7 @@ uniform float texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
 
 uniform sampler2D shadow_sampler;
 //uniform sampler2DShadow shadow_sampler;
-uniform sampler2D sampler;
+uniform sampler2D diffuse_sampler;
 
 vec3 hsv_add( vec3, vec3 );
 vec4 hsva_add( vec4, vec4 );
@@ -36,18 +37,20 @@ bool is_nan( float );
 
 void main()
 {
-  gl_FragDepth = var_log_z;
   vec4 hsva = hsva_calc_diffuse();
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( ambient  ) );
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( emissive ) );
-  vec3 shadow_position = var_shadow_position.xyz / var_shadow_position.w;
-  //shadow_position.z = var_log_z;
-  float s = ( texture( shadow_sampler, shadow_position.xy ).r < shadow_position.z ) ? 1.0 : 0.0;
-  //float s = ( textureProj( shadow_sampler, var_shadow_position ) > 0.0 ) ? 1.0 : 0.0;
-  //float s = textureProj( shadow_sampler, var_shadow_position );
-  //hsva.z *= s;
-  hsva.x = ( texture2D( shadow_sampler, shadow_position.xy ) == 1.0 ) ? 0.0 : 0.6666;
+  
+  vec4 shadow_position = var_shadow_position;
+  //vec4 shadow_position = vec4( var_shadow_position.xyz / var_shadow_position.w ,  var_shadow_position.w );
+  shadow_position.z = var_log_z_shadow;
+  
+  //hsva.z *= texture( shadow_sampler, shadow_position.xy );
+  
+  hsva.z *= ( textureProj( shadow_sampler, shadow_position ).r < var_log_z_shadow ) ? 0.1 : 1.0;
+  
   fragment_color = from_hsva_to_rgba( hsva );
+  gl_FragDepth = var_log_z;
 }
 
 vec3 hsv_add( vec3 a, vec3 b )
@@ -55,9 +58,9 @@ vec3 hsv_add( vec3 a, vec3 b )
   if ( b.z == 0.0 )
     return a;
   
-  float v_ratio = a.z / b.z;
+  float v_ratio = a.z / (a.z + b.z);
   
-  return vec3( mix( a.x, b.x, v_ratio), mix( a.y, b.y, v_ratio ), a.z + b.z );
+  return vec3( mix( a.x, b.x, v_ratio), mix( a.y, b.y, 1.0 - v_ratio ), a.z + b.z );
 }
 
 vec4 hsva_add( vec4 a, vec4 b )
@@ -110,7 +113,7 @@ vec4 hsva_calc_diffuse()
     if ( texblends[ n ] > 0.0 )
     {
       texblend += texblends[ n ];
-      vec4 sampled_rgba_color = texture2D( sampler, var_texcoords[ n ] );
+      vec4 sampled_rgba_color = texture2D( diffuse_sampler, var_texcoords[ n ] );
       vec4 current_blend_color = from_rgba_to_hsva( sampled_rgba_color * texblends[ n ] );
       texture_color = hsva_add( texture_color, current_blend_color );
     }

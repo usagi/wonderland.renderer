@@ -12,6 +12,8 @@ in vec3 var_normal;
 in vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
 in float var_log_z;
 
+out vec4 fragment_color;
+
 uniform vec3 diffuse;
 uniform vec3 ambient;
 uniform vec3 specular;
@@ -26,8 +28,8 @@ uniform float point_light_quadratic_attenuation0;
 uniform vec3 view_direction;
 uniform float texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
 
+uniform sampler2D diffuse_sampler;
 uniform sampler2D shadow_sampler;
-uniform sampler2D sampler;
 
 vec3 hsv_add( vec3, vec3 );
 vec4 hsva_add( vec4, vec4 );
@@ -93,7 +95,10 @@ void main(void)
   if ( pow( edge_factor, 4.0 ) < 0.10 )
     hsva.z *= 0.20;
   
-  gl_FragColor = from_hsva_to_rgba( hsva );
+  //hsva.z = from_rgb_to_hsv( texture2D( diffuse_sampler, var_texcoords[ 0 ] ).rgb ).z;
+  //hsva.z = texture2D( shadow_sampler, var_texcoords[ 0 ] ) * 0.5;
+  //hsva.z += texture2D( diffuse_sampler, var_texcoords[ 0 ] ) * 0.5;
+  fragment_color = from_hsva_to_rgba( hsva );
   gl_FragDepth = var_log_z;
 }
 
@@ -102,9 +107,9 @@ vec3 hsv_add( vec3 a, vec3 b )
   if ( b.z == 0.0 )
     return a;
   
-  float v_ratio = a.z / b.z;
+  float v_ratio = a.z / (a.z + b.z);
   
-  return vec3( mix( a.x, b.x, v_ratio), mix( a.y, b.y, v_ratio ), a.z + b.z );
+  return vec3( mix( a.x, b.x, v_ratio), mix( a.y, b.y, 1.0 - v_ratio ), a.z + b.z );
 }
 
 vec4 hsva_add( vec4 a, vec4 b )
@@ -157,7 +162,7 @@ vec4 hsva_calc_diffuse()
     if ( texblends[ n ] > 0.0 )
     {
       texblend += texblends[ n ];
-      vec4 sampled_rgba_color = texture2D( sampler, var_texcoords[ n ] );
+      vec4 sampled_rgba_color = texture2D( diffuse_sampler, var_texcoords[ n ] );
       vec4 current_blend_color = from_rgba_to_hsva( sampled_rgba_color * texblends[ n ] );
       texture_color = hsva_add( texture_color, current_blend_color );
     }

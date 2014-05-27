@@ -478,9 +478,6 @@ namespace wonder_rabbit_project
                 glew::c::glVertexAttribPointer( location_of_vs_bone_weights , vertex_buffer_t::count_of_bone_weights_elements , attribute, normalize_off , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_bone_weights  ) );
                 glew::c::glEnableVertexAttribArray( location_of_vs_bone_weights  );
               }
-              
-              // マテリアルの有効化
-              _material.draw( program_id );
             };
             
             // 三角群描画
@@ -494,6 +491,9 @@ namespace wonder_rabbit_project
               glew::c::glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _triangle_ib_id );
               
               set_vertex_attribute();
+              
+              // マテリアルの有効化
+              auto materia_scopes = _material.draw( program_id );
               
               // http://www.opengl.org/wiki/GLAPI/glDrawElements
               //  GLenum mode, GLsizei count, GLenum type, const GLvoid* indices
