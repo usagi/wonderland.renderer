@@ -60,6 +60,8 @@ namespace wonder_rabbit_project
         std::shared_ptr< renderer::frame_buffer_t >  _shadow_mapping_frame_buffer;
         std::shared_ptr< renderer::render_buffer_t > _shadow_mapping_render_buffer;
         std::shared_ptr< renderer::sampler_t >       _shadow_mapping_sampler;
+        projection_t::shared_t                       _shadow_projection;
+        glm::mat4                                    _shadow_transformation;
         
         struct draw_params_t
         {
@@ -101,32 +103,32 @@ namespace wonder_rabbit_project
           // texture
           ( _shadow_mapping_texture = std::make_shared< shadow_mapping_texture_t >() )
             -> bind()
-            // TODO: for debug 4096. to release, no params(system maximum size automatically).
-            //-> storage_2d( 4096 )
-            //-> image_2d( 4096 )
+            // TODO: for debug 512. to release, no params(system maximum size automatically).
+            //-> storage_2d( 512 )
+            //-> image_2d( 512 )
             ;
           
 #if defined( GL_VERSION_4_2 )
           glew::c::glTexStorage2D
           ( GL_TEXTURE_2D
-          , glm::log2<float>(4096)
+          , glm::log2<float>(512)
           , _shadow_mapping_texture_internal_format
-          , 4096
-          , 4096
+          , 512
+          , 512
           );
-          _shadow_mapping_texture -> viewport( glm::i32vec4( 0, 0, 4096, 4096 ) );
+          _shadow_mapping_texture -> viewport( glm::i32vec4( 0, 0, 512, 512 ) );
 #elif defined( GL_VERSION_3_0 )
-          _shadow_mapping_texture -> image_2d( 4096 );
+          _shadow_mapping_texture -> image_2d( 512 );
           glew::c::glGenerateMipmap( GL_TEXTURE_2D );
 #endif
           
           // create sampler
           ( _shadow_mapping_sampler = std::make_shared< renderer::sampler_t>() )
             -> parameter_wrap_st( GL_CLAMP_TO_BORDER )
-            -> parameter_min_mag_filter( GL_NEAREST )
-            -> parameter_compare_mode( GL_COMPARE_REF_TO_TEXTURE )
-            //-> parameter_compare_func( GL_LESS )
-            -> parameter_border_color( glm::vec4( 1.0f ) )
+            -> parameter_min_mag_filter( GL_LINEAR )
+            //-> parameter_compare_mode( GL_COMPARE_REF_TO_TEXTURE )
+            -> parameter_compare_func( GL_LEQUAL )
+            -> parameter_border_color( glm::vec4( 0.0f ) )
             ;
           
           // bind samplar
@@ -204,7 +206,7 @@ namespace wonder_rabbit_project
           }
           
           // TODO: for debug
-          /*
+          //*
           {
             auto f = _shadow_mapping_frame_buffer -> scoped_bind();
             WRP_GLEW_TEST_ERROR
@@ -278,8 +280,33 @@ namespace wonder_rabbit_project
               , _camera -> up()
               );
             
+            //auto _shadow_projection = std::make_shared< projection_t >( *_projection );
+            //*
+            _shadow_projection
+              -> fov_y( glm::pi<float>() / 3.f )
+              //-> fov_y( _projection -> fov_y() )
+              -> aspect_ratio( 1.0f )
+              //-> aspect_ratio( _projection -> aspect_ratio() )
+              -> near_clip( _projection -> near_clip() )
+              -> far_clip ( _projection -> far_clip() )
+              -> update()
+              ;
+            //*/
+            
+            // TODO: for parallel light shadow
+            //_shadow_transformation = glm::ortho( -10.f, 10.f, -10.f, 10.f, -10.f, 10.f );
+            /*
+            uniform
+            ( program_id
+            , "z_log_trick_far"
+            , 10.f //_projection -> far_clip()
+            );
+            */
+            
             const auto wvp
               = projection_transformation()
+              = _shadow_projection -> projection_transformation()
+              //= _shadow_transformation
               * shadow_camera -> view_transformation()
               * draw_params.world_transformation
               ;
@@ -326,7 +353,9 @@ namespace wonder_rabbit_project
           const auto shadow_transformation
             = glm::translate( glm::mat4(), glm::vec3( 0.5f ) )
             * glm::scale    ( glm::mat4(), glm::vec3( 0.5f ) )
-            * projection_transformation()
+            //* projection_transformation()
+            * _shadow_projection -> projection_transformation()
+            //* _shadow_transformation
             * shadow_camera -> view_transformation()
             * glm::inverse( view_transformation() )
             ;
@@ -357,6 +386,7 @@ namespace wonder_rabbit_project
         explicit renderer_t()
           : _camera( std::make_shared< camera_t >() )
           , _projection( std::make_shared< projection_t >() )
+          , _shadow_projection( std::make_shared< projection_t >() )
         {
           glew::glew_init();
           

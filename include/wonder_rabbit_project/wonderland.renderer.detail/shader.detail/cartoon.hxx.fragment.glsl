@@ -10,7 +10,9 @@ in vec3 var_position;
 in vec4 var_color;
 in vec3 var_normal;
 in vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+in vec4 var_shadow_position;
 in float var_log_z;
+in float var_log_z_shadow;
 
 out vec4 fragment_color;
 
@@ -95,9 +97,10 @@ void main(void)
   if ( pow( edge_factor, 4.0 ) < 0.10 )
     hsva.z *= 0.20;
   
-  //hsva.z = from_rgb_to_hsv( texture2D( diffuse_sampler, var_texcoords[ 0 ] ).rgb ).z;
-  //hsva.z = texture2D( shadow_sampler, var_texcoords[ 0 ] ) * 0.5;
-  //hsva.z += texture2D( diffuse_sampler, var_texcoords[ 0 ] ) * 0.5;
+  vec4 shadow_position = var_shadow_position;
+  shadow_position.z = var_log_z_shadow;
+  hsva.z *= ( textureProj( shadow_sampler, shadow_position ).r < shadow_position.z ) ? 0.1 : 1.0;
+  
   fragment_color = from_hsva_to_rgba( hsva );
   gl_FragDepth = var_log_z;
 }

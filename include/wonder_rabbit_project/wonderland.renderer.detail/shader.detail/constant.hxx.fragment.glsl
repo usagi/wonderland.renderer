@@ -47,7 +47,7 @@ void main()
   
   //hsva.z *= texture( shadow_sampler, shadow_position.xy );
   
-  hsva.z *= ( textureProj( shadow_sampler, shadow_position ).r < var_log_z_shadow ) ? 0.1 : 1.0;
+  hsva.z *= ( textureProj( shadow_sampler, shadow_position ).r < shadow_position.z ) ? 0.1 : 1.0;
   
   fragment_color = from_hsva_to_rgba( hsva );
   gl_FragDepth = var_log_z;

@@ -25,8 +25,10 @@ out vec3 var_normal;
 out vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
 out vec4 var_shadow_position;
 out float var_log_z;
+out float var_log_z_shadow;
 
 uniform mat4 world_view_projection_transformation;
+uniform mat4 world_view_transformation;
 uniform mat4 world_transformation;
 uniform mat4 bones[ )" + std::to_string( max_bones ) + u8R"( ];
 uniform mat4 shadow_transformation;
@@ -68,11 +70,13 @@ void main(void)
   //  var_texcoords[ 6 ] = texcoord6;
   //  var_texcoords[ 7 ] = texcoord7;
   
-  var_shadow_position = shadow_transformation * world_transformation * local_position;
-  
   // log-z trick
   var_log_z   = z_log_trick_calc_log_z ( z_log_trick_far, gl_Position );
   gl_Position = z_log_trick_apply_log_z( var_log_z      , gl_Position );
+  
+  var_shadow_position = shadow_transformation * world_view_transformation * local_position;
+  var_log_z_shadow    = z_log_trick_calc_log_z ( z_log_trick_far , var_shadow_position );
+  var_shadow_position = z_log_trick_apply_log_z( var_log_z_shadow, var_shadow_position );
 }
 
 float z_log_trick_calc_log_z( float far, vec4 position )
