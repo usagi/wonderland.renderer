@@ -18,9 +18,9 @@ namespace wonder_rabbit_project
         : protected glew::sampler_t
       {
       protected:
-//#if defined( GL_VERSION_3_3 )
+#if defined( GL_VERSION_3_3 )
         const glew::gl_type::GLuint _sampler_id = 0;
-//#else
+#else
         using param_t = boost::variant
         < glew::gl_type::GLfloat
         , glew::gl_type::GLint
@@ -28,7 +28,7 @@ namespace wonder_rabbit_project
         >
         ;
         std::unordered_map< glew::gl_type::GLenum, param_t > _param_pairs;
-//#endif
+#endif
         
       public:
         
@@ -53,11 +53,9 @@ namespace wonder_rabbit_project
         auto bind( glew::gl_type::GLuint unit = 0 )
           -> void
         {
-          /*
 #if defined( GL_VERSION_3_3 )
           bind_sampler( unit, _sampler_id );
 #else
-          //*/
           for ( const auto& param_pair : _param_pairs )
           {
             switch ( param_pair.second.which() )
@@ -76,21 +74,19 @@ namespace wonder_rabbit_project
             }
             glew::test_error( __FILE__, __LINE__ );
           }
-//#endif
+#endif
         }
         
         template < class T >
         auto parameter( glew::gl_type::GLenum pname, T param )
           -> decltype( this )
         {
-          /*
 #if defined( GL_VERSION_3_3 )
           sampler_parameter( _sampler_id, pname, param );
           glew::test_error( __FILE__, __LINE__ );
 #else
-          //*/
           _param_pairs[ pname ] = param;
-//#endif
+#endif
           return this;
         }
         

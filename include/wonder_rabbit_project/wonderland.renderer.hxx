@@ -102,25 +102,8 @@ namespace wonder_rabbit_project
           
           // texture
           ( _shadow_mapping_texture = std::make_shared< shadow_mapping_texture_t >() )
-            -> bind()
-            // TODO: for debug 512. to release, no params(system maximum size automatically).
-            //-> storage_2d( 512 )
-            //-> image_2d( 512 )
+            -> create( 8192 )
             ;
-          
-#if defined( GL_VERSION_4_2 )
-          glew::c::glTexStorage2D
-          ( GL_TEXTURE_2D
-          , glm::log2<float>(512)
-          , _shadow_mapping_texture_internal_format
-          , 512
-          , 512
-          );
-          _shadow_mapping_texture -> viewport( glm::i32vec4( 0, 0, 512, 512 ) );
-#elif defined( GL_VERSION_3_0 )
-          _shadow_mapping_texture -> image_2d( 512 );
-          glew::c::glGenerateMipmap( GL_TEXTURE_2D );
-#endif
           
           // create sampler
           ( _shadow_mapping_sampler = std::make_shared< renderer::sampler_t>() )
@@ -207,7 +190,9 @@ namespace wonder_rabbit_project
           
           // TODO: for debug
           //*
+          if ( _shadow_save )
           {
+            
             auto f = _shadow_mapping_frame_buffer -> scoped_bind();
             WRP_GLEW_TEST_ERROR
             
@@ -222,17 +207,9 @@ namespace wonder_rabbit_project
             //glew::c::glReadPixels( v[0], v[1], v[2], v[3], GL_DEPTH_COMPONENT, GL_FLOAT, &data[0] );
             WRP_GLEW_TEST_ERROR
             
-            const auto dis = std::distance( data.cbegin(), data.cend() );
-            const auto sum = std::accumulate( data.cbegin(), data.cend(), 0.0 );
-            const auto ave = sum / dis;
+            pnm_t::save( data, v[2] );
+            _shadow_save = false;
             
-            std::cerr << "shadow texture data sum(size=" << dis << "): " << sum << " : " << ave << "\n";
-            
-            if ( _shadow_save )
-            {
-              pnm_t::save( data, v[2] );
-              _shadow_save = false;
-            }
           }
           //*/
         }
@@ -240,15 +217,15 @@ namespace wonder_rabbit_project
         auto _invoke_draw_normal()
           -> void
         {
+          constexpr auto shadow_mapping_texture_unit = _shadow_mapping_texture_unit;
+          
           auto scoped_programe_use = _default_program -> scoped_use();
           
           active_texture< _shadow_mapping_texture_unit >();
           auto scoped_texture_bind = _shadow_mapping_texture -> scoped_bind();
           
-          constexpr auto shadow_mapping_texture_unit = _shadow_mapping_texture_unit;
           uniform( _default_program -> program_id(), "shadow_sampler", shadow_mapping_texture_unit );
-          
-          _shadow_mapping_sampler -> bind();
+          _shadow_mapping_sampler -> bind( shadow_mapping_texture_unit );
           
           WRP_GLEW_TEST_ERROR
           
@@ -280,18 +257,15 @@ namespace wonder_rabbit_project
               , _camera -> up()
               );
             
-            //auto _shadow_projection = std::make_shared< projection_t >( *_projection );
-            //*
             _shadow_projection
               -> fov_y( glm::pi<float>() / 3.f )
               //-> fov_y( _projection -> fov_y() )
               -> aspect_ratio( 1.0f )
               //-> aspect_ratio( _projection -> aspect_ratio() )
-              -> near_clip( _projection -> near_clip() )
+              -> near_clip( _projection -> near_clip() * 0.001 )
               -> far_clip ( _projection -> far_clip() )
               -> update()
               ;
-            //*/
             
             // TODO: for parallel light shadow
             //_shadow_transformation = glm::ortho( -10.f, 10.f, -10.f, 10.f, -10.f, 10.f );
