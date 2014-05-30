@@ -57,6 +57,26 @@ namespace wonder_rabbit_project
         constexpr unsigned gl_version   = 110;
         constexpr unsigned glsl_version = 100;
 #endif
+        
+        namespace pseudo_pre_processor
+        {
+          
+          namespace vertex_shader
+          {
+            constexpr auto IN  = ( glsl_version >= 130 ) ? u8"in"  : u8"attribute";
+            constexpr auto OUT = ( glsl_version >= 130 ) ? u8"out" : u8"varying"  ;
+            constexpr auto OUT_POSITION_DECLARE = ( glsl_version >= 130 ) ? u8"out vec4 var_position;" : u8"";
+            constexpr auto OUT_POSITION         = ( glsl_version >= 130 ) ? u8"var_position" : u8"gl_Position";
+          }
+          
+          namespace fragment_shader
+          {
+            constexpr auto IN  = ( glsl_version >= 130 ) ? u8"in" : u8"varying"  ;
+            constexpr auto OUT_COLOR_DECLARE = ( glsl_version >= 130 ) ? u8"out vec4 out_color;" : u8"";
+            constexpr auto OUT_COLOR         = ( glsl_version >= 130 ) ? u8"out_color" : u8"gl_FragColor";
+          }
+          
+        }
       }
     }
   }

@@ -151,6 +151,7 @@ namespace wonder_rabbit_project
           -> void
         { create( glew::texture_t::max_texture_size() ); }
         
+#if defined( GL_VERSION_4_2 )
         auto storage_2d( glew::gl_type::GLsizei width, glew::gl_type::GLsizei height, const void* data = nullptr )
           -> void
         {
@@ -166,7 +167,11 @@ namespace wonder_rabbit_project
           
           parent_t::_viewport[2] = width;
           parent_t::_viewport[3] = height;
+          
+          // TODO: transfar the data
+          [data]{}();
         }
+#endif
         
         auto image_2d( glew::gl_type::GLsizei width, glew::gl_type::GLsizei height, const void* data = nullptr )
           -> void

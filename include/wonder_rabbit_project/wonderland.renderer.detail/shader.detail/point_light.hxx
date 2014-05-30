@@ -12,15 +12,15 @@ namespace wonder_rabbit_project
     {
       namespace shader
       {
-        class shadow_mapping final
-        { shadow_mapping() = delete;
+        class point_light final
+        { point_light() = delete;
         public:
           
           static auto vs_source() -> std::string
           {
             using namespace pseudo_pre_processor::vertex_shader;
             return 
-            #include "shadow_mapping.hxx.vertex.glsl"
+            #include "point_light.hxx.vertex.glsl"
             ;
           }
           
@@ -28,7 +28,7 @@ namespace wonder_rabbit_project
           {
             using namespace pseudo_pre_processor::fragment_shader;
             return
-            #include "shadow_mapping.hxx.fragment.glsl"
+            #include "point_light.hxx.fragment.glsl"
             ;
           }
           

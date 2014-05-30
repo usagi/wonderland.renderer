@@ -1,22 +1,23 @@
 u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
 
-in vec4 position;
-in vec4 color;
-//in vec3 normal;
-in vec2 texcoord0;
-//in vec2 texcoord1;
-//in vec2 texcoord2;
-//in vec2 texcoord3;
-//in vec2 texcoord4;
-//in vec2 texcoord5;
-//in vec2 texcoord6;
-//in vec2 texcoord7;
-in vec4 bone_ids;
-in vec4 bone_weights;
+)" + IN + u8R"(  vec4 position;
+)" + IN + u8R"(  vec4 color;
+//)" + IN + u8R"(  vec3 normal;
+)" + IN + u8R"(  vec2 texcoord0;
+//)" + IN + u8R"(  vec2 texcoord1;
+//)" + IN + u8R"(  vec2 texcoord2;
+//)" + IN + u8R"(  vec2 texcoord3;
+//)" + IN + u8R"(  vec2 texcoord4;
+//)" + IN + u8R"(  vec2 texcoord5;
+//)" + IN + u8R"(  vec2 texcoord6;
+//)" + IN + u8R"(  vec2 texcoord7;
+)" + IN + u8R"( vec4 bone_ids;
+)" + IN + u8R"( vec4 bone_weights;
 
-out vec4 var_color;
-out vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
-out float var_log_z;
+)" + OUT_POSITION_DECLARE + u8R"(
+)" + OUT + u8R"( vec4 var_color;
+)" + OUT + u8R"( vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+)" + OUT + u8R"( float var_log_z;
 
 uniform mat4 world_view_projection_transformation;
 uniform mat4 bones[ )" + std::to_string( max_bones ) + u8R"( ];
@@ -39,11 +40,11 @@ void main(void)
     ;
     
   vec4 local_position = animation_transformation * position;
-  gl_Position = world_view_projection_transformation * local_position;
+  vec4 out_position = world_view_projection_transformation * local_position;
   
   // log-z trick
-  var_log_z   = z_log_trick_calc_log_z ( z_log_trick_far, gl_Position );
-  gl_Position = z_log_trick_apply_log_z( var_log_z      , gl_Position );
+  var_log_z                 = z_log_trick_calc_log_z ( z_log_trick_far, out_position );
+  )" + OUT_POSITION + u8R"( = z_log_trick_apply_log_z( var_log_z      , out_position );
   
   var_color = color;
   

@@ -280,7 +280,7 @@ try
     before = std::chrono::high_resolution_clock::now();
   }
   );
-  
+
   subsystem -> invoke();
   
 }

@@ -63,6 +63,8 @@ namespace wonder_rabbit_project
         projection_t::shared_t                       _shadow_projection;
         glm::mat4                                    _shadow_transformation;
         
+        renderer::program_t::const_shared_t          _point_light_program;
+        
         struct draw_params_t
         {
           renderer::program_t::const_shared_t program;
@@ -189,6 +191,7 @@ namespace wonder_rabbit_project
           }
           
           // TODO: for debug
+#ifndef EMSCRIPTEN
           //*
           if ( _shadow_save )
           {
@@ -212,6 +215,7 @@ namespace wonder_rabbit_project
             
           }
           //*/
+#endif
         }
         
         auto _invoke_draw_normal()
@@ -235,6 +239,65 @@ namespace wonder_rabbit_project
           
           for ( const auto& draw_params : _draw_queue )
             _draw_normal( draw_params );
+          
+          // point light visualization
+          {
+            // [ { (x,y,z), (r,g,b) }, .. ]
+            std::vector< std::array< glm::vec3, 2 > > point_light_vertices;
+            
+            // pickup point lights
+            for ( const auto& light : _default_lights )
+            {
+              const auto point_light = std::dynamic_pointer_cast< point_light_t >( light );
+              
+              if ( point_light )
+                point_light_vertices.push_back
+                ( { { point_light -> position
+                    , point_light -> color
+                    }
+                  }
+                );
+            }
+            
+            constexpr glew::gl_type::GLenum    attribute = GL_FLOAT;
+            constexpr glew::gl_type::GLboolean normalize_off = false;
+            
+            constexpr glew::gl_type::GLenum mode  = GL_POINTS;
+            constexpr glew::gl_type::GLint  first = 0;
+            
+            const auto program_id = current_program();
+            
+            const auto location_of_vs_position     = glew::c::glGetAttribLocation( program_id, "position"     );
+            const auto location_of_vs_color        = glew::c::glGetAttribLocation( program_id, "color"        );
+            
+            if ( location_of_vs_position not_eq -1 )
+            {
+              glew::c::glVertexAttribPointer( location_of_vs_position, 3, attribute, normalize_off, sizeof( float ) * 6, reinterpret_cast<void*>( point_light_vertices.data() ) );
+              glew::c::glEnableVertexAttribArray( location_of_vs_position );
+            }
+            
+            if ( location_of_vs_color not_eq -1 )
+            { 
+              glew::c::glVertexAttribPointer( location_of_vs_color, 3, attribute, normalize_off, sizeof( float ) * 6, reinterpret_cast<void*>( point_light_vertices.data() ) );
+              glew::c::glEnableVertexAttribArray( location_of_vs_color );
+            }
+            
+            // TODO: change to GL_DYNAMIC_DRAW
+            auto p     = _point_light_program -> scoped_use();
+            auto e_vps = scoped_enable< GL_VERTEX_PROGRAM_POINT_SIZE >();
+            auto e_ps  = scoped_enable< GL_POINT_SPRITE >();
+            uniform( program_id, "view_projection_transformation", view_projection_transformation() );
+            WRP_GLEW_TEST_ERROR
+            _uniform_log_z_trick( program_id );
+            WRP_GLEW_TEST_ERROR
+            glew::gl_type::GLuint point_light_vertices_buffer = 0;
+            glew::c::glGenBuffers( 1, &point_light_vertices_buffer );
+            glew::c::glBindBuffer( GL_ARRAY_BUFFER, point_light_vertices_buffer );
+            glew::c::glBufferData( GL_ARRAY_BUFFER, point_light_vertices.size() * sizeof( decltype( point_light_vertices )::value_type ), nullptr, GL_STREAM_DRAW );
+            glew::c::glDrawArrays( mode, first, point_light_vertices.size() );
+            glew::c::glBindBuffer( GL_ARRAY_BUFFER, 0 );
+            glew::c::glDeleteBuffers( 1, &point_light_vertices_buffer );
+          }
         }
         
         auto _draw_shadow( const draw_params_t& draw_params )
@@ -341,6 +404,16 @@ namespace wonder_rabbit_project
           draw_params.model -> draw( draw_params.animation_states );
         }
         
+        auto _initialize_point_light()
+          -> void
+        {
+          ( _point_light_program = std::make_shared< renderer::program_t >() )
+            -> attach( create_shader< vertex_shader_t   >( shader::point_light::vs_source() ) )
+            -> attach( create_shader< fragment_shader_t >( shader::point_light::fs_source() ) )
+            -> link()
+            ;
+        }
+        
         auto _uniform_log_z_trick() const
           -> void
         { _uniform_log_z_trick( current_program() ); }
@@ -376,6 +449,8 @@ namespace wonder_rabbit_project
           
           // Wonderland.Renderer try enble shadow feature.
           shadow();
+          
+          _initialize_point_light();
         }
         
         template < class T_type, class ... T_prams >
@@ -414,7 +489,7 @@ namespace wonder_rabbit_project
           -> glm::mat4
         { return _projection -> projection_transformation(); }
         
-        auto view_projection_transformation()
+        auto view_projection_transformation() const
           -> glm::mat4
         { return projection_transformation() * view_transformation(); }
         
@@ -647,6 +722,22 @@ namespace wonder_rabbit_project
       auto renderer_t::create_program_from_embedded< shader::shadow_mapping >()
         -> std::shared_ptr< const renderer::program_t >
       { return create_program( create_shader_from_embedded< vertex_shader_t, shader::shadow_mapping >(), create_shader_from_embedded< fragment_shader_t, shader::shadow_mapping >() ); }
+      
+      // specialize to point_light
+      template<>
+      auto renderer_t::create_shader_from_embedded< vertex_shader_t, shader::point_light >()
+        -> std::shared_ptr< const vertex_shader_t >
+      { return create_shader< vertex_shader_t >( shader::point_light::vs_source() ); }
+      
+      template<>
+      auto renderer_t::create_shader_from_embedded< fragment_shader_t, shader::point_light >()
+        -> std::shared_ptr< const fragment_shader_t >
+      { return create_shader< fragment_shader_t >( shader::point_light::fs_source() ); }
+      
+      template<>
+      auto renderer_t::create_program_from_embedded< shader::point_light >()
+        -> std::shared_ptr< const renderer::program_t >
+      { return create_program( create_shader_from_embedded< vertex_shader_t, shader::point_light >(), create_shader_from_embedded< fragment_shader_t, shader::point_light >() ); }
       
     }
   }
