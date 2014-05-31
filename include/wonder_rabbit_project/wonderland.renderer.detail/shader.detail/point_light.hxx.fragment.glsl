@@ -13,16 +13,11 @@ u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
 
 void main()
 {
-  vec2 t = gl_PointCoord.xy * 2.0 - 1.0;
+  vec2  t0 = ( gl_PointCoord.xy * 2.0 - 1.0 ) * 2.0;
+  float t1 = sqrt( t0.x * t0.x + t0.y * t0.y );
+  float t2 = 1.0 / pow( t1, 13 );
   
-  float distance = sqrt( t.x * t.x + t.y * t.y ) * 3.14159265358979;
-  
-  //if ( distance > 1.0 )
-    //discard;
-  
-  float inversed_distance = 1.0 / distance;
-  
-  )" + OUT_COLOR + u8R"( = vec4( var_color * inversed_distance, inversed_distance );
+  )" + OUT_COLOR + u8R"( = vec4( var_color * t2, 1.0 );
   
   gl_FragDepth = var_log_z;
 }

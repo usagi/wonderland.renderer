@@ -104,7 +104,7 @@ namespace wonder_rabbit_project
           
           // texture
           ( _shadow_mapping_texture = std::make_shared< shadow_mapping_texture_t >() )
-            -> create( 8192 )
+            -> create( 2048 )
             ;
           
           // create sampler
@@ -226,12 +226,16 @@ namespace wonder_rabbit_project
           auto scoped_programe_use = _default_program -> scoped_use();
           
           active_texture< _shadow_mapping_texture_unit >();
-          auto scoped_texture_bind = _shadow_mapping_texture -> scoped_bind();
           
-          uniform( _default_program -> program_id(), "shadow_sampler", shadow_mapping_texture_unit );
-          _shadow_mapping_sampler -> bind( shadow_mapping_texture_unit );
-          
-          WRP_GLEW_TEST_ERROR
+          if ( _shadow )
+          {
+            _shadow_mapping_texture -> bind();
+            
+            uniform( _default_program -> program_id(), "shadow_sampler", shadow_mapping_texture_unit );
+            _shadow_mapping_sampler -> bind( shadow_mapping_texture_unit );
+          }
+          else
+            bind_texture();
           
           activate_lights();
           
@@ -280,11 +284,11 @@ namespace wonder_rabbit_project
           auto e_ps  = scoped_enable< GL_POINT_SPRITE >();
           
           auto e_b   = scoped_enable< GL_BLEND >();
-          glew::c::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+          glew::c::glBlendFunc( GL_SRC_ALPHA, GL_ONE );
           
           uniform( program_id, "view_projection_transformation", view_projection_transformation() );
           const auto view_port_ = viewport();
-          uniform( program_id, "point_size", float(view_port_[3]) );
+          uniform( program_id, "point_size", float(view_port_[3]) * 0.5f );
           _uniform_log_z_trick( program_id );
           
           // TODO: change to GL_DYNAMIC_DRAW
@@ -314,6 +318,7 @@ namespace wonder_rabbit_project
           
           glew::c::glBindBuffer( GL_ARRAY_BUFFER, 0 );
           glew::c::glDeleteBuffers( 1, &point_light_vertices_buffer );
+          glew::c::glBlendFunc(GL_ONE, GL_ZERO);
         }
         
         auto _draw_shadow( const draw_params_t& draw_params )
@@ -341,7 +346,7 @@ namespace wonder_rabbit_project
               //-> fov_y( _projection -> fov_y() )
               -> aspect_ratio( 1.0f )
               //-> aspect_ratio( _projection -> aspect_ratio() )
-              -> near_clip( _projection -> near_clip() * 0.001 )
+              -> near_clip( _projection -> near_clip() )
               -> far_clip ( _projection -> far_clip() )
               -> update()
               ;
@@ -403,17 +408,20 @@ namespace wonder_rabbit_project
           uniform( program_id, "world_transformation", draw_params.world_transformation );
           uniform( program_id, "view_direction", _camera -> view_direction() );
           
-          const auto shadow_transformation
-            = glm::translate( glm::mat4(), glm::vec3( 0.5f ) )
-            * glm::scale    ( glm::mat4(), glm::vec3( 0.5f ) )
-            //* projection_transformation()
-            * _shadow_projection -> projection_transformation()
-            //* _shadow_transformation
-            * shadow_camera -> view_transformation()
-            * glm::inverse( view_transformation() )
-            ;
-          
-          uniform( program_id, "shadow_transformation", shadow_transformation );
+          if ( _shadow )
+          {
+            const auto shadow_transformation
+              = glm::translate( glm::mat4(), glm::vec3( 0.5f ) )
+              * glm::scale    ( glm::mat4(), glm::vec3( 0.5f ) )
+              //* projection_transformation()
+              * _shadow_projection -> projection_transformation()
+              //* _shadow_transformation
+              * shadow_camera -> view_transformation()
+              * glm::inverse( view_transformation() )
+              ;
+            
+            uniform( program_id, "shadow_transformation", shadow_transformation );
+          }
           
           _uniform_log_z_trick( program_id );
           
@@ -454,6 +462,7 @@ namespace wonder_rabbit_project
           glew::glew_init();
           
           // Wonderland.Renderer default enable GL features.
+          disable< GL_DITHER >();
           enable< GL_TEXTURE_2D >();
           enable< GL_BLEND >();
           enable< GL_CULL_FACE >();

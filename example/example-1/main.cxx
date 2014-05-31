@@ -176,18 +176,18 @@ try
     
     // camera change
     if      ( wheel.y > 0 or key_home )
-      ( shift ? light_distance : camera_distance ) -= 1.0f;
+      ( shift ? light_distance : camera_distance ) -= 0.2f;
     else if ( wheel.y < 0 or key_end  )
-      ( shift ? light_distance : camera_distance ) += 1.0f;
+      ( shift ? light_distance : camera_distance ) += 0.2f;
     
     if ( subsystem -> keyboard_state< key::left_arrow >() )
-      ( shift ? light_theta : camera_theta ) -= 0.05f;
+      ( shift ? light_theta : camera_theta ) -= 0.02f;
     if ( subsystem -> keyboard_state< key::right_arrow >() )
-      ( shift ? light_theta : camera_theta ) += 0.05f;
+      ( shift ? light_theta : camera_theta ) += 0.02f;
     if ( subsystem -> keyboard_state< key::up_arrow >() )
-      ( shift ? light_phi : camera_phi ) -= 0.05f;
+      ( shift ? light_phi : camera_phi ) -= 0.02f;
     if ( subsystem -> keyboard_state< key::down_arrow >() )
-      ( shift ? light_phi : camera_phi ) += 0.05f;
+      ( shift ? light_phi : camera_phi ) += 0.02f;
     
     renderer -> camera()
       -> target( { 0.0f, 0.0f, 0.0f } )
