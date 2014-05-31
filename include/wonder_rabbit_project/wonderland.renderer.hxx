@@ -240,64 +240,80 @@ namespace wonder_rabbit_project
           for ( const auto& draw_params : _draw_queue )
             _draw_normal( draw_params );
           
-          // point light visualization
+          _draw_point_light();
+        }
+        
+        auto _draw_point_light()
+          -> void
+        {
+          // [ { (x,y,z), (r,g,b) }, .. ]
+          std::vector< std::array< glm::vec3, 2 > > point_light_vertices;
+          
+          // pickup point lights
+          for ( const auto& light : _default_lights )
           {
-            // [ { (x,y,z), (r,g,b) }, .. ]
-            std::vector< std::array< glm::vec3, 2 > > point_light_vertices;
+            const auto point_light = std::dynamic_pointer_cast< point_light_t >( light );
             
-            // pickup point lights
-            for ( const auto& light : _default_lights )
-            {
-              const auto point_light = std::dynamic_pointer_cast< point_light_t >( light );
-              
-              if ( point_light )
-                point_light_vertices.push_back
-                ( { { point_light -> position
-                    , point_light -> color
-                    }
+            if ( point_light )
+              point_light_vertices.push_back
+              ( { { point_light -> position
+                  , point_light -> color
                   }
-                );
-            }
-            
-            constexpr glew::gl_type::GLenum    attribute = GL_FLOAT;
-            constexpr glew::gl_type::GLboolean normalize_off = false;
-            
-            constexpr glew::gl_type::GLenum mode  = GL_POINTS;
-            constexpr glew::gl_type::GLint  first = 0;
-            
-            const auto program_id = current_program();
-            
-            const auto location_of_vs_position     = glew::c::glGetAttribLocation( program_id, "position"     );
-            const auto location_of_vs_color        = glew::c::glGetAttribLocation( program_id, "color"        );
-            
-            if ( location_of_vs_position not_eq -1 )
-            {
-              glew::c::glVertexAttribPointer( location_of_vs_position, 3, attribute, normalize_off, sizeof( float ) * 6, reinterpret_cast<void*>( point_light_vertices.data() ) );
-              glew::c::glEnableVertexAttribArray( location_of_vs_position );
-            }
-            
-            if ( location_of_vs_color not_eq -1 )
-            { 
-              glew::c::glVertexAttribPointer( location_of_vs_color, 3, attribute, normalize_off, sizeof( float ) * 6, reinterpret_cast<void*>( point_light_vertices.data() ) );
-              glew::c::glEnableVertexAttribArray( location_of_vs_color );
-            }
-            
-            // TODO: change to GL_DYNAMIC_DRAW
-            auto p     = _point_light_program -> scoped_use();
-            auto e_vps = scoped_enable< GL_VERTEX_PROGRAM_POINT_SIZE >();
-            auto e_ps  = scoped_enable< GL_POINT_SPRITE >();
-            uniform( program_id, "view_projection_transformation", view_projection_transformation() );
-            WRP_GLEW_TEST_ERROR
-            _uniform_log_z_trick( program_id );
-            WRP_GLEW_TEST_ERROR
-            glew::gl_type::GLuint point_light_vertices_buffer = 0;
-            glew::c::glGenBuffers( 1, &point_light_vertices_buffer );
-            glew::c::glBindBuffer( GL_ARRAY_BUFFER, point_light_vertices_buffer );
-            glew::c::glBufferData( GL_ARRAY_BUFFER, point_light_vertices.size() * sizeof( decltype( point_light_vertices )::value_type ), nullptr, GL_STREAM_DRAW );
-            glew::c::glDrawArrays( mode, first, point_light_vertices.size() );
-            glew::c::glBindBuffer( GL_ARRAY_BUFFER, 0 );
-            glew::c::glDeleteBuffers( 1, &point_light_vertices_buffer );
+                }
+              );
           }
+          
+          if ( point_light_vertices.empty() )
+            return;
+          
+          constexpr glew::gl_type::GLenum    attribute = GL_FLOAT;
+          constexpr glew::gl_type::GLboolean normalize_off = false;
+          
+          constexpr glew::gl_type::GLenum mode  = GL_POINTS;
+          constexpr glew::gl_type::GLint  first = 0;
+          
+          auto p = _point_light_program -> scoped_use();
+          
+          const auto program_id = _point_light_program -> program_id();
+          
+          auto e_vps = scoped_enable< GL_VERTEX_PROGRAM_POINT_SIZE >();
+          auto e_ps  = scoped_enable< GL_POINT_SPRITE >();
+          
+          auto e_b   = scoped_enable< GL_BLEND >();
+          glew::c::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+          
+          uniform( program_id, "view_projection_transformation", view_projection_transformation() );
+          const auto view_port_ = viewport();
+          uniform( program_id, "point_size", float(view_port_[3]) );
+          _uniform_log_z_trick( program_id );
+          
+          // TODO: change to GL_DYNAMIC_DRAW
+          WRP_GLEW_TEST_ERROR
+          glew::gl_type::GLuint point_light_vertices_buffer = 0;
+          
+          glew::c::glGenBuffers( 1, &point_light_vertices_buffer );
+          glew::c::glBindBuffer( GL_ARRAY_BUFFER, point_light_vertices_buffer );
+          glew::c::glBufferData( GL_ARRAY_BUFFER, point_light_vertices.size() * sizeof( decltype( point_light_vertices )::value_type ), point_light_vertices.data(), GL_STREAM_DRAW );
+          
+          const auto location_of_vs_position = glew::c::glGetAttribLocation( program_id, "position" );
+          const auto location_of_vs_color    = glew::c::glGetAttribLocation( program_id, "color"    );
+          
+          if ( location_of_vs_position not_eq -1 )
+          {
+            glew::c::glVertexAttribPointer( location_of_vs_position, 3, attribute, normalize_off, sizeof( float ) * 6, reinterpret_cast< void* >( 0 ) );
+            glew::c::glEnableVertexAttribArray( location_of_vs_position );
+          }
+          
+          if ( location_of_vs_color not_eq -1 )
+          { 
+            glew::c::glVertexAttribPointer( location_of_vs_color, 3, attribute, normalize_off, sizeof( float ) * 6, reinterpret_cast< void* >( sizeof( float ) * 3 ) );
+            glew::c::glEnableVertexAttribArray( location_of_vs_color );
+          }
+          
+          glew::c::glDrawArrays( mode, first, point_light_vertices.size() );
+          
+          glew::c::glBindBuffer( GL_ARRAY_BUFFER, 0 );
+          glew::c::glDeleteBuffers( 1, &point_light_vertices_buffer );
         }
         
         auto _draw_shadow( const draw_params_t& draw_params )
