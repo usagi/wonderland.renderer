@@ -34,7 +34,7 @@ namespace wonder_rabbit_project
         {
           const auto texture_id = texture ? texture -> texture_id() : 0 ;
           
-#ifdef GL_VERSION_3_2
+#if defined( GL_VERSION_3_2 ) && ! defined( EMSCRIPTEN )
           frame_buffer_texture< T_attachment >( texture_id );
 #else
           switch( T_target )
@@ -107,6 +107,7 @@ namespace wonder_rabbit_project
           auto binding = scoped_bind();
           _bind_textures( textures ... );
         }
+        
         template < class T >
         auto bind_texture( std::shared_ptr< T > texture = nullptr )
           -> std::shared_ptr< frame_buffer_t >
