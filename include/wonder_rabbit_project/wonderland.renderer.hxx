@@ -56,7 +56,7 @@ namespace wonder_rabbit_project
             ;
         
         using shadow_mapping_texture_t
-          = renderer::texture2d_t< _shadow_mapping_texture_internal_format >;
+          = renderer::texture_2d_t< _shadow_mapping_texture_internal_format >;
         
         renderer::program_t::const_shared_t          _shadow_mapping_program;
         std::shared_ptr< shadow_mapping_texture_t >  _shadow_mapping_texture;
@@ -348,7 +348,7 @@ namespace wonder_rabbit_project
               );
             
             _shadow_projection
-              -> fov_y( glm::pi<float>() / 3.f )
+              -> fov_y( glm::pi<float>() / 2.f )
               //-> fov_y( _projection -> fov_y() )
               -> aspect_ratio( 1.0f )
               //-> aspect_ratio( _projection -> aspect_ratio() )

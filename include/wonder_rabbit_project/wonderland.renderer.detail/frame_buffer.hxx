@@ -107,18 +107,11 @@ namespace wonder_rabbit_project
           auto binding = scoped_bind();
           _bind_textures( textures ... );
         }
-        
-        template
-        < typename glew::gl_type::GLenum T_target
-        , typename glew::gl_type::GLenum T_internal_format
-        , typename glew::gl_type::GLenum T_attachment
-          = attachment( renderer::texture_t< T_target, T_internal_format >::base_internal_format )
-        >
-        auto bind_texture( std::shared_ptr< renderer::texture_t< T_target, T_internal_format > > texture = nullptr )
+        template < class T >
+        auto bind_texture( std::shared_ptr< T > texture = nullptr )
           -> std::shared_ptr< frame_buffer_t >
         {
-          //auto binding = scoped_bind();
-          _bind_texture< T_target, T_internal_format, T_attachment >( texture );
+          _bind_texture< T::target, T::internal_format, attachment( glew::texture_t::base_internal_format( T::internal_format ) ) >( texture );
           glew::test_error( __FILE__, __LINE__ );
           
           return shared_from_this();

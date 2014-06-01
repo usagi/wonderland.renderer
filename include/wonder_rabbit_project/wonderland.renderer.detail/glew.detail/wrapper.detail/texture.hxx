@@ -225,9 +225,9 @@ namespace wonder_rabbit_project
           
           template < typename gl_type::GLsizei T_count_of_textures = 1 >
           static inline auto generate_textures()
-            -> std::array< gl_type::GLuint, T_count_of_textures >
+            -> std::vector< gl_type::GLuint >
           {
-            std::array< gl_type::GLuint, T_count_of_textures > textures;
+            std::vector< gl_type::GLuint > textures( T_count_of_textures );
             c::glGenTextures( T_count_of_textures, &textures[0] );
             return textures;
           }
@@ -252,6 +252,49 @@ namespace wonder_rabbit_project
           {
             bind_texture< T_target >( texture_id );
             return destruct_invoker_t( []{ bind_texture< T_target >(); } );
+          }
+          
+          // has template specializing
+          template
+          < typename gl_type::GLenum T_target
+          , class T_size
+          >
+          static inline auto texture_storage
+          ( gl_type::GLsizei
+          , gl_type::GLenum
+          , T_size
+          )
+            -> void
+          {
+            throw std::logic_error( "texture_storage: unkown T_target or T_size" );
+          }
+          
+          // has template specializing
+          template
+          < typename gl_type::GLenum T_target
+          , class T_size
+          >
+          static inline auto texture_storage
+          ( gl_type::GLenum
+          , T_size
+          )
+            -> void
+          {
+            throw std::logic_error( "texture_storage: unkown T_target or T_size" );
+          }
+          
+          template
+          < typename gl_type::GLenum T_target
+          , class T_size
+          >
+          static inline auto texture_sub_image
+          ( gl_type::GLenum
+          , T_size
+          , const void*
+          )
+            -> void
+          {
+            throw std::logic_error( "texture_sub_image: unkown T_target" );
           }
           
           template < class T = void >
@@ -553,7 +596,203 @@ namespace wonder_rabbit_project
               delete_texture( texture_id );
           }
           
+          template < class T = void >
+          static inline auto safe_delete_textures( std::vector< gl_type::GLuint >& texture_ids )
+            -> void
+          {
+            for ( auto tid : texture_ids )
+              safe_delete_texture( tid );
+            
+            texture_ids.clear();
+          }
+          
         };
+        
+        // template specialization
+        
+#ifdef GL_VERSION_4_2
+        
+        // storage series
+        
+        // 1D
+        
+        template < >
+        inline auto texture_t::texture_storage < GL_TEXTURE_1D, glm::u32vec1 >
+        ( gl_type::GLsizei levels
+        , gl_type::GLenum internal_format
+        , glm::u32vec1 size
+        )
+          -> void
+        {
+          c::glTexStorage1D
+          ( GL_TEXTURE_1D
+          , levels
+          , internal_format
+          , size[0]
+          );
+        }
+        
+        template < >
+        inline auto texture_t::texture_storage < GL_TEXTURE_1D, const glm::u32vec1& >
+        ( gl_type::GLenum internal_format
+        , const glm::u32vec1& size
+        )
+          -> void
+        { texture_storage< GL_TEXTURE_1D, const glm::u32vec1& >( gl_type::GLsizei( glm::log2< float >( size[0] ) ), internal_format, size ); }
+        
+        template < >
+        inline auto texture_t::texture_storage < GL_TEXTURE_1D, gl_type::GLuint >
+        ( gl_type::GLsizei levels
+        , gl_type::GLenum internal_format
+        , gl_type::GLuint size
+        )
+          -> void
+        { texture_storage< GL_TEXTURE_1D, const glm::u32vec1& >( levels, internal_format, glm::u32vec1( size ) ); }
+        
+        template < >
+        inline auto texture_t::texture_storage < GL_TEXTURE_1D, gl_type::GLuint >
+        ( gl_type::GLenum internal_format
+        , gl_type::GLuint size
+        )
+          -> void
+        { texture_storage< GL_TEXTURE_1D, const glm::u32vec1& >( internal_format, glm::u32vec1( size ) ); }
+        
+        // 2D
+        
+        template < >
+        inline auto texture_t::texture_storage < GL_TEXTURE_2D, const glm::u32vec2& >
+        ( gl_type::GLsizei levels
+        , gl_type::GLenum internal_format
+        , const glm::u32vec2& size
+        )
+          -> void
+        {
+          c::glTexStorage2D
+          ( GL_TEXTURE_2D
+          , levels
+          , internal_format
+          , size[0], size[1]
+          );
+        }
+        
+        template < >
+        inline auto texture_t::texture_storage < GL_TEXTURE_2D, const glm::u32vec2& >
+        ( gl_type::GLenum internal_format
+        , const glm::u32vec2& size
+        )
+          -> void
+        { texture_storage< GL_TEXTURE_2D, const glm::u32vec2& >( gl_type::GLsizei( glm::log2< float >( std::min( size[0], size[1] ) ) ), internal_format, size ); }
+        
+        template < >
+        inline auto texture_t::texture_storage < GL_TEXTURE_2D, gl_type::GLuint >
+        ( gl_type::GLenum internal_format
+        , gl_type::GLuint size
+        )
+          -> void
+        { texture_storage< GL_TEXTURE_2D, const glm::u32vec2& >( internal_format, glm::u32vec2( size ) ); }
+        
+        template < >
+        inline auto texture_t::texture_storage < GL_TEXTURE_2D, gl_type::GLuint >
+        ( gl_type::GLsizei levels
+        , gl_type::GLenum internal_format
+        , gl_type::GLuint size
+        )
+          -> void
+        { texture_storage< GL_TEXTURE_2D, const glm::u32vec2& >( levels, internal_format, glm::u32vec2( size ) ); }
+        
+        // 3D
+        
+        template < >
+        inline auto texture_t::texture_storage < GL_TEXTURE_3D, const glm::u32vec3& >
+        ( gl_type::GLsizei levels
+        , gl_type::GLenum internal_format
+        , const glm::u32vec3& size
+        )
+          -> void
+        {
+          c::glTexStorage3D
+          ( GL_TEXTURE_3D
+          , levels
+          , internal_format
+          , size[0], size[1], size[2]
+          );
+        }
+        
+        template < >
+        inline auto texture_t::texture_storage < GL_TEXTURE_3D, gl_type::GLuint >
+        ( gl_type::GLsizei levels
+        , gl_type::GLenum internal_format
+        , gl_type::GLuint size
+        )
+          -> void
+        { texture_storage< GL_TEXTURE_3D, const glm::u32vec3& >( levels, internal_format, glm::u32vec3( size ) ); }
+        
+        template < >
+        inline auto texture_t::texture_storage < GL_TEXTURE_3D, const glm::u32vec3& >
+        ( gl_type::GLenum internal_format
+        , const glm::u32vec3& size
+        )
+          -> void
+        { texture_storage< GL_TEXTURE_3D, const glm::u32vec3& >( gl_type::GLsizei( glm::log2< float >( std::min( std::min( size[0], size[1] ), size[2] ) ) ), internal_format, size ); }
+        
+        template < >
+        inline auto texture_t::texture_storage < GL_TEXTURE_3D, gl_type::GLuint >
+        ( gl_type::GLenum internal_format
+        , gl_type::GLuint size
+        )
+          -> void
+        { texture_storage< GL_TEXTURE_3D, const glm::u32vec3& >( internal_format, glm::u32vec3( size ) ); }
+        
+#endif
+
+#ifdef GL_VERSION_1_2
+        
+        // sub image series
+        
+        // 1D
+        
+        template < >
+        inline auto texture_t::texture_sub_image < GL_TEXTURE_1D, gl_type::GLuint >
+        ( gl_type::GLenum internal_format
+        , gl_type::GLuint size
+        , const void* data
+        )
+          -> void
+        { texture_sub_image< GL_TEXTURE_1D, glm::vec1 >( internal_format, glm::vec1( size ), data ); }
+        
+        template < >
+        inline auto texture_t::texture_sub_image < GL_TEXTURE_1D, const glm::u32vec1& >
+        ( gl_type::GLenum internal_format
+        , const glm::u32vec1& size
+        , const void* data
+        )
+          -> void
+        { c::glTexSubImage1D( GL_TEXTURE_1D, 0, 0, size[0], internal_format, type( internal_format ), data ); }
+        
+        // 2D
+        
+        template < >
+        inline auto texture_t::texture_sub_image < GL_TEXTURE_2D, const glm::u32vec2& >
+        ( gl_type::GLenum internal_format
+        , const glm::u32vec2& size
+        , const void* data
+        )
+          -> void
+        { c::glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, size[0], size[1], internal_format, type( internal_format ), data ); }
+        
+        // 3D
+        
+        template < >
+        inline auto texture_t::texture_sub_image < GL_TEXTURE_3D, const glm::u32vec3& >
+        ( gl_type::GLenum internal_format
+        , const glm::u32vec3& size
+        , const void* data
+        )
+          -> void
+        { c::glTexSubImage3D( GL_TEXTURE_3D, 0, 0, 0, 0, size[0], size[1], size[2], internal_format, type( internal_format ), data ); }
+        
+#endif
+        
       }
     }
   }
