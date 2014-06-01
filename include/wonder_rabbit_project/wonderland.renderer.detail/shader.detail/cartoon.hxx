@@ -18,13 +18,17 @@ namespace wonder_rabbit_project
         public:
           
           static auto vs_source() -> std::string
-          { return 
+          {
+            using namespace pseudo_pre_processor::vertex_shader;
+            return
             #include "cartoon.hxx.vertex.glsl"
             ;
           }
           
           static auto fs_source() -> std::string
-          { return
+          {
+            using namespace pseudo_pre_processor::fragment_shader;
+            return
             #include "cartoon.hxx.fragment.glsl"
             ;
           }

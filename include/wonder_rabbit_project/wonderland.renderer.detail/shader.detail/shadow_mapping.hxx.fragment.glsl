@@ -8,8 +8,9 @@ u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
 
 )" + IN + u8R"( vec4 var_color;
 )" + IN + u8R"( vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+#ifdef GL_EXT_frag_depth
 )" + IN + u8R"( float var_log_z;
-
+#endif
 )" + OUT_COLOR_DECLARE + u8R"(
 
 uniform vec3 diffuse;
@@ -37,7 +38,9 @@ void main()
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( ambient  ) );
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( emissive ) );
   )" + OUT_COLOR + u8R"( = from_hsva_to_rgba( hsva );
+#ifdef GL_EXT_frag_depth
   gl_FragDepth = var_log_z;
+#endif
 }
 
 

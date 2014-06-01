@@ -50,10 +50,13 @@ namespace wonder_rabbit_project
         
         static constexpr auto _shadow_mapping_texture_unit = 7;
         static constexpr auto _shadow_mapping_texture_internal_format
-          //= GL_DEPTH_COMPONENT32;
-          = GL_DEPTH_COMPONENT32F;
-          //= GL_DEPTH32F_STENCIL8;
-        using shadow_mapping_texture_t = renderer::texture2d_t< _shadow_mapping_texture_internal_format >;
+          = shader::glsl_version_ge( 300 )
+            ? GL_DEPTH_COMPONENT32F
+            : GL_DEPTH_COMPONENT32
+            ;
+        
+        using shadow_mapping_texture_t
+          = renderer::texture2d_t< _shadow_mapping_texture_internal_format >;
         
         renderer::program_t::const_shared_t          _shadow_mapping_program;
         std::shared_ptr< shadow_mapping_texture_t >  _shadow_mapping_texture;
@@ -109,17 +112,20 @@ namespace wonder_rabbit_project
           
           // create sampler
           ( _shadow_mapping_sampler = std::make_shared< renderer::sampler_t>() )
-            -> parameter_wrap_st( GL_CLAMP_TO_BORDER )
             -> parameter_min_mag_filter( GL_LINEAR )
-            //-> parameter_compare_mode( GL_COMPARE_REF_TO_TEXTURE )
+            -> parameter_wrap_st( GL_CLAMP_TO_EDGE )
+/*#ifndef EMSCRIPTEN
+            -> parameter_wrap_st( GL_CLAMP_TO_BORDER )
             -> parameter_compare_func( GL_LEQUAL )
             -> parameter_border_color( glm::vec4( 0.0f ) )
+#endif*/
             ;
           
           // bind samplar
           {
             auto p = _shadow_mapping_program -> scoped_use();
             active_texture< _shadow_mapping_texture_unit >();
+            auto t = _shadow_mapping_texture -> scoped_bind();
             _shadow_mapping_sampler -> bind();
           }
           
@@ -463,7 +469,6 @@ namespace wonder_rabbit_project
           
           // Wonderland.Renderer default enable GL features.
           disable< GL_DITHER >();
-          enable< GL_TEXTURE_2D >();
           enable< GL_BLEND >();
           enable< GL_CULL_FACE >();
           enable< GL_DEPTH_TEST >();

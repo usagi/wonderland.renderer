@@ -67,11 +67,13 @@ try
   //  ( you can add/remove default light `{add|remove}_lights( light0, light1, light2, ... )` )
   //  ( and `lights( light0, light1, light2, ... )` to set lights or remove all. )
   auto light0 = renderer -> create_light<point_light_t>();
-  
+std::cerr << "a1\n";
+
   // load models with assimp currently
   auto model0 = renderer -> create_model( "assets/like_a_cornell_box.x" );
   auto model1 = renderer -> create_model( "assets/vertex-colored-cube.x" );
   auto model2 = renderer -> create_model( "assets/n175Anim.x" );
+std::cerr << "a2\n";
   
   struct model_instance_state_t
   {

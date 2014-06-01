@@ -100,6 +100,7 @@ namespace wonder_rabbit_project
           -> const_shared_t
         {
           glew::c::glAttachShader( _program, shader_ -> shader_id() );
+          std::cerr << "p: " << _program << " s: " << shader_ -> shader_id() << "\n";
           WRP_GLEW_TEST_ERROR
           return shared_from_this();
         }

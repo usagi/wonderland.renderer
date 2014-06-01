@@ -16,16 +16,19 @@ u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
 
 )" + OUT + u8R"( vec4 var_color;
 )" + OUT + u8R"( vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+#ifdef GL_EXT_frag_depth
 )" + OUT + u8R"( float var_log_z;
+#endif
 
 uniform mat4 world_view_projection_transformation;
 uniform mat4 bones[ )" + std::to_string( max_bones ) + u8R"( ];
+#ifdef GL_EXT_frag_depth
 uniform float z_log_trick_far;
-
-const float C = 1.0e-3; 
+const float C = 1.0e-3;
 
 float z_log_trick_calc_log_z ( float, vec4 );
 vec4  z_log_trick_apply_log_z( float, vec4 );
+#endif
 
 void main(void)
 {
@@ -37,14 +40,19 @@ void main(void)
     + bones[ int( bone_ids[ 2 ] ) ] * bone_weights[ 2 ]
     + bones[ int( bone_ids[ 3 ] ) ] * bone_weights[ 3 ]
     ;
-    
+  
   vec4 local_position = animation_transformation * position;
+  //local_position.xyz *= 1.0 - 1.0e-3;
   vec4 out_position = world_view_projection_transformation * local_position;
   
+#ifdef GL_EXT_frag_depth
   // log-z trick
   var_log_z   = z_log_trick_calc_log_z ( z_log_trick_far, out_position );
   gl_Position = z_log_trick_apply_log_z( var_log_z      , out_position );
-  
+#else
+  gl_Position = out_position;
+#endif
+
   var_color = color;
   
   var_texcoords[ 0 ] = texcoord0;
@@ -57,6 +65,7 @@ void main(void)
   //  var_texcoords[ 7 ] = texcoord7;
 }
 
+#ifdef GL_EXT_frag_depth
 float z_log_trick_calc_log_z( float far, vec4 position )
 {
   float FC = 1.0 / log( far * C + 1.0 );
@@ -68,5 +77,5 @@ vec4 z_log_trick_apply_log_z( float log_z, vec4 position )
   position.z = ( 2.0 * log_z - 1.0 ) * position.w;
   return position;
 }
-
+# endif
 )"

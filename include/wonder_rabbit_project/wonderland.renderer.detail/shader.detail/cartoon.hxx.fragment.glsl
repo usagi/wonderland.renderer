@@ -6,15 +6,17 @@ u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
   precision mediump float;
 #endif
 
-in vec3 var_position;
-in vec4 var_color;
-in vec3 var_normal;
-in vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
-in vec4 var_shadow_position;
-in float var_log_z;
-in float var_log_z_shadow;
+)" + IN + u8R"( vec3 var_position;
+)" + IN + u8R"( vec4 var_color;
+)" + IN + u8R"( vec3 var_normal;
+)" + IN + u8R"( vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+)" + IN + u8R"( vec4 var_shadow_position;
+#ifdef GL_EXT_frag_depth
+)" + IN + u8R"( float var_log_z;
+)" + IN + u8R"( float var_log_z_shadow;
+#endif
 
-out vec4 fragment_color;
+)" + OUT_COLOR_DECLARE + u8R"(
 
 uniform vec3 diffuse;
 uniform vec3 ambient;
@@ -33,6 +35,7 @@ uniform float texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
 uniform sampler2D diffuse_sampler;
 uniform sampler2D shadow_sampler;
 
+float calc_shadow_ratio();
 vec3 hsv_add( vec3, vec3 );
 vec4 hsva_add( vec4, vec4 );
 vec3 from_rgb_to_hsv( vec3 );
@@ -97,12 +100,34 @@ void main(void)
   if ( pow( edge_factor, 4.0 ) < 0.10 )
     hsva.z *= 0.20;
   
-  vec4 shadow_position = var_shadow_position;
-  shadow_position.z = var_log_z_shadow;
-  hsva.z *= ( textureProj( shadow_sampler, shadow_position ).r < shadow_position.z ) ? 0.1 : 1.0;
+  hsva.z *= calc_shadow_ratio();
   
-  fragment_color = from_hsva_to_rgba( hsva );
+  )" + OUT_COLOR + u8R"( = from_hsva_to_rgba( hsva );
+#ifdef GL_EXT_frag_depth
   gl_FragDepth = var_log_z;
+#endif
+}
+
+float calc_shadow_ratio()
+{
+  vec4 shadow_position = var_shadow_position;
+#ifdef GL_EXT_frag_depth
+  shadow_position.z = var_log_z_shadow;
+#endif
+  
+#if )" + std::to_string( glsl_version_lt( 300 ) ) + u8R"(
+  #define textureProj texture2DProj
+#endif
+  float shadow_depth = 0.20 * textureProj( shadow_sampler, shadow_position ).r;
+  shadow_depth += 0.20 * textureProj( shadow_sampler, vec4( shadow_position.xyz + vec3( -1.0e-2,  1.0e-2, -1.0e-2 ), shadow_position.w ) ).r;
+  shadow_depth += 0.20 * textureProj( shadow_sampler, vec4( shadow_position.xyz + vec3(  1.0e-2,  1.0e-2,  1.0e-2 ), shadow_position.w ) ).r;
+  shadow_depth += 0.20 * textureProj( shadow_sampler, vec4( shadow_position.xyz + vec3( -1.0e-2, -1.0e-2,  1.0e-2 ), shadow_position.w ) ).r;
+  shadow_depth += 0.20 * textureProj( shadow_sampler, vec4( shadow_position.xyz + vec3(  1.0e-2, -1.0e-2, -1.0e-2 ), shadow_position.w ) ).r;
+#ifdef textureProj
+  #undef textureProj
+#endif
+  float delta = max( shadow_position.z - (shadow_depth - 1.0e-3), 0.0);
+  return 1.0 - min( delta * 1.0e+3 , 0.80 );
 }
 
 vec3 hsv_add( vec3 a, vec3 b )

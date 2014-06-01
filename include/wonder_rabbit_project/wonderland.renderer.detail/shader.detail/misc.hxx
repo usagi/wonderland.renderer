@@ -58,6 +58,16 @@ namespace wonder_rabbit_project
         constexpr unsigned glsl_version = 100;
 #endif
         
+        constexpr bool gl_version_ge( unsigned version ) { return gl_version >= version; }
+        constexpr bool gl_version_le( unsigned version ) { return gl_version <= version; }
+        constexpr bool gl_version_gt( unsigned version ) { return gl_version >  version; }
+        constexpr bool gl_version_lt( unsigned version ) { return gl_version <  version; }
+        
+        constexpr bool glsl_version_ge( unsigned version ) { return glsl_version >= version; }
+        constexpr bool glsl_version_le( unsigned version ) { return glsl_version <= version; }
+        constexpr bool glsl_version_gt( unsigned version ) { return glsl_version >  version; }
+        constexpr bool glsl_version_lt( unsigned version ) { return glsl_version <  version; }
+        
         namespace pseudo_pre_processor
         {
           

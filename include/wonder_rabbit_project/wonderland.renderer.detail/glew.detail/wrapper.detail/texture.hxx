@@ -36,7 +36,33 @@ namespace wonder_rabbit_project
               )  ? GL_DEPTH_STENCIL
             : (  internal_format == GL_STENCIL_INDEX8
               )  ? GL_STENCIL
+            : (  internal_format == GL_RGBA8
+              )  ? GL_RGBA
+            : (  internal_format == GL_RGB8
+              )  ? GL_RGB
+            : (  internal_format == GL_RG8
+              )  ? GL_RG
+            : (  internal_format == GL_R8
+              )  ? GL_R
             : 0;
+          }
+          
+          static constexpr auto type( gl_type::GLenum internal_format )
+            -> gl_type::GLenum
+          {
+            return
+                internal_format == GL_DEPTH_COMPONENT16  ? GL_UNSIGNED_SHORT
+              : internal_format == GL_DEPTH_COMPONENT24  ? GL_UNSIGNED_INT
+              : internal_format == GL_DEPTH_COMPONENT32  ? GL_UNSIGNED_INT
+              : internal_format == GL_DEPTH_COMPONENT32F ? GL_FLOAT
+              : internal_format == GL_DEPTH24_STENCIL8   ? GL_UNSIGNED_INT_24_8
+              : internal_format == GL_DEPTH32F_STENCIL8  ? GL_FLOAT_32_UNSIGNED_INT_24_8_REV
+              : (  internal_format == GL_RGBA8
+                or internal_format == GL_RGB8
+                or internal_format == GL_RG8
+                or internal_format == GL_R8
+                )  ? GL_UNSIGNED_BYTE
+              : 0;
           }
           
           template < class T = void >
@@ -344,19 +370,24 @@ namespace wonder_rabbit_project
             );
           }
           
-          // has template specialize version
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_1d( gl_type::GLsizei width, const void* data = nullptr )
             -> void
           {
-            std::stringstream message;
-            message
-              << "texture_image_1d_depth: T_internal_format is not implemented"
-                 " T_internal_format=" << typeid( T_internal_format ).name() << " "
-                 " width=" << width << " "
-                 " data=" << data
-              ;
-            throw std::logic_error( message.str() );
+            texture_image_1d
+            ( GL_TEXTURE_1D
+            , 0
+#ifdef EMSCRIPTEN
+            , base_internal_format( T_internal_format )
+#else
+            , T_internal_format
+#endif
+            , width
+            , 0
+            , base_internal_format( T_internal_format )
+            , type( T_internal_format )
+            , data
+            );
           }
           
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
@@ -364,20 +395,24 @@ namespace wonder_rabbit_project
             -> void
           { texture_image_2d< T_internal_format >( max_texture_size() ); }
           
-          // has template specialize version
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_2d( gl_type::GLsizei width, gl_type::GLsizei height, const void* data = nullptr )
             -> void
           {
-            std::stringstream message;
-            message
-              << "texture_image_2d: T_internal_format is not implemented"
-                 " T_internal_format=" << typeid( T_internal_format ).name() << " "
-                 " width=" << width << " "
-                 " height=" << height << " "
-                 " data=" << data
-              ;
-            throw std::logic_error( message.str() );
+            texture_image_2d
+            ( GL_TEXTURE_2D
+            , 0
+#ifdef EMSCRIPTEN
+            , base_internal_format( T_internal_format )
+#else
+            , T_internal_format
+#endif
+            , width, height
+            , 0
+            , base_internal_format( T_internal_format )
+            , type( T_internal_format )
+            , data
+            );
           }
           
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
@@ -390,21 +425,24 @@ namespace wonder_rabbit_project
             -> void
           { texture_image_2d< T_internal_format >( size, size, data ); }
           
-          // has template specialize version
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_2d_multisample( gl_type::GLsizei width, gl_type::GLsizei height, const void* data, gl_type::GLsizei samples )
             -> void
           {
-            std::stringstream message;
-            message
-              << "texture_image_2d_multisample: T_internal_format is not implemented"
-                 " T_internal_format=" << typeid( T_internal_format ).name() << " "
-                 " width=" << width << " "
-                 " height=" << height << " "
-                 " data=" << data << " "
-                 " samples=" << samples
-              ;
-            throw std::logic_error( message.str() );
+            texture_image_2d_multisample
+            ( GL_TEXTURE_2D
+            , samples
+#ifdef EMSCRIPTEN
+            , base_internal_format( T_internal_format )
+#else
+            , T_internal_format
+#endif
+            , width, height
+            , 0
+            , base_internal_format( T_internal_format )
+            , type( T_internal_format )
+            , data
+            );
           }
           
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
@@ -422,21 +460,24 @@ namespace wonder_rabbit_project
             -> void
           { texture_image_2d_multisample< T_internal_format >( size, size, data, glm::log2<float>( size ) ); }
           
-          // has template specialize version
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_3d( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data = nullptr )
             -> void
           {
-            std::stringstream message;
-            message
-              << "texture_image_3d: T_internal_format is not implemented"
-                 " T_internal_format=" << typeid( T_internal_format ).name() << " "
-                 " width=" << width << " "
-                 " height=" << height << " "
-                 " depth=" << depth << " "
-                 " data=" << data
-              ;
-            throw std::logic_error( message.str() );
+            texture_image_3d
+            ( GL_TEXTURE_3D
+            , 0
+#ifdef EMSCRIPTEN
+            , base_internal_format( T_internal_format )
+#else
+            , T_internal_format
+#endif
+            , width, height, depth
+            , 0
+            , base_internal_format( T_internal_format )
+            , type( T_internal_format )
+            , data
+            );
           }
           
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
@@ -454,22 +495,24 @@ namespace wonder_rabbit_project
             -> void
           { texture_image_3d< T_internal_format >( size, size, depth, data ); }
           
-          // has template specialize version
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_3d_multisample( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data, gl_type::GLsizei samples )
             -> void
           {
-            std::stringstream message;
-            message
-              << "texture_image_3d: T_internal_format is not implemented"
-                 " T_internal_format=" << typeid( T_internal_format ).name() << " "
-                 " width=" << width << " "
-                 " height=" << height << " "
-                 " depth=" << depth << " "
-                 " data=" << data << " "
-                 " samples=" << samples
-              ;
-            throw std::logic_error( message.str() );
+            texture_image_3d_multisample
+            ( GL_TEXTURE_3D
+            , samples
+#ifdef EMSCRIPTEN
+            , base_internal_format( T_internal_format )
+#else
+            , T_internal_format
+#endif
+            , width, height, depth
+            , 0
+            , base_internal_format( T_internal_format )
+            , type( T_internal_format )
+            , data
+            );
           }
           
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
@@ -511,433 +554,6 @@ namespace wonder_rabbit_project
           }
           
         };
-        
-        // 1d
-        
-        template < >
-        inline auto texture_t::texture_image_1d< GL_DEPTH_COMPONENT16 >( gl_type::GLsizei width, const void* data )
-          -> void
-        {
-          texture_image_1d
-          ( GL_TEXTURE_1D
-          , 0, GL_DEPTH_COMPONENT16
-          , width
-          , 0
-          , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_1d< GL_DEPTH_COMPONENT24 >( gl_type::GLsizei width, const void* data )
-          -> void
-        {
-          texture_image_1d
-          ( GL_TEXTURE_1D
-          , 0, GL_DEPTH_COMPONENT24
-          , width
-          , 0
-          , GL_DEPTH_COMPONENT, GL_UNSIGNED_INT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_1d< GL_DEPTH_COMPONENT32 >( gl_type::GLsizei width, const void* data )
-          -> void
-        {
-          texture_image_1d
-          ( GL_TEXTURE_1D
-          , 0, GL_DEPTH_COMPONENT32
-          , width
-          , 0
-          , GL_DEPTH_COMPONENT, GL_UNSIGNED_INT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_1d< GL_DEPTH_COMPONENT32F >( gl_type::GLsizei width, const void* data )
-          -> void
-        {
-          texture_image_1d
-          ( GL_TEXTURE_1D
-          , 0, GL_DEPTH_COMPONENT32F
-          , width
-          , 0
-          , GL_DEPTH_COMPONENT, GL_FLOAT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_1d< GL_DEPTH24_STENCIL8 >( gl_type::GLsizei width, const void* data )
-          -> void
-        {
-          texture_image_1d
-          ( GL_TEXTURE_1D
-          , 0, GL_DEPTH24_STENCIL8
-          , width
-          , 0
-          , GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_1d< GL_DEPTH32F_STENCIL8 >( gl_type::GLsizei width, const void* data )
-          -> void
-        {
-          texture_image_1d
-          ( GL_TEXTURE_1D
-          , 0, GL_DEPTH32F_STENCIL8
-          , width
-          , 0
-          , GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV
-          , data
-          );
-        }
-        
-        // 2d
-        
-        template < >
-        inline auto texture_t::texture_image_2d< GL_DEPTH_COMPONENT16 >( gl_type::GLsizei width, gl_type::GLsizei height, const void* data )
-          -> void
-        {
-          texture_image_2d
-          ( GL_TEXTURE_2D
-          , 0, GL_DEPTH_COMPONENT16
-          , width, height
-          , 0
-          , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_2d< GL_DEPTH_COMPONENT24 >( gl_type::GLsizei width, gl_type::GLsizei height, const void* data )
-          -> void
-        {
-          texture_image_2d
-          ( GL_TEXTURE_2D
-          , 0, GL_DEPTH_COMPONENT24
-          , width, height
-          , 0
-          , GL_DEPTH_COMPONENT, GL_UNSIGNED_INT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_2d< GL_DEPTH_COMPONENT32 >( gl_type::GLsizei width, gl_type::GLsizei height, const void* data )
-          -> void
-        {
-          texture_image_2d
-          ( GL_TEXTURE_2D
-          , 0, GL_DEPTH_COMPONENT32
-          , width, height
-          , 0
-          , GL_DEPTH_COMPONENT, GL_UNSIGNED_INT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_2d< GL_DEPTH_COMPONENT32F >( gl_type::GLsizei width, gl_type::GLsizei height, const void* data )
-          -> void
-        {
-          texture_image_2d
-          ( GL_TEXTURE_2D
-          , 0, GL_DEPTH_COMPONENT32F
-          , width, height
-          , 0
-          , GL_DEPTH_COMPONENT, GL_FLOAT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_2d< GL_DEPTH24_STENCIL8 >( gl_type::GLsizei width, gl_type::GLsizei height, const void* data )
-          -> void
-        {
-          texture_image_2d
-          ( GL_TEXTURE_2D
-          , 0, GL_DEPTH24_STENCIL8
-          , width, height
-          , 0
-          , GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_2d< GL_DEPTH32F_STENCIL8 >( gl_type::GLsizei width, gl_type::GLsizei height, const void* data )
-          -> void
-        {
-          texture_image_2d
-          ( GL_TEXTURE_2D
-          , 0, GL_DEPTH32F_STENCIL8
-          , width, height
-          , 0
-          , GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_2d_multisample< GL_DEPTH_COMPONENT16 >( gl_type::GLsizei width, gl_type::GLsizei height, const void* data, gl_type::GLsizei samples )
-          -> void
-        {
-          texture_image_2d_multisample
-          ( GL_TEXTURE_2D
-          , samples, GL_DEPTH_COMPONENT16
-          , width, height
-          , 0
-          , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_2d_multisample< GL_DEPTH_COMPONENT24 >( gl_type::GLsizei width, gl_type::GLsizei height, const void* data, gl_type::GLsizei samples )
-          -> void
-        {
-          texture_image_2d_multisample
-          ( GL_TEXTURE_2D
-          , samples, GL_DEPTH_COMPONENT24
-          , width, height
-          , 0
-          , GL_DEPTH_COMPONENT, GL_UNSIGNED_INT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_2d_multisample< GL_DEPTH_COMPONENT32 >( gl_type::GLsizei width, gl_type::GLsizei height, const void* data, gl_type::GLsizei samples )
-          -> void
-        {
-          texture_image_2d_multisample
-          ( GL_TEXTURE_2D
-          , samples, GL_DEPTH_COMPONENT32
-          , width, height
-          , 0
-          , GL_DEPTH_COMPONENT, GL_UNSIGNED_INT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_2d_multisample< GL_DEPTH_COMPONENT32F >( gl_type::GLsizei width, gl_type::GLsizei height, const void* data, gl_type::GLsizei samples )
-          -> void
-        {
-          texture_image_2d_multisample
-          ( GL_TEXTURE_2D
-          , samples, GL_DEPTH_COMPONENT32F
-          , width, height
-          , 0
-          , GL_DEPTH_COMPONENT, GL_FLOAT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_2d_multisample< GL_DEPTH24_STENCIL8 >( gl_type::GLsizei width, gl_type::GLsizei height, const void* data, gl_type::GLsizei samples )
-          -> void
-        {
-          texture_image_2d_multisample
-          ( GL_TEXTURE_2D
-          , samples, GL_DEPTH24_STENCIL8
-          , width, height
-          , 0
-          , GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_2d_multisample< GL_DEPTH32F_STENCIL8 >( gl_type::GLsizei width, gl_type::GLsizei height, const void* data, gl_type::GLsizei samples )
-          -> void
-        {
-          texture_image_2d_multisample
-          ( GL_TEXTURE_2D
-          , samples, GL_DEPTH32F_STENCIL8
-          , width, height
-          , 0
-          , GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV
-          , data
-          );
-        }
-        
-        // 3d
-        
-        template < >
-        inline auto texture_t::texture_image_3d< GL_DEPTH_COMPONENT16 >( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data )
-          -> void
-        {
-          texture_image_3d
-          ( GL_TEXTURE_3D
-          , 0, GL_DEPTH_COMPONENT16
-          , width, height, depth
-          , 0
-          , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_3d< GL_DEPTH_COMPONENT24 >( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data )
-          -> void
-        {
-          texture_image_3d
-          ( GL_TEXTURE_3D
-          , 0, GL_DEPTH_COMPONENT24
-          , width, height, depth
-          , 0
-          , GL_DEPTH_COMPONENT, GL_UNSIGNED_INT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_3d< GL_DEPTH_COMPONENT32 >( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data )
-          -> void
-        {
-          texture_image_3d
-          ( GL_TEXTURE_3D
-          , 0, GL_DEPTH_COMPONENT32
-          , width, height, depth
-          , 0
-          , GL_DEPTH_COMPONENT, GL_UNSIGNED_INT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_3d< GL_DEPTH_COMPONENT32F >( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data )
-          -> void
-        {
-          texture_image_3d
-          ( GL_TEXTURE_3D
-          , 0, GL_DEPTH_COMPONENT32F
-          , width, height, depth
-          , 0
-          , GL_DEPTH_COMPONENT, GL_FLOAT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_3d< GL_DEPTH24_STENCIL8 >( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data )
-          -> void
-        {
-          texture_image_3d
-          ( GL_TEXTURE_3D
-          , 0, GL_DEPTH24_STENCIL8
-          , width, height, depth
-          , 0
-          , GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_3d< GL_DEPTH32F_STENCIL8 >( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data )
-          -> void
-        {
-          texture_image_3d
-          ( GL_TEXTURE_3D
-          , 0, GL_DEPTH32F_STENCIL8
-          , width, height, depth
-          , 0
-          , GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_3d_multisample< GL_DEPTH_COMPONENT16 >( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data, gl_type::GLsizei samples )
-          -> void
-        {
-          texture_image_3d_multisample
-          ( GL_TEXTURE_3D
-          , samples, GL_DEPTH_COMPONENT16
-          , width, height, depth
-          , 0
-          , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_3d_multisample< GL_DEPTH_COMPONENT24 >( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data, gl_type::GLsizei samples )
-          -> void
-        {
-          texture_image_3d_multisample
-          ( GL_TEXTURE_3D
-          , samples, GL_DEPTH_COMPONENT24
-          , width, height, depth
-          , 0
-          , GL_DEPTH_COMPONENT, GL_UNSIGNED_INT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_3d_multisample< GL_DEPTH_COMPONENT32 >( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data, gl_type::GLsizei samples )
-          -> void
-        {
-          texture_image_3d_multisample
-          ( GL_TEXTURE_3D
-          , samples, GL_DEPTH_COMPONENT32
-          , width, height, depth
-          , 0
-          , GL_DEPTH_COMPONENT, GL_UNSIGNED_INT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_3d_multisample< GL_DEPTH_COMPONENT32F >( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data, gl_type::GLsizei samples )
-          -> void
-        {
-          texture_image_3d_multisample
-          ( GL_TEXTURE_3D
-          , samples, GL_DEPTH_COMPONENT32F
-          , width, height, depth
-          , 0
-          , GL_DEPTH_COMPONENT, GL_FLOAT
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_3d_multisample< GL_DEPTH24_STENCIL8 >( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data, gl_type::GLsizei samples )
-          -> void
-        {
-          texture_image_3d_multisample
-          ( GL_TEXTURE_3D
-          , samples, GL_DEPTH24_STENCIL8
-          , width, height, depth
-          , 0
-          , GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8
-          , data
-          );
-        }
-        
-        template < >
-        inline auto texture_t::texture_image_3d_multisample< GL_DEPTH32F_STENCIL8 >( gl_type::GLsizei width, gl_type::GLsizei height, gl_type::GLsizei depth, const void* data, gl_type::GLsizei samples )
-          -> void
-        {
-          texture_image_3d_multisample
-          ( GL_TEXTURE_3D
-          , samples, GL_DEPTH32F_STENCIL8
-          , width, height, depth
-          , 0
-          , GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV
-          , data
-          );
-        }
-        
       }
     }
   }
