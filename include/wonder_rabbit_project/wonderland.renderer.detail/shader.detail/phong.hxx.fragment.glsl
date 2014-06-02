@@ -106,18 +106,34 @@ float calc_shadow_ratio()
 #endif
   
 #if )" + std::to_string( glsl_version_lt( 300 ) ) + u8R"(
+  // for legacy environment
   #define textureProj texture2DProj
+  float anti_artifact_bias = 1.0e-6;
+  float z = shadow_position.z / shadow_position.w;
+#else
+  // for modern environment
+  float anti_artifact_bias = 1.0e-3;
+  float z = shadow_position.z;
 #endif
-  float shadow_depth = 0.20 * textureProj( shadow_sampler, shadow_position ).r;
-  shadow_depth += 0.20 * textureProj( shadow_sampler, vec4( shadow_position.xyz + vec3( -1.0e-2,  1.0e-2, -1.0e-2 ), shadow_position.w ) ).r;
-  shadow_depth += 0.20 * textureProj( shadow_sampler, vec4( shadow_position.xyz + vec3(  1.0e-2,  1.0e-2,  1.0e-2 ), shadow_position.w ) ).r;
-  shadow_depth += 0.20 * textureProj( shadow_sampler, vec4( shadow_position.xyz + vec3( -1.0e-2, -1.0e-2,  1.0e-2 ), shadow_position.w ) ).r;
-  shadow_depth += 0.20 * textureProj( shadow_sampler, vec4( shadow_position.xyz + vec3(  1.0e-2, -1.0e-2, -1.0e-2 ), shadow_position.w ) ).r;
+  float shadow_multi
+    = 0.20 * textureProj( shadow_sampler, shadow_position ).r
+    + 0.20 * textureProj( shadow_sampler, vec4( shadow_position.xyz + vec3( -1.0e-2,  1.0e-2, -1.0e-2 ), shadow_position.w ) ).r
+    + 0.20 * textureProj( shadow_sampler, vec4( shadow_position.xyz + vec3(  1.0e-2,  1.0e-2,  1.0e-2 ), shadow_position.w ) ).r
+    + 0.20 * textureProj( shadow_sampler, vec4( shadow_position.xyz + vec3( -1.0e-2, -1.0e-2,  1.0e-2 ), shadow_position.w ) ).r
+    + 0.20 * textureProj( shadow_sampler, vec4( shadow_position.xyz + vec3(  1.0e-2, -1.0e-2, -1.0e-2 ), shadow_position.w ) ).r
+    ;
 #ifdef textureProj
   #undef textureProj
 #endif
-  float delta = max( shadow_position.z - (shadow_depth - 1.0e-3), 0.0);
-  return 1.0 - min( delta * 1.0e+3 , 0.80 );
+  
+  float delta = max( z - ( shadow_multi - anti_artifact_bias ), 0.0 );
+#ifndef GL_EXT_frag_depth
+  // anti too dilute shadow in linear depth space
+  delta = sqrt( delta );
+#endif
+  delta *= 1.0e+3;
+  
+  return 1.0 - min( delta , 0.80 );
 }
 
 vec3 hsv_add( vec3 a, vec3 b )

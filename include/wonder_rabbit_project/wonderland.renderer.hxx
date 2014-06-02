@@ -286,16 +286,23 @@ namespace wonder_rabbit_project
           
           const auto program_id = _point_light_program -> program_id();
           
+#ifndef EMSCRIPTEN
           auto e_vps = scoped_enable< GL_VERTEX_PROGRAM_POINT_SIZE >();
           auto e_ps  = scoped_enable< GL_POINT_SPRITE >();
+#endif
           
           auto e_b   = scoped_enable< GL_BLEND >();
           glew::c::glBlendFunc( GL_SRC_ALPHA, GL_ONE );
+          WRP_GLEW_TEST_ERROR
           
           uniform( program_id, "view_projection_transformation", view_projection_transformation() );
+          WRP_GLEW_TEST_ERROR
           const auto view_port_ = viewport();
+          WRP_GLEW_TEST_ERROR
           uniform( program_id, "point_size", float(view_port_[3]) * 0.5f );
+          WRP_GLEW_TEST_ERROR
           _uniform_log_z_trick( program_id );
+          WRP_GLEW_TEST_ERROR
           
           // TODO: change to GL_DYNAMIC_DRAW
           WRP_GLEW_TEST_ERROR
@@ -349,9 +356,7 @@ namespace wonder_rabbit_project
             
             _shadow_projection
               -> fov_y( glm::pi<float>() / 2.f )
-              //-> fov_y( _projection -> fov_y() )
               -> aspect_ratio( 1.0f )
-              //-> aspect_ratio( _projection -> aspect_ratio() )
               -> near_clip( _projection -> near_clip() )
               -> far_clip ( _projection -> far_clip() )
               -> update()

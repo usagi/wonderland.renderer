@@ -42,7 +42,6 @@ void main(void)
     ;
   
   vec4 local_position = animation_transformation * position;
-  //local_position.xyz *= 1.0 - 1.0e-3;
   vec4 out_position = world_view_projection_transformation * local_position;
   
 #ifdef GL_EXT_frag_depth

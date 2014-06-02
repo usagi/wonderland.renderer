@@ -253,7 +253,7 @@ namespace wonder_rabbit_project
           = aiProcess_CalcTangentSpace
           //| aiProcess_JoinIdenticalVertices // 有効化すると結果的にボーン情報が削除される
           | aiProcess_GenNormals
-          | aiProcess_GenSmoothNormals
+          //| aiProcess_GenSmoothNormals // 有効化するとWebGL1でAssimpが落ちる
           //| aiProcess_PreTransformVertices // 有効化するとアニメーション関連情報が削除される
           | aiProcess_ValidateDataStructure
           | aiProcess_ImproveCacheLocality
