@@ -21,7 +21,7 @@ try
        "[up]/[left]/[right]/[bottom]: control camera phi and theta.\n"
        "[shift] + [Home]/[End] key or mouse [Wheel]: light distance forward/backward.\n"
        "[shift] + [up]/[left]/[right]/[bottom]: control light phi and theta.\n"
-       "[q]/[e]: camera eye auto orbitation on/off."
+       "[q]/[e]: camera eye auto orbitation on/off.\n"
        "[1]: shader program change to Wonderland.Renderer embedded <constant> shader program.\n"
        "[2]: shader program change to Wonderland.Renderer embedded <phong> shader program.\n"
        "[3]: shader program change to Wonderland.Renderer embedded <cartoon> shader program.\n"
