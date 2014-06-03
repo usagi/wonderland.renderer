@@ -370,30 +370,77 @@ namespace wonder_rabbit_project
         }
         
       };
-      /*
+      
       // specialize to GL_TEXTURE_CUBE_MAP
-      template
-      < typename glew::gl_type::GLenum T_internal_format
-      >
-      class texture_t< GL_TEXTURE_CUBE_MAP, T_internal_format >
-        : public texture_base_t< GL_TEXTURE_CUBE_MAP, T_internal_format >
+      template < typename glew::gl_type::GLenum T_internal_format >
+      class texture_cube_map_t
+        : public texture_t< GL_TEXTURE_CUBE_MAP_POSITIVE_X, T_internal_format >
       {
-        //using base_t = texture_base_t< GL_TEXTURE_CUBE_MAP, T_internal_format >;
-        
-        std::vector<  >
-        std::shared_ptr< texture_t< GL_TEXTURE_CUBE_MAP_NEGATIVE_X, T_internal_format > > _nx;
-        std::shared_ptr< texture_t< GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, T_internal_format > > _ny;
-        std::shared_ptr< texture_t< GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, T_internal_format > > _nz;
-        std::shared_ptr< texture_t< GL_TEXTURE_CUBE_MAP_POSITIVE_X, T_internal_format > > _px;
-        std::shared_ptr< texture_t< GL_TEXTURE_CUBE_MAP_POSITIVE_Y, T_internal_format > > _py;
-        std::shared_ptr< texture_t< GL_TEXTURE_CUBE_MAP_POSITIVE_Z, T_internal_format > > _pz;
+        static constexpr auto _count_of_textures_in_cube_map = 6u;
+          
+        virtual auto _generate_textures()
+          -> void
+        { this -> _generate_textures_impl( _count_of_textures_in_cube_map ); }
         
       public:
+        static constexpr auto internal_format = T_internal_format;
         
-        auto create( glew::gl_type::GLsizei width, glew::gl_type::GLsizei height, const void* data = nullptr )
+        auto create()
+          -> void override
+        {
+          const auto max_size = glew::texture_t::max_cube_map_texture_size();
+          create( max_size, max_size );
+        }
+        
+        auto create( glew::gl_type::GLsizei size, const void** data = nullptr )
+          -> void
+        { create( size, size, data ); }
+        
+        template < unsigned T_n = 0 >
+        auto _create( glew::gl_type::GLsizei width, glew::gl_type::GLsizei height, const void** data = nullptr )
           -> void
         {
-          const auto max_size = glew::texture_t::max_texture_size();
+          auto bind = this -> scoped_bind( T_n );
+          
+#if defined( GL_VERSION_4_2 )
+          const auto size = glm::u32vec2( width, height );
+          glew::texture_t::texture_storage< GL_TEXTURE_CUBE_MAP_POSITIVE_X + T_n, const glm::u32vec2& >( internal_format, size );
+          WRP_GLEW_TEST_ERROR
+          if ( data )
+          {
+            glew::texture_t::texture_sub_image< GL_TEXTURE_CUBE_MAP_POSITIVE_X + T_n, const glm::u32vec2& >( internal_format, size, data );
+            WRP_GLEW_TEST_ERROR
+          }
+#elif defined( GL_VERSION_3_0 )
+          glew::texture_t::texture_image_2d< T_internal_format >( width, height, depth, data[ T_n ] );
+#endif
+          
+          // generate mipmap
+#ifdef GL_VERSION_3_0
+          if ( data )
+            generate_mipmap();
+#endif
+          
+          // set default texture params
+          glew::c::glTexParameteri( GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_WRAP_S, GL_REPEAT );
+          WRP_GLEW_TEST_ERROR
+          glew::c::glTexParameteri( GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_WRAP_T, GL_REPEAT );
+          WRP_GLEW_TEST_ERROR
+          glew::c::glTexParameteri( GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_WRAP_R, GL_REPEAT );
+          WRP_GLEW_TEST_ERROR
+          glew::c::glTexParameteri( GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+          WRP_GLEW_TEST_ERROR
+          glew::c::glTexParameteri( GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+          WRP_GLEW_TEST_ERROR
+          
+          if ( T_n < _count_of_textures_in_cube_map )
+            _generate_mipmap< T_n + 1u >();
+        }
+        
+        auto create( glew::gl_type::GLsizei width, glew::gl_type::GLsizei height, const void** data = nullptr )
+          -> void
+        {
+          const auto max_size = glew::texture_t::max_cube_map_texture_size();
           
           if ( width > max_size )
           {
@@ -406,23 +453,34 @@ namespace wonder_rabbit_project
             height = max_size;
             std::cerr << "warn: texture_t::create: height( " << height << " ) > max_size( " << max_size << " ), fit to the max_size.\n";
           }
-#if defined( GL_VERSION_4_2 )
-          storage_2d( width, height, data );
-#elif defined( GL_VERSION_3_0 )
-          image_2d( width, height, data );
-#endif
+          
+          for ( auto n = 0u; n < _count_of_textures_in_cube_map; ++n )
+            _create<>( width, height, data );
+          
+          // set viewport
+          this -> _viewport[2] = width;
+          this -> _viewport[3] = height;
         }
         
-        auto create( glew::gl_type::GLsizei size, const void* data = nullptr )
+        template < unsigned T_n = 0u >
+        auto _generate_mipmap()
           -> void
-        { create( size, size, data ); }
+        {
+          auto bind = this -> scoped_bind( T_n );
+          
+          glew::texture_t::generate_mipmap< GL_TEXTURE_CUBE_MAP_POSITIVE_X + T_n >();
+          WRP_GLEW_TEST_ERROR
+          
+          if ( T_n < _count_of_textures_in_cube_map )
+            _generate_mipmap< T_n + 1u >();
+        }
         
-        auto create()
-          -> void
-        { create( glew::texture_t::max_texture_size() ); }
+        auto generate_mipmap()
+          -> void override
+        { _generate_mipmap<>(); }
         
       };
-      */
+        
     }
   }
 }
