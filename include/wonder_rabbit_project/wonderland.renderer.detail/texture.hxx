@@ -412,7 +412,7 @@ namespace wonder_rabbit_project
             WRP_GLEW_TEST_ERROR
           }
 #elif defined( GL_VERSION_3_0 )
-          glew::texture_t::texture_image_2d< T_internal_format >( width, height, depth, data[ T_n ] );
+          glew::texture_t::texture_image_2d< T_internal_format, GL_TEXTURE_CUBE_MAP_POSITIVE_X + T_n >( width, height, depth, data[ T_n ] );
 #endif
           
           // generate mipmap

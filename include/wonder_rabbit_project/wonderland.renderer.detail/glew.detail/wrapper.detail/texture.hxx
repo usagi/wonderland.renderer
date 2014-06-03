@@ -446,14 +446,14 @@ namespace wonder_rabbit_project
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_1d()
             -> void
-          { texture_image_2d< T_internal_format >( max_texture_size() ); }
+          { texture_image_1d< T_internal_format >( max_texture_size() ); }
           
-          template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
+          template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24, typename gl_type::GLenum T_target = GL_TEXTURE_2D >
           static inline auto texture_image_2d( gl_type::GLsizei width, gl_type::GLsizei height, const void* data = nullptr )
             -> void
           {
             texture_image_2d
-            ( GL_TEXTURE_2D
+            ( T_target
             , 0
 #ifdef EMSCRIPTEN
             , base_internal_format( T_internal_format )
@@ -468,15 +468,15 @@ namespace wonder_rabbit_project
             );
           }
           
-          template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
+          template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24, typename gl_type::GLenum T_target = GL_TEXTURE_2D >
           static inline auto texture_image_2d()
             -> void
-          { texture_image_2d< T_internal_format >( max_texture_size() ); }
+          { texture_image_2d< T_internal_format, T_target >( max_texture_size() ); }
 
-          template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
+          template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24, typename gl_type::GLenum T_target = GL_TEXTURE_2D >
           static inline auto texture_image_2d( gl_type::GLsizei size, const void* data = nullptr )
             -> void
-          { texture_image_2d< T_internal_format >( size, size, data ); }
+          { texture_image_2d< T_internal_format, T_target >( size, size, data ); }
           
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_2d_multisample( gl_type::GLsizei width, gl_type::GLsizei height, const void* data, gl_type::GLsizei samples )
