@@ -68,7 +68,7 @@ namespace wonder_rabbit_project
             for ( auto& node : _nodes )
               node.draw( meshes, program_id );
             
-            for ( auto index : _indices )
+            for ( const auto index : _indices )
               meshes[ index ].draw( program_id );
           }
           

@@ -788,7 +788,7 @@ namespace wonder_rabbit_project
         , const void* data
         )
           -> void
-        { c::glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, size[0], size[1], internal_format, type( internal_format ), data ); }
+        { c::glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, size[0], size[1], base_internal_format( internal_format ), type( internal_format ), data ); }
         
         // 3D
         

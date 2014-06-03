@@ -13,6 +13,8 @@
 
 #include "../stblib.hxx"
 #include "../shader.detail/misc.hxx"
+#include "../texture.hxx"
+#include "../sampler.hxx"
 
 // assimp::Importer
 #include <assimp/Importer.hpp>
@@ -38,22 +40,12 @@ namespace wonder_rabbit_project
           glm::vec1 _transparent;
           glm::vec1 _reflective;
           
-          std::vector< glew::gl_type::GLuint > _texture_ids;
-#ifdef GL_VERSION_3_3
-          // need  for modern GL3
-          std::vector< glew::gl_type::GLuint > _sampler_ids;
-#endif
+          std::vector< std::shared_ptr< renderer::texture_base_t > > _textures;
+          std::vector< std::shared_ptr< renderer::sampler_t > > _samplers;
+          
           std::vector< float > _texblends;
           
         public:
-          
-          ~material_t()
-          {
-            glew::c::glDeleteTextures( _texture_ids.size(), _texture_ids.data() );
-#ifdef GL_VERSION_3_3
-            glew::c::glDeleteSamplers( _sampler_ids.size(), _sampler_ids.data() );
-#endif
-          }
           
           material_t( aiMaterial* material, const std::string& path_prefix = "" )
           {
@@ -89,21 +81,9 @@ namespace wonder_rabbit_project
             const auto count_of_textures = material -> GetTextureCount( aiTextureType_DIFFUSE );
             
             _texblends.resize( count_of_textures, 0.0f );
+            _textures.reserve( count_of_textures );
+            _samplers.reserve( count_of_textures );
             
-            _texture_ids.resize( count_of_textures );
-            
-            // glGenTextures / GL_1_1
-            //  http://www.opengl.org/wiki/GLAPI/glGenTextures
-            glew::c::glGenTextures( _texture_ids.size(), _texture_ids.data() );
-            
-            glew::test_error( __FILE__, __LINE__ );
-            
-#if defined( GL_VERSION_3_3 )
-            _sampler_ids.resize( count_of_textures );
-            // glGenSamplers / GL_3_3
-            //  http://www.opengl.org/wiki/GLAPI/glGenSamplers
-            glew::c::glGenSamplers( _sampler_ids.size(), _sampler_ids.data() );
-#endif
             for ( auto number_of_texture = 0u; number_of_texture < count_of_textures; ++number_of_texture )
             {
               aiString path;
@@ -122,129 +102,54 @@ namespace wonder_rabbit_project
                 continue;
               }
               
-              glew::gl_type::GLenum internal_format;
-              glew::gl_type::GLenum format;
-              switch( loader.count_of_pixel_elements() )
-              {
-                case 4: internal_format = GL_RGBA8; format = GL_RGBA; break;
-                case 3: internal_format = GL_RGB8;  format = GL_RGB;  break;
-                case 2: internal_format = GL_RG8;   format = GL_RG;   break;
-                case 1: internal_format = GL_R8;    format = GL_R;    break;
-                default: throw std::runtime_error( "unsupported count_of_pixel_elements" );
-              }
-              const glew::gl_type::GLsizei width = loader.width();
+              const glew::gl_type::GLsizei width  = loader.width();
               const glew::gl_type::GLsizei height = loader.height();
-              constexpr glew::gl_type::GLenum type = GL_UNSIGNED_BYTE;
               const void* data = loader.data();
               
               glew::c::glPixelStorei( GL_UNPACK_ALIGNMENT, loader.count_of_pixel_elements() == 4 ? 4 : 1 );
+              WRP_GLEW_TEST_ERROR
               
-              glew::test_error( __FILE__, __LINE__ );
+              switch( loader.count_of_pixel_elements() )
+              {
+                case 4:
+                {
+                  auto t = std::make_shared< renderer::texture_2d_t< GL_RGBA8 > >();
+                  t -> create( width, height, data );
+                  _textures.emplace_back( std::move( t ) );
+                  break;
+                }
+                case 3:
+                {
+                  auto t = std::make_shared< renderer::texture_2d_t< GL_RGB8 > >();
+                  t -> create( width, height, data );
+                  _textures.emplace_back( std::move( t ) );
+                  break;
+                }
+                case 2:
+                {
+                  auto t = std::make_shared< renderer::texture_2d_t< GL_RG8 > >();
+                  t -> create( width, height, data );
+                  _textures.emplace_back( std::move( t ) );
+                  break;
+                }
+                case 1:
+                {
+                  auto t = std::make_shared< renderer::texture_2d_t< GL_R8 > >();
+                  t -> create( width, height, data );
+                  _textures.emplace_back( std::move( t ) );
+                  break;
+                }
+                default:
+                  throw std::runtime_error( "unsupported count_of_pixel_elements" );
+              }
               
-              // glBindTexture / GL_1_1
-              //  http://www.opengl.org/wiki/GLAPI/glBindTexture
-              glew::c::glBindTexture( GL_TEXTURE_2D, _texture_ids[ number_of_texture ] );
-
-              glew::test_error( __FILE__, __LINE__ );
+              auto s = std::make_shared< renderer::sampler_t >();
+              s -> parameter_wrap_st( GL_REPEAT )
+                -> parameter_mag_filter( GL_LINEAR )
+                -> parameter_min_filter( GL_LINEAR_MIPMAP_LINEAR )
+                ;
+              _samplers.emplace_back( std::move( s ) );
               
-              // step.2: generate storage and load image
-#if defined( GL_VERSION_4_2 )
-              
-              const glew::gl_type::GLsizei level = glm::log2<float>( std::min( width, height ) );
-              // glTexStorage2D / GL_4_2
-              //  http://www.opengl.org/wiki/GLAPI/glTexStorage2D
-              //static auto counter = 0;
-              //if ( counter++ == 0 ) internal_format = GL_RGB8; else internal_format = GL_RGB8;
-              glew::c::glTexStorage2D( GL_TEXTURE_2D, level, internal_format, width, height );
-              
-              glew::test_error( __FILE__, __LINE__ );
-              
-              // glTexSubImage2D / GL_1_0
-              //  http://www.opengl.org/wiki/GLAPI/glTexSubImage2D
-              glew::c::glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, width, height, format, type, data );
-              
-              glew::test_error( __FILE__, __LINE__ );
-              
-#elif defined( GL_VERSION_3_0 )
-              
-              constexpr glew::gl_type::GLint border = 0; // this value must be 0: http://www.opengl.org/sdk/docs/man/html/glTexImage2D.xhtml
-              constexpr glew::gl_type::GLint level  = 0;
-  #if EMSCRIPTEN
-              internal_format = format;
-  #endif
-              glew::c::glTexImage2D( GL_TEXTURE_2D, level, internal_format, width, height, border, format, type, data );
-              glew::test_error( __FILE__, __LINE__ );
-              
-#elif defined( GL_VERSION_1_4 )
-              
-              // warning: these medhod is deprecated in GL_3_0, removed in GL_3_1.
-              //  within throught step.3 and step.4.
-              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-              glew::test_error( __FILE__, __LINE__ );
-              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-              glew::test_error( __FILE__, __LINE__ );
-              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-              glew::test_error( __FILE__, __LINE__ );
-              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-              glew::test_error( __FILE__, __LINE__ );
-              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE );
-              glew::test_error( __FILE__, __LINE__ );
-              glew::c::glTexImage2D( GL_TEXTURE_2D, level, internal_format, width, height, border, format, type, data );
-              glew::test_error( __FILE__, __LINE__ );
-              
-#else
-              
-              // no mipmap
-              constexpr glew::gl_type::GLint level = 0;
-              glew::c::glTexImage2D( GL_TEXTURE_2D, level, internal_format, width, height, border, format, type, data );
-              
-              glew::test_error( __FILE__, __LINE__ );
-              
-#endif
-              
-              // step.3: generate mipmaps
-#if defined( GL_VERSION_3_0 )
-              
-              // glGenerateMipmap / GL_3_0
-              //  http://www.opengl.org/wiki/GLAPI/glGenerateMipmap
-              glew::c::glGenerateMipmap( GL_TEXTURE_2D );
-              glew::test_error( __FILE__, __LINE__ );
-              
-#endif
-              
-              // step.4: set sampler params
-#if defined( GL_VERSION_3_3 )
-              glew::c::glSamplerParameteri( _sampler_ids[ number_of_texture ], GL_TEXTURE_WRAP_S, GL_REPEAT );
-              glew::test_error( __FILE__, __LINE__ );
-              glew::c::glSamplerParameteri( _sampler_ids[ number_of_texture ], GL_TEXTURE_WRAP_T, GL_REPEAT );
-              glew::test_error( __FILE__, __LINE__ );
-              glew::c::glSamplerParameteri( _sampler_ids[ number_of_texture ], GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-              glew::test_error( __FILE__, __LINE__ );
-              glew::c::glSamplerParameteri( _sampler_ids[ number_of_texture ], GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-              glew::test_error( __FILE__, __LINE__ );
-              
-#elif defined( GL_VERSION_3_0 )
-              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-              glew::test_error( __FILE__, __LINE__ );
-              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-              glew::test_error( __FILE__, __LINE__ );
-              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-              glew::test_error( __FILE__, __LINE__ );
-              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-              glew::test_error( __FILE__, __LINE__ );
-#elif defined( GL_VERSION_1_4 )
-              // nothing to do. this step done before at this version.
-#else
-              // no mipmap
-              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-              glew::test_error( __FILE__, __LINE__ );
-              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-              glew::test_error( __FILE__, __LINE__ );
-              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-              glew::test_error( __FILE__, __LINE__ );
-              glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-              glew::test_error( __FILE__, __LINE__ );
-#endif
               _texblends [ number_of_texture ] = 1.0f;
             }
           }
@@ -253,7 +158,7 @@ namespace wonder_rabbit_project
             -> std::vector< destruct_invoker_t >
           {
             std::vector< destruct_invoker_t > ds;
-            ds.reserve( _texture_ids.size() );
+            ds.reserve( _textures.size() );
             
             if ( program_id )
             {
@@ -275,30 +180,17 @@ namespace wonder_rabbit_project
               }
             }
             
-            for ( glew::gl_type::GLuint n = 0u; n < _texture_ids.size(); ++n )
+            for ( glew::gl_type::GLuint n = 0u; n < _textures.size(); ++n )
             {
-              if ( _texture_ids[ n ] )
-              {
-#ifdef GL_VERSION_1_3
-                glew::texture_t::active_texture<>( n );
-                WRP_GLEW_TEST_ERROR
-#endif
-                // GL_1_1
-                ds.emplace_back( glew::texture_t::scoped_bind_texture( _texture_ids[ n ] ) );
-                WRP_GLEW_TEST_ERROR
-              }
-#ifdef GL_VERSION_3_3
-              if ( _sampler_ids[ n ] )
-              {
-                if ( program_id )
-                {
-                  glew::uniform_t::uniform( program_id, "diffuse_sampler", signed( n ) );
-                  WRP_GLEW_TEST_ERROR
-                }
-                glew::sampler_t::bind_sampler( n, _sampler_ids[ n ] );
-                WRP_GLEW_TEST_ERROR
-              }
-#endif
+              glew::texture_t::active_texture<>( n );
+              WRP_GLEW_TEST_ERROR
+              
+              ds.emplace_back( _textures[ n ] -> scoped_bind() );
+              WRP_GLEW_TEST_ERROR
+              glew::uniform_t::uniform( program_id, "diffuse_sampler" + std::to_string( n ), signed( n ) );
+              WRP_GLEW_TEST_ERROR
+              _samplers[ n ] -> bind( n );
+              WRP_GLEW_TEST_ERROR
             }
             
             return ds;

@@ -158,11 +158,11 @@ namespace wonder_rabbit_project
           
 #if defined( GL_VERSION_4_2 )
           const auto size = glm::u32vec1( width );
-          glew::texture_t::texture_storage< GL_TEXTURE_1D >( internal_format, size );
+          glew::texture_t::texture_storage< GL_TEXTURE_1D, const glm::u32vec1& >( internal_format, size );
           WRP_GLEW_TEST_ERROR
           if ( data )
           {
-            glew::texture_t::texture_sub_image< GL_TEXTURE_1D >( internal_format, size, data );
+            glew::texture_t::texture_sub_image< GL_TEXTURE_1D, const glm::u32vec1& >( internal_format, size, data );
             WRP_GLEW_TEST_ERROR
           }
 #elif defined( GL_VERSION_3_0 )
@@ -242,7 +242,7 @@ namespace wonder_rabbit_project
           WRP_GLEW_TEST_ERROR
           if ( data )
           {
-            glew::texture_t::texture_sub_image< GL_TEXTURE_2D >( internal_format, size, data );
+            glew::texture_t::texture_sub_image< GL_TEXTURE_2D, const glm::u32vec2& >( internal_format, size, data );
             WRP_GLEW_TEST_ERROR
           }
 #elif defined( GL_VERSION_3_0 )
@@ -253,7 +253,10 @@ namespace wonder_rabbit_project
           // generate mipmap
 #ifdef GL_VERSION_3_0
           if ( data )
+          {
             generate_mipmap();
+            WRP_GLEW_TEST_ERROR
+          }
 #endif
           
           // set default texture params
@@ -325,11 +328,11 @@ namespace wonder_rabbit_project
           
 #if defined( GL_VERSION_4_2 )
           const auto size = glm::u32vec3( width, height, depth );
-          glew::texture_t::texture_storage< GL_TEXTURE_3D >( internal_format, size );
+          glew::texture_t::texture_storage< GL_TEXTURE_3D, const glm::u32vec3& >( internal_format, size );
           WRP_GLEW_TEST_ERROR
           if ( data )
           {
-            glew::texture_t::texture_sub_image< GL_TEXTURE_3D >( internal_format, size, data );
+            glew::texture_t::texture_sub_image< GL_TEXTURE_3D, const glm::u32vec3& >( internal_format, size, data );
             WRP_GLEW_TEST_ERROR
           }
 #elif defined( GL_VERSION_3_0 )

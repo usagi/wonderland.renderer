@@ -19,7 +19,7 @@ uniform vec3 emissive;
 uniform float transparent;
 uniform float texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
 
-uniform sampler2D diffuse_sampler;
+uniform sampler2D diffuse_sampler0;
 
 vec3 hsv_add( vec3, vec3 );
 vec4 hsva_add( vec4, vec4 );
@@ -104,7 +104,7 @@ vec4 hsva_calc_diffuse()
     if ( texblends[ n ] > 0.0 )
     {
       texblend += texblends[ n ];
-      vec4 sampled_rgba_color = texture2D( diffuse_sampler, var_texcoords[ n ] );
+      vec4 sampled_rgba_color = texture2D( diffuse_sampler0, var_texcoords[ n ] );
       vec4 current_blend_color = from_rgba_to_hsva( sampled_rgba_color * texblends[ n ] );
       texture_color = hsva_add( texture_color, current_blend_color );
     }
