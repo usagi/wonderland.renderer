@@ -179,24 +179,38 @@ try
                        || subsystem -> keyboard_state< key::right_shift >()
                        ;
     
+    //const auto pointing_button_0 = subsystem -> pointing_states_button<0>();
+    const auto pointing_button_1 = subsystem -> pointing_states_button<1>();
+    //const auto pointing_button_2 = subsystem -> pointing_states_button<2>();
+    
+    static auto pointing_position_before = subsystem -> pointing_states_position();
+    static auto pointing_position = pointing_position_before;
+    pointing_position = subsystem -> pointing_states_position();
+    const auto pointing_delta = pointing_position - pointing_position_before;
+    pointing_position_before = pointing_position;
+    
     // TODO: for debug
     if ( subsystem -> keyboard_state< key::z >() )
       renderer -> _shadow_save = true;
     
     // camera change
     if      ( wheel.y > 0 or key_home )
-      ( shift ? light_distance : camera_distance ) -= 0.2f;
+      ( shift ? light_distance : camera_distance ) -= 0.5f;
     else if ( wheel.y < 0 or key_end  )
-      ( shift ? light_distance : camera_distance ) += 0.2f;
+      ( shift ? light_distance : camera_distance ) += 0.5f;
     
     if ( subsystem -> keyboard_state< key::left_arrow >() )
       ( shift ? light_theta : camera_theta ) -= 0.02f;
     if ( subsystem -> keyboard_state< key::right_arrow >() )
       ( shift ? light_theta : camera_theta ) += 0.02f;
+    if ( pointing_button_1 and std::abs( pointing_delta.x ) > 0.0f )
+      ( shift ? light_theta : camera_theta ) -= 0.005f * pointing_delta.x;
     if ( subsystem -> keyboard_state< key::up_arrow >() )
       ( shift ? light_phi : camera_phi ) -= 0.02f;
     if ( subsystem -> keyboard_state< key::down_arrow >() )
       ( shift ? light_phi : camera_phi ) += 0.02f;
+    if ( pointing_button_1 and std::abs( pointing_delta.y ) > 0.0f )
+      ( shift ? light_phi : camera_phi ) -= 0.005f * pointing_delta.y;
     
     renderer -> camera()
       -> target( { 0.0f, 0.0f, 0.0f } )

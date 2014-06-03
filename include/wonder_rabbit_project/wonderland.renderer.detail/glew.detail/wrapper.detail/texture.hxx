@@ -254,6 +254,16 @@ namespace wonder_rabbit_project
             return destruct_invoker_t( []{ bind_texture< T_target >(); } );
           }
           
+          template < typename gl_type::GLenum T_target = GL_TEXTURE_2D >
+          static inline auto generate_mipmap()
+            -> void
+          { c::glGenerateMipmap( T_target ); }
+          
+          template < class T = void >
+          static inline auto generate_mipmap( gl_type::GLenum target )
+            -> void
+          { c::glGenerateMipmap( target ); }
+          
           // has template specializing
           template
           < typename gl_type::GLenum T_target

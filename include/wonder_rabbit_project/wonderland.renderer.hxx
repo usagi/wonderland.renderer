@@ -196,6 +196,8 @@ namespace wonder_rabbit_project
               _draw_shadow( draw_params );
           }
           
+          _shadow_mapping_texture -> generate_mipmap();
+          
           // TODO: for debug
 #ifndef EMSCRIPTEN
           //*

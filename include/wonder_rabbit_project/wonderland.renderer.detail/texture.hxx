@@ -67,6 +67,8 @@ namespace wonder_rabbit_project
           -> destruct_invoker_t
         = 0;
         
+        virtual auto generate_mipmap() -> void = 0;
+        
         virtual auto texture_id( const unsigned n = 0 )
           -> decltype( _texture_ids )::value_type
         { return _texture_ids[ n ]; }
@@ -168,8 +170,30 @@ namespace wonder_rabbit_project
           WRP_GLEW_TEST_ERROR
 #endif
           
+          // generate mipmap
+#ifdef GL_VERSION_3_0
+          if ( data )
+            generate_mipmap();
+#endif
+          
+          // set default texture params
+          glew::c::glTexParameteri( GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+          WRP_GLEW_TEST_ERROR
+          glew::c::glTexParameteri( GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+          WRP_GLEW_TEST_ERROR
+          glew::c::glTexParameteri( GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+          WRP_GLEW_TEST_ERROR
+          
+          // set viewport
           this -> _viewport[2] = width;
           this -> _viewport[3] = 1;
+        }
+        
+        auto generate_mipmap()
+          -> void override
+        {
+          glew::texture_t::generate_mipmap< GL_TEXTURE_1D >();
+          WRP_GLEW_TEST_ERROR
         }
         
       };
@@ -211,6 +235,7 @@ namespace wonder_rabbit_project
           
           auto bind = this -> scoped_bind();
           
+          // generate texture memory
 #if defined( GL_VERSION_4_2 )
           const auto size = glm::u32vec2( width, height );
           glew::texture_t::texture_storage< GL_TEXTURE_2D, const glm::u32vec2& >( internal_format, size );
@@ -222,10 +247,35 @@ namespace wonder_rabbit_project
           }
 #elif defined( GL_VERSION_3_0 )
           glew::texture_t::texture_image_2d< T_internal_format >( width, height, data );
+          WRP_GLEW_TEST_ERROR
 #endif
           
+          // generate mipmap
+#ifdef GL_VERSION_3_0
+          if ( data )
+            generate_mipmap();
+#endif
+          
+          // set default texture params
+          glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+          WRP_GLEW_TEST_ERROR
+          glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+          WRP_GLEW_TEST_ERROR
+          glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+          WRP_GLEW_TEST_ERROR
+          glew::c::glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+          WRP_GLEW_TEST_ERROR
+          
+          // set viewport
           this -> _viewport[2] = width;
           this -> _viewport[3] = height;
+        }
+        
+        auto generate_mipmap()
+          -> void override
+        {
+          glew::texture_t::generate_mipmap< GL_TEXTURE_2D >();
+          WRP_GLEW_TEST_ERROR
         }
         
       };
@@ -286,8 +336,34 @@ namespace wonder_rabbit_project
           glew::texture_t::texture_image_3d< T_internal_format >( width, height, depth, data );
 #endif
           
+          // generate mipmap
+#ifdef GL_VERSION_3_0
+          if ( data )
+            generate_mipmap();
+#endif
+          
+          // set default texture params
+          glew::c::glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+          WRP_GLEW_TEST_ERROR
+          glew::c::glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+          WRP_GLEW_TEST_ERROR
+          glew::c::glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT );
+          WRP_GLEW_TEST_ERROR
+          glew::c::glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+          WRP_GLEW_TEST_ERROR
+          glew::c::glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+          WRP_GLEW_TEST_ERROR
+          
+          // set viewport
           this -> _viewport[2] = width;
           this -> _viewport[3] = height;
+        }
+        
+        auto generate_mipmap()
+          -> void override
+        {
+          glew::texture_t::generate_mipmap< GL_TEXTURE_3D >();
+          WRP_GLEW_TEST_ERROR
         }
         
       };
