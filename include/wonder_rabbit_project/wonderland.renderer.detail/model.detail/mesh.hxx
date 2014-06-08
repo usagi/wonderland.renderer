@@ -483,25 +483,28 @@ namespace wonder_rabbit_project
             // 三角群描画
             {
               glew::c::glBindVertexArray( _triangle_vao_id );
+              WRP_GLEW_TEST_ERROR
               
               // http://www.opengl.org/sdk/docs/man/html/glBindBuffer.xhtml
               //  GLenum target, glew::gl_type::GLuint buffer
               glew::c::glBindBuffer( GL_ARRAY_BUFFER, _triangle_vb_id );
+              WRP_GLEW_TEST_ERROR
               
               glew::c::glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _triangle_ib_id );
+              WRP_GLEW_TEST_ERROR
               
               set_vertex_attribute();
+              WRP_GLEW_TEST_ERROR
               
               // マテリアルの有効化
-              WRP_GLEW_TEST_ERROR
               auto materia_scopes = _material.draw( program_id );
               WRP_GLEW_TEST_ERROR
               
               // http://www.opengl.org/wiki/GLAPI/glDrawElements
               //  GLenum mode, GLsizei count, GLenum type, const GLvoid* indices
               glew::c::glDrawElements( GL_TRIANGLES, _count_of_indices, GL_UNSIGNED_INT, nullptr );
-            }
               WRP_GLEW_TEST_ERROR
+            }
             
             // 後始末
             glew::c::glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );

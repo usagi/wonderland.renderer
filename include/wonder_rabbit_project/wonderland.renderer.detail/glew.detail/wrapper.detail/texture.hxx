@@ -241,17 +241,36 @@ namespace wonder_rabbit_project
             return texture;
           }
           
-          template < typename gl_type::GLenum T_target = GL_TEXTURE_2D >
+          template < typename gl_type::GLenum T_target >
           static inline auto bind_texture( gl_type::GLuint texture_id = 0 )
             -> void
           { c::glBindTexture( T_target, texture_id ); }
           
-          template < typename gl_type::GLenum T_target = GL_TEXTURE_2D >
-          static inline auto scoped_bind_texture( gl_type::GLuint texture_id = 0 )
+          template < class T = void >
+          static inline auto bind_texture
+          ( typename gl_type::GLenum target
+          , gl_type::GLuint texture_id
+          )
+            -> void
+          { c::glBindTexture( target, texture_id ); }
+          
+          template < typename gl_type::GLenum T_target >
+          static inline auto scoped_bind_texture( gl_type::GLuint texture_id )
             -> destruct_invoker_t
           {
             bind_texture< T_target >( texture_id );
             return destruct_invoker_t( []{ bind_texture< T_target >(); } );
+          }
+          
+          template < class T = void >
+          static inline auto scoped_bind_texture
+          ( typename gl_type::GLenum target
+          , gl_type::GLuint texture_id
+          )
+            -> destruct_invoker_t
+          {
+            bind_texture( target, texture_id );
+            return destruct_invoker_t( [ target ]{ bind_texture( target, 0 ); } );
           }
           
           template < typename gl_type::GLenum T_target = GL_TEXTURE_2D >
@@ -709,6 +728,49 @@ namespace wonder_rabbit_project
         )
           -> void
         { texture_storage< GL_TEXTURE_2D, const glm::u32vec2& >( levels, internal_format, glm::u32vec2( size ) ); }
+        
+        // GL_TEXTURE_CUBE_MAP
+        
+        template < >
+        inline auto texture_t::texture_storage < GL_TEXTURE_CUBE_MAP, const glm::u32vec2& >
+        ( gl_type::GLsizei levels
+        , gl_type::GLenum internal_format
+        , const glm::u32vec2& size
+        )
+          -> void
+        {
+          c::glTexStorage2D
+          ( GL_TEXTURE_CUBE_MAP
+          , levels
+          , internal_format
+          , size[0], size[1]
+          );
+        }
+        
+        template < >
+        inline auto texture_t::texture_storage < GL_TEXTURE_CUBE_MAP, const glm::u32vec2& >
+        ( gl_type::GLenum internal_format
+        , const glm::u32vec2& size
+        )
+          -> void
+        { texture_storage< GL_TEXTURE_CUBE_MAP, const glm::u32vec2& >( gl_type::GLsizei( glm::log2< float >( std::min( size[0], size[1] ) ) ), internal_format, size ); }
+        
+        template < >
+        inline auto texture_t::texture_storage < GL_TEXTURE_CUBE_MAP, gl_type::GLuint >
+        ( gl_type::GLenum internal_format
+        , gl_type::GLuint size
+        )
+          -> void
+        { texture_storage< GL_TEXTURE_CUBE_MAP, const glm::u32vec2& >( internal_format, glm::u32vec2( size ) ); }
+        
+        template < >
+        inline auto texture_t::texture_storage < GL_TEXTURE_CUBE_MAP, gl_type::GLuint >
+        ( gl_type::GLsizei levels
+        , gl_type::GLenum internal_format
+        , gl_type::GLuint size
+        )
+          -> void
+        { texture_storage< GL_TEXTURE_CUBE_MAP, const glm::u32vec2& >( levels, internal_format, glm::u32vec2( size ) ); }
         
         // 3D
         

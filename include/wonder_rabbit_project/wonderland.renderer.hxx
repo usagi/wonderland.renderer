@@ -56,7 +56,7 @@ namespace wonder_rabbit_project
             ;
         
         using shadow_mapping_texture_t
-          = renderer::texture_2d_t< _shadow_mapping_texture_internal_format >;
+          = renderer::texture_cube_map_t< _shadow_mapping_texture_internal_format >;
         
         renderer::program_t::const_shared_t          _shadow_mapping_program;
         std::shared_ptr< shadow_mapping_texture_t >  _shadow_mapping_texture;
@@ -130,7 +130,7 @@ namespace wonder_rabbit_project
           }
           
           _shadow_mapping_frame_buffer
-            -> bind_texture( _shadow_mapping_texture )
+            -> bind_texture( _shadow_mapping_texture, GL_TEXTURE_CUBE_MAP_NEGATIVE_X )
             -> unbind()
             ;
           
@@ -190,13 +190,26 @@ namespace wonder_rabbit_project
             scopers.emplace_back( scoped_enable< GL_DEPTH_TEST >() );
             scopers.emplace_back( scoped_clear_color( 1.0f ) );
             
-            clear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+            _uniform_log_z_trick( _shadow_mapping_program -> program_id() );
             
-            for ( const auto& draw_params : _draw_queue )
-              _draw_shadow( draw_params );
+            constexpr auto count_of_cube_map_textures = 6u;
+            for ( auto target_surface_number = 0u; target_surface_number < count_of_cube_map_textures; ++target_surface_number )
+            {
+              auto bind_frame_buffer_texture = _shadow_mapping_frame_buffer
+                -> scoped_bind_texture( _shadow_mapping_texture, GL_TEXTURE_CUBE_MAP_POSITIVE_X + target_surface_number )
+                ;
+              
+              clear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+              
+              for ( const auto& draw_params : _draw_queue )
+                _draw_shadow( draw_params, target_surface_number );
+            }
           }
           
-          _shadow_mapping_texture -> generate_mipmap();
+          {
+            auto bind = _shadow_mapping_texture -> scoped_bind();
+            _shadow_mapping_texture -> generate_mipmap();
+          }
           
           // TODO: for debug
 #ifndef EMSCRIPTEN
@@ -207,18 +220,24 @@ namespace wonder_rabbit_project
             auto f = _shadow_mapping_frame_buffer -> scoped_bind();
             WRP_GLEW_TEST_ERROR
             
-            std::vector< float > data( _shadow_mapping_texture -> count_of_data_elements() );
+            constexpr auto count_of_cube_map_textures = 6;
+            for ( auto n = 0u; n < count_of_cube_map_textures; ++n )
+            {
+              
+              std::vector< float > data( _shadow_mapping_texture -> count_of_data_elements() );
+              
+              active_texture< _shadow_mapping_texture_unit >();
+              auto t = _shadow_mapping_texture -> scoped_bind();
+              //glew::c::glGenerateMipmap( GL_TEXTURE_CUBE_MAP );
+              
+              auto v = _shadow_mapping_texture -> viewport();
+              glew::c::glGetTexImage( GL_TEXTURE_CUBE_MAP_POSITIVE_X + n, 0, GL_DEPTH_COMPONENT, GL_FLOAT, &data[0] );
+              //glew::c::glReadPixels( v[0], v[1], v[2], v[3], GL_DEPTH_COMPONENT, GL_FLOAT, &data[0] );
+              WRP_GLEW_TEST_ERROR
+              
+              pnm_t::save( data, v[2], "out_" + std::to_string( n ) + ".pgm" );
+            }
             
-            active_texture< _shadow_mapping_texture_unit >();
-            auto t = _shadow_mapping_texture -> scoped_bind();
-            //glew::c::glGenerateMipmap( GL_TEXTURE_2D );
-            
-            auto v = _shadow_mapping_texture -> viewport();
-            glew::c::glGetTexImage( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, &data[0] );
-            //glew::c::glReadPixels( v[0], v[1], v[2], v[3], GL_DEPTH_COMPONENT, GL_FLOAT, &data[0] );
-            WRP_GLEW_TEST_ERROR
-            
-            pnm_t::save( data, v[2] );
             _shadow_save = false;
             
           }
@@ -243,7 +262,7 @@ namespace wonder_rabbit_project
             _shadow_mapping_sampler -> bind( shadow_mapping_texture_unit );
           }
           else
-            bind_texture();
+            bind_texture< decltype( _shadow_mapping_texture )::element_type::target >();
           
           activate_lights();
           
@@ -336,12 +355,10 @@ namespace wonder_rabbit_project
           glew::c::glBlendFunc(GL_ONE, GL_ZERO);
         }
         
-        auto _draw_shadow( const draw_params_t& draw_params )
+        auto _draw_shadow( const draw_params_t& draw_params, unsigned target_surface_number )
           -> void
         {
           const auto program_id = _shadow_mapping_program -> program_id();
-          
-          _uniform_log_z_trick( program_id );
           
           for ( const auto& light : _default_lights )
           {
@@ -350,10 +367,22 @@ namespace wonder_rabbit_project
             if ( point_light == nullptr )
               continue;
             
+            auto shadow_camera_target = point_light -> position;
+            auto shadow_camera_up     = glm::vec3( 0.0f, 1.0f, 0.0f );
+            
+            switch ( target_surface_number )
+            { case 0: shadow_camera_target += glm::vec3( -1.0f,  0.0f,  0.0f ); break;
+              case 1: shadow_camera_target += glm::vec3(  1.0f,  0.0f,  0.0f ); break;
+              case 2: shadow_camera_target += glm::vec3(  0.0f, -1.0f,  0.0f ); shadow_camera_up = glm::vec3( 0.0f, 0.0f,  1.0f ); break;
+              case 3: shadow_camera_target += glm::vec3(  0.0f,  1.0f,  0.0f ); shadow_camera_up = glm::vec3( 0.0f, 0.0f, -1.0f ); break;
+              case 4: shadow_camera_target += glm::vec3(  0.0f,  0.0f,  1.0f ); break;
+              case 5: shadow_camera_target += glm::vec3(  0.0f,  0.0f, -1.0f ); break;
+            }
+            
             const auto shadow_camera = std::make_shared< camera_t >
               ( point_light -> position
-              , _camera -> target()
-              , _camera -> up()
+              , shadow_camera_target
+              , shadow_camera_up
               );
             
             _shadow_projection
@@ -375,9 +404,7 @@ namespace wonder_rabbit_project
             */
             
             const auto wvp
-              = projection_transformation()
               = _shadow_projection -> projection_transformation()
-              //= _shadow_transformation
               * shadow_camera -> view_transformation()
               * draw_params.world_transformation
               ;
@@ -388,6 +415,7 @@ namespace wonder_rabbit_project
             
             // TODO: support multiple lights
             break;
+          
           }
         }
         
@@ -426,9 +454,7 @@ namespace wonder_rabbit_project
             const auto shadow_transformation
               = glm::translate( glm::mat4(), glm::vec3( 0.5f ) )
               * glm::scale    ( glm::mat4(), glm::vec3( 0.5f ) )
-              //* projection_transformation()
               * _shadow_projection -> projection_transformation()
-              //* _shadow_transformation
               * shadow_camera -> view_transformation()
               * glm::inverse( view_transformation() )
               ;

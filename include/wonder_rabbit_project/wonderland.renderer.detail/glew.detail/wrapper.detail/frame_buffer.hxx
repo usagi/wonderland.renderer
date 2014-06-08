@@ -139,9 +139,9 @@ namespace wonder_rabbit_project
           { c::glFramebufferTexture1D( GL_FRAMEBUFFER, T_attachment, GL_TEXTURE_1D, texture_id, 0 ); }
           
           template < typename gl_type::GLenum T_attachment >
-          static inline auto frame_buffer_texture_2d( gl_type::GLuint texture_id = 0 )
+          static inline auto frame_buffer_texture_2d( gl_type::GLuint texture_id = 0, gl_type::GLenum texture_target = GL_TEXTURE_2D )
             -> void
-          { c::glFramebufferTexture2D( GL_FRAMEBUFFER, T_attachment, GL_TEXTURE_2D, texture_id, 0 ); }
+          { c::glFramebufferTexture2D( GL_FRAMEBUFFER, T_attachment, texture_target, texture_id, 0 ); }
           
           template < typename gl_type::GLenum T_attachment >
           static inline auto frame_buffer_texture_3d( gl_type::GLuint texture_id = 0 )

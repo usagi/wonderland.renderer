@@ -12,7 +12,8 @@ u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
 )" + IN + u8R"( vec4 var_color;
 )" + IN + u8R"( vec3 var_normal;
 )" + IN + u8R"( vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
-)" + IN + u8R"( vec4 var_shadow_position;
+)" + IN + u8R"( vec4 var_shadow_direction;
+//)" + IN + u8R"( vec4 var_shadow_position;
 #ifdef GL_EXT_frag_depth
 )" + IN + u8R"( float var_log_z;
 )" + IN + u8R"( float var_log_z_shadow;
@@ -32,11 +33,14 @@ uniform float point_light_linear_attenuation0;
 uniform float point_light_quadratic_attenuation0;
 uniform vec3 view_direction;
 uniform float texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
+uniform float z_log_trick_far;
+const float C = 1.0e-3;
 
-uniform sampler2D shadow_sampler;
+uniform samplerCube shadow_sampler;
 uniform sampler2D diffuse_sampler0;
 
-float calc_shadow_ratio();
+float calc_shadow_ratio_omnidirectional();
+//float calc_shadow_ratio_directional();
 vec3 hsv_add( vec3, vec3 );
 vec4 hsva_add( vec4, vec4 );
 vec3 from_rgb_to_hsv( vec3 );
@@ -90,15 +94,48 @@ void main(void)
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( ambient  ) );
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( emissive ) );
   
-  hsva.z *= calc_shadow_ratio();
+  hsva.z *= calc_shadow_ratio_omnidirectional();
+  //hsva.z *= calc_shadow_ratio_directional();
   
   )" + OUT_COLOR + u8R"( = from_hsva_to_rgba( hsva );
+  //)" + OUT_COLOR + u8R"( = vec4( vec3( texture( shadow_sampler, normalize(var_shadow_direction.xyz) ).r ), 1.0);
 #ifdef GL_EXT_frag_depth
   gl_FragDepth = var_log_z;
 #endif
 }
 
-float calc_shadow_ratio()
+float calc_shadow_ratio_omnidirectional()
+{
+  vec4 shadow_direction = var_shadow_direction;
+#ifdef GL_EXT_frag_depth
+  //shadow_direction.z = var_log_z_shadow;
+#endif
+
+  shadow_direction.y *= -1.0;
+  shadow_direction.x *= -1.0;
+
+  vec3 normalized_shadow_direction = normalize( shadow_direction.xyz );
+  vec3 abs_normalized_shadow_direction = abs( normalized_shadow_direction );
+  
+  float fragment_depth = 0.0;
+  
+  if ( abs_normalized_shadow_direction.x > max( abs_normalized_shadow_direction.y, abs_normalized_shadow_direction.z ) )
+    fragment_depth = abs( shadow_direction.x );
+  else if ( abs_normalized_shadow_direction.z > max( abs_normalized_shadow_direction.x, abs_normalized_shadow_direction.y ) )
+    fragment_depth = abs( shadow_direction.z );
+  else
+    fragment_depth = abs( shadow_direction.y );
+    
+  float shadow_depth = texture( shadow_sampler, normalized_shadow_direction ).r;
+  
+  float FC = 1.0 / log( z_log_trick_far * C + 1.0 );
+  fragment_depth = log( fragment_depth * C + 1.0 ) * FC;
+  
+  return ( fragment_depth > shadow_depth ) ? 0.2 : 1.0;
+}
+
+/*
+float calc_shadow_ratio_directional()
 {
   vec4 shadow_position = var_shadow_position;
 #ifdef GL_EXT_frag_depth
@@ -135,6 +172,7 @@ float calc_shadow_ratio()
   
   return 1.0 - min( delta , 0.80 );
 }
+*/
 
 vec3 hsv_add( vec3 a, vec3 b )
 {
