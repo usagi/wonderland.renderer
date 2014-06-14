@@ -12,12 +12,19 @@ u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
 )" + IN + u8R"( vec4 var_color;
 )" + IN + u8R"( vec3 var_normal;
 )" + IN + u8R"( vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
-)" + IN + u8R"( vec4 var_shadow_direction;
+
+// for omnidirectional shadow mapping
+)" + IN + u8R"( vec3 var_shadow_direction;
+
+// for directional shadow mapping
 //)" + IN + u8R"( vec4 var_shadow_position;
+
 #ifdef GL_EXT_frag_depth
 )" + IN + u8R"( float var_log_z;
-)" + IN + u8R"( float var_log_z_shadow;
+// for directional shadow mapping
+//)" + IN + u8R"( float var_log_z_shadow;
 #endif
+
 )" + OUT_COLOR_DECLARE + u8R"(
 
 uniform vec3 diffuse;
@@ -35,6 +42,8 @@ uniform vec3 view_direction;
 uniform float texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
 uniform float z_log_trick_far;
 const float C = 1.0e-3;
+uniform mat4 shadow_transformation;
+
 
 uniform samplerCube shadow_sampler;
 uniform sampler2D diffuse_sampler0;
@@ -98,7 +107,6 @@ void main(void)
   //hsva.z *= calc_shadow_ratio_directional();
   
   )" + OUT_COLOR + u8R"( = from_hsva_to_rgba( hsva );
-  //)" + OUT_COLOR + u8R"( = vec4( vec3( texture( shadow_sampler, normalize(var_shadow_direction.xyz) ).r ), 1.0);
 #ifdef GL_EXT_frag_depth
   gl_FragDepth = var_log_z;
 #endif
@@ -106,30 +114,31 @@ void main(void)
 
 float calc_shadow_ratio_omnidirectional()
 {
-  vec4 shadow_direction = var_shadow_direction;
-#ifdef GL_EXT_frag_depth
-  //shadow_direction.z = var_log_z_shadow;
-#endif
-
-  shadow_direction.y *= -1.0;
-  shadow_direction.x *= -1.0;
-
-  vec3 normalized_shadow_direction = normalize( shadow_direction.xyz );
-  vec3 abs_normalized_shadow_direction = abs( normalized_shadow_direction );
+  float fragment_depth;
   
-  float fragment_depth = 0.0;
+  vec3 n = normalize( var_shadow_direction );
+  vec3 a = abs( n );
   
-  if ( abs_normalized_shadow_direction.x > max( abs_normalized_shadow_direction.y, abs_normalized_shadow_direction.z ) )
-    fragment_depth = abs( shadow_direction.x );
-  else if ( abs_normalized_shadow_direction.z > max( abs_normalized_shadow_direction.x, abs_normalized_shadow_direction.y ) )
-    fragment_depth = abs( shadow_direction.z );
+  if      ( a.x > max( a.y, a.z ) )
+    fragment_depth = var_shadow_direction.x;
+  else if ( a.z > max( a.x, a.y ) )
+    fragment_depth = var_shadow_direction.z;
   else
-    fragment_depth = abs( shadow_direction.y );
-    
-  float shadow_depth = texture( shadow_sampler, normalized_shadow_direction ).r;
+    fragment_depth = var_shadow_direction.y;
+  
+  fragment_depth = abs( fragment_depth );
   
   float FC = 1.0 / log( z_log_trick_far * C + 1.0 );
   fragment_depth = log( fragment_depth * C + 1.0 ) * FC;
+  float anti_artifact_bias = 1.0 + 3.0e-3;
+
+  fragment_depth *= anti_artifact_bias;
+  
+#if )" + std::to_string( glsl_version_ge( 300 ) ) + u8R"(
+  float shadow_depth = texture( shadow_sampler, n ).r;
+#else
+  float shadow_depth = textureCube( shadow_sampler, n ).r;
+#endif
   
   return ( fragment_depth > shadow_depth ) ? 0.2 : 1.0;
 }

@@ -112,25 +112,18 @@ namespace wonder_rabbit_project
           
           // create sampler
           ( _shadow_mapping_sampler = std::make_shared< renderer::sampler_t>() )
-            -> parameter_min_mag_filter( GL_LINEAR )
+            -> parameter_mag_filter( GL_LINEAR )
+#ifndef EMSCRIPTEN
+            -> parameter_min_filter( GL_LINEAR_MIPMAP_LINEAR )
             -> parameter_wrap_st( GL_CLAMP_TO_EDGE )
-/*#ifndef EMSCRIPTEN
-            -> parameter_wrap_st( GL_CLAMP_TO_BORDER )
-            -> parameter_compare_func( GL_LEQUAL )
-            -> parameter_border_color( glm::vec4( 0.0f ) )
-#endif*/
+#else
+            -> parameter_min_filter( GL_LINEAR )
+            -> parameter_wrap_st( GL_CLAMP_TO_EDGE )
+#endif
             ;
           
-          // bind samplar
-          {
-            auto p = _shadow_mapping_program -> scoped_use();
-            active_texture< _shadow_mapping_texture_unit >();
-            auto t = _shadow_mapping_texture -> scoped_bind();
-            _shadow_mapping_sampler -> bind();
-          }
-          
           _shadow_mapping_frame_buffer
-            -> bind_texture( _shadow_mapping_texture, GL_TEXTURE_CUBE_MAP_NEGATIVE_X )
+            -> bind_texture( _shadow_mapping_texture, GL_TEXTURE_CUBE_MAP_POSITIVE_X )
             -> unbind()
             ;
           
@@ -195,9 +188,15 @@ namespace wonder_rabbit_project
             constexpr auto count_of_cube_map_textures = 6u;
             for ( auto target_surface_number = 0u; target_surface_number < count_of_cube_map_textures; ++target_surface_number )
             {
+#ifndef EMSCRIPTEN
               auto bind_frame_buffer_texture = _shadow_mapping_frame_buffer
                 -> scoped_bind_texture( _shadow_mapping_texture, GL_TEXTURE_CUBE_MAP_POSITIVE_X + target_surface_number )
                 ;
+#else
+              _shadow_mapping_frame_buffer
+                -> bind_texture( _shadow_mapping_texture, GL_TEXTURE_CUBE_MAP_POSITIVE_X + target_surface_number )
+                ;
+#endif
               
               clear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
               
@@ -206,10 +205,24 @@ namespace wonder_rabbit_project
             }
           }
           
+
+#ifndef EMSCRIPTEN
           {
             auto bind = _shadow_mapping_texture -> scoped_bind();
             _shadow_mapping_texture -> generate_mipmap();
           }
+#else
+          // Chromium cannot support mipmap with depth or stencil internal format type.
+          // maybe: https://github.com/mirrors/chromium/blob/1f38aaea945f6bea1dc6d57f8fe5ff8cf92fb3bf/gpu/command_buffer/service/texture_manager.cc#L348
+            
+          // Not Chromium or Chrome
+          if( emscripten_run_script_int( "navigator.userAgent.indexOf('Chrome') === -1" ) )
+          {
+            auto bind = _shadow_mapping_texture -> scoped_bind();
+            _shadow_mapping_texture -> generate_mipmap();
+          }
+#endif
+
           
           // TODO: for debug
 #ifndef EMSCRIPTEN
@@ -223,7 +236,6 @@ namespace wonder_rabbit_project
             constexpr auto count_of_cube_map_textures = 6;
             for ( auto n = 0u; n < count_of_cube_map_textures; ++n )
             {
-              
               std::vector< float > data( _shadow_mapping_texture -> count_of_data_elements() );
               
               active_texture< _shadow_mapping_texture_unit >();
@@ -257,9 +269,14 @@ namespace wonder_rabbit_project
           if ( _shadow )
           {
             _shadow_mapping_texture -> bind();
+            WRP_GLEW_TEST_ERROR
             
             uniform( _default_program -> program_id(), "shadow_sampler", shadow_mapping_texture_unit );
-            _shadow_mapping_sampler -> bind( shadow_mapping_texture_unit );
+            _shadow_mapping_sampler
+              -> bind
+                < decltype( _shadow_mapping_texture )::element_type::target >
+              ( shadow_mapping_texture_unit )
+              ;
           }
           else
             bind_texture< decltype( _shadow_mapping_texture )::element_type::target >();
@@ -436,10 +453,11 @@ namespace wonder_rabbit_project
           const auto wvp = projection_transformation() * wv;
           
           // TODO: support multiple lights for shadow mapping
+          const auto shadow_camera_position = std::dynamic_pointer_cast< point_light_t >( *_default_lights.cbegin() ) -> position;
           const auto shadow_camera = std::make_shared< camera_t >
-            ( std::dynamic_pointer_cast< point_light_t >( *_default_lights.cbegin() ) -> position
-            , _camera -> target()
-            , _camera -> up()
+            ( shadow_camera_position
+            , shadow_camera_position + glm::vec3( 0.0f, 0.0f, -1.0f )
+            , glm::vec3( 0.0f, 1.0f, 0.0f )
             );
           
           const auto program_id = current_program();

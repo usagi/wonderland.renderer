@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include <boost/variant.hpp>
 
 #include "glew.detail/c.hxx"
@@ -72,7 +74,7 @@ namespace wonder_rabbit_project
               default:
                 throw std::logic_error( "sampler::bind: unknown parameter type." );
             }
-            glew::test_error( __FILE__, __LINE__ );
+            WRP_GLEW_TEST_ERROR
           }
 #endif
         }

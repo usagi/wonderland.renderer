@@ -429,17 +429,17 @@ namespace wonder_rabbit_project
             WRP_GLEW_TEST_ERROR
           }
 #elif defined( GL_VERSION_3_0 )
-          glew::texture_t::texture_image_2d< T_internal_format, GL_TEXTURE_CUBE_MAP_POSITIVE_X >( width, height, data[0] );
+          glew::texture_t::texture_image_2d< T_internal_format, GL_TEXTURE_CUBE_MAP_POSITIVE_X >( width, height, data ? data[0] : nullptr );
           WRP_GLEW_TEST_ERROR
-          glew::texture_t::texture_image_2d< T_internal_format, GL_TEXTURE_CUBE_MAP_NEGATIVE_X >( width, height, data[1] );
+          glew::texture_t::texture_image_2d< T_internal_format, GL_TEXTURE_CUBE_MAP_NEGATIVE_X >( width, height, data ? data[1] : nullptr );
           WRP_GLEW_TEST_ERROR
-          glew::texture_t::texture_image_2d< T_internal_format, GL_TEXTURE_CUBE_MAP_POSITIVE_Y >( width, height, data[2] );
+          glew::texture_t::texture_image_2d< T_internal_format, GL_TEXTURE_CUBE_MAP_POSITIVE_Y >( width, height, data ? data[2] : nullptr );
           WRP_GLEW_TEST_ERROR
-          glew::texture_t::texture_image_2d< T_internal_format, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y >( width, height, data[3] );
+          glew::texture_t::texture_image_2d< T_internal_format, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y >( width, height, data ? data[3] : nullptr );
           WRP_GLEW_TEST_ERROR
-          glew::texture_t::texture_image_2d< T_internal_format, GL_TEXTURE_CUBE_MAP_POSITIVE_Z >( width, height, data[4] );
+          glew::texture_t::texture_image_2d< T_internal_format, GL_TEXTURE_CUBE_MAP_POSITIVE_Z >( width, height, data ? data[4] : nullptr );
           WRP_GLEW_TEST_ERROR
-          glew::texture_t::texture_image_2d< T_internal_format, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z >( width, height, data[5] );
+          glew::texture_t::texture_image_2d< T_internal_format, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z >( width, height, data ? data[5] : nullptr );
           WRP_GLEW_TEST_ERROR
 #endif
           

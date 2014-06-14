@@ -23,10 +23,15 @@ u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
 )" + OUT + u8R"( vec4 var_color;
 )" + OUT + u8R"( vec3 var_normal;
 )" + OUT + u8R"( vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
-)" + OUT + u8R"( vec4 var_shadow_position;
+// for omnidirectional shadow mapping
+)" + OUT + u8R"( vec3 var_shadow_direction;
+
+// for directional shadow mapping
+//)" + OUT + u8R"( vec4 var_shadow_position;
 #ifdef GL_EXT_frag_depth
 )" + OUT + u8R"( float var_log_z;
-)" + OUT + u8R"( float var_log_z_shadow;
+// for directional shadow mapping
+//)" + OUT + u8R"( float var_log_z_shadow;
 #endif
 
 uniform mat4 world_view_projection_transformation;
@@ -34,6 +39,7 @@ uniform mat4 world_view_transformation;
 uniform mat4 world_transformation;
 uniform mat4 bones[ )" + std::to_string( max_bones ) + u8R"( ];
 uniform mat4 shadow_transformation;
+uniform vec3 point_light_position0;
 #ifdef GL_EXT_frag_depth
 uniform float z_log_trick_far;
 
@@ -78,11 +84,19 @@ void main(void)
   //  var_texcoords[ 6 ] = texcoord6;
   //  var_texcoords[ 7 ] = texcoord7;
   
-  var_shadow_position = shadow_transformation * world_view_transformation * local_position;
+  // for omnidirectional shadow mapping
+  var_shadow_direction = ( world_transformation * local_position ).xyz;
+  var_shadow_direction -= point_light_position0;
+  var_shadow_direction.xy *= -1.0;
+  
+  // for directional shadow mapping
+  /*
+  var_shadow_position = shadow_transformation * world_transformation * local_position;
 #ifdef GL_EXT_frag_depth
   var_log_z_shadow    = z_log_trick_calc_log_z ( z_log_trick_far , var_shadow_position );
   var_shadow_position = z_log_trick_apply_log_z( var_log_z_shadow, var_shadow_position );
 #endif
+  */
 }
 
 #ifdef GL_EXT_frag_depth

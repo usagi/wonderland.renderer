@@ -45,8 +45,8 @@ namespace wonder_rabbit_project
             case GL_TEXTURE_1D:
               frame_buffer_texture_1d< T_attachment >( texture_id );
               break;
-            case GL_TEXTURE_2D:
             case GL_TEXTURE_CUBE_MAP:
+            case GL_TEXTURE_2D:
               frame_buffer_texture_2d< T_attachment >( texture_id, texture_target );
               break;
             case GL_TEXTURE_3D:
@@ -125,7 +125,7 @@ namespace wonder_rabbit_project
             >
             ( texture, texture_target )
             ;
-          glew::test_error( __FILE__, __LINE__ );
+          WRP_GLEW_TEST_ERROR
           
           return shared_from_this();
         }
@@ -140,7 +140,7 @@ namespace wonder_rabbit_project
           constexpr auto attachment_ = attachment( glew::texture_t::base_internal_format( T::internal_format ) );
           auto s = shared_from_this();
           bind_texture( texture, texture_target );
-          return destruct_invoker_t( [ s ]{ s -> bind_texture< T >(); } );
+          return destruct_invoker_t( [ s ]{ s -> bind_texture< T >( nullptr, GL_TEXTURE_CUBE_MAP ); } );
         }
         
         auto render_buffer( std::shared_ptr< render_buffer_t > render_buffer )

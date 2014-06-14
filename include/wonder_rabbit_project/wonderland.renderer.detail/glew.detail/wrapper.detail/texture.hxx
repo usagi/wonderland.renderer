@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <algorithm>
 
 #include <glm/gtc/constants.hpp>
 
@@ -468,18 +469,18 @@ namespace wonder_rabbit_project
           { texture_image_1d< T_internal_format >( max_texture_size() ); }
           
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24, typename gl_type::GLenum T_target = GL_TEXTURE_2D >
-          static inline auto texture_image_2d( gl_type::GLsizei width, gl_type::GLsizei height, const void* data = nullptr )
+          static inline auto texture_image_2d( gl_type::GLsizei width, gl_type::GLsizei height, const void* data = nullptr, gl_type::GLsizei mipmap_level = 0 )
             -> void
           {
             texture_image_2d
             ( T_target
-            , 0
+            , mipmap_level
 #ifdef EMSCRIPTEN
             , base_internal_format( T_internal_format )
 #else
             , T_internal_format
 #endif
-            , width, height
+            , std::max( 1u, width >> mipmap_level ), std::max( 1u, height >> mipmap_level )
             , 0
             , base_internal_format( T_internal_format )
             , type( T_internal_format )
@@ -493,9 +494,9 @@ namespace wonder_rabbit_project
           { texture_image_2d< T_internal_format, T_target >( max_texture_size() ); }
 
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24, typename gl_type::GLenum T_target = GL_TEXTURE_2D >
-          static inline auto texture_image_2d( gl_type::GLsizei size, const void* data = nullptr )
+          static inline auto texture_image_2d( gl_type::GLsizei size, const void* data = nullptr, gl_type::GLsizei mipmap_level = 0  )
             -> void
-          { texture_image_2d< T_internal_format, T_target >( size, size, data ); }
+          { texture_image_2d< T_internal_format, T_target >( size, size, data, mipmap_level ); }
           
           template < typename gl_type::GLint T_internal_format = GL_DEPTH_COMPONENT24 >
           static inline auto texture_image_2d_multisample( gl_type::GLsizei width, gl_type::GLsizei height, const void* data, gl_type::GLsizei samples )
