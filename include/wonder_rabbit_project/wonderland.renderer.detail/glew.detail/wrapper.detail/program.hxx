@@ -30,7 +30,7 @@ namespace wonder_rabbit_project
             if ( program_id )
               return program_id;
             
-            throw exception::program_is_not_set();
+            throw exception::program_is_not_set("use_program: program is not set.");
           }
         };
       }

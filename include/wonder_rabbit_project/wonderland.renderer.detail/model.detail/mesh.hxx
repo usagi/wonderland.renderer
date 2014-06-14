@@ -174,7 +174,7 @@ namespace wonder_rabbit_project
             
             constexpr auto indices_of_triangle = 3;
             
-            for ( auto n_vertex = 0; n_vertex < mesh -> mNumVertices; ++ n_vertex )
+            for ( auto n_vertex = 0u; n_vertex < mesh -> mNumVertices; ++ n_vertex )
               vb.emplace_back
               ( std::move( helper::to_glm_vec4( mesh -> mVertices           + n_vertex ) )
               , std::move( mesh -> mColors[ 0 ]        ? helper::to_glm_vec4( mesh -> mColors[ 0 ]        + n_vertex ) : glm::vec4( std::nanf("") ) )
@@ -193,7 +193,7 @@ namespace wonder_rabbit_project
               , std::move( glm::vec4( 0.0f ) )
               );
             
-            for ( auto n_face = 0; n_face < mesh -> mNumFaces; ++ n_face )
+            for ( auto n_face = 0u; n_face < mesh -> mNumFaces; ++ n_face )
             {
               const auto face = mesh -> mFaces + n_face;
               
@@ -220,7 +220,7 @@ namespace wonder_rabbit_project
             
             const auto bones = mesh -> mBones;
             
-            for ( auto n_bone = 0; n_bone < mesh -> mNumBones; ++n_bone )
+            for ( auto n_bone = 0u; n_bone < mesh -> mNumBones; ++n_bone )
             {
               const auto bone = bones[ n_bone ];
               
@@ -250,7 +250,7 @@ namespace wonder_rabbit_project
               _bone_offsets[ bone_index ] = glm::transpose( helper::to_glm_mat4( bone -> mOffsetMatrix ) );
               //_bone_offsets[ bone_index ] = helper::to_glm_mat4( bone -> mOffsetMatrix );
               
-              for ( auto n_weight = 0; n_weight < bone -> mNumWeights; ++n_weight )
+              for ( auto n_weight = 0u; n_weight < bone -> mNumWeights; ++n_weight )
               {
                 const auto& weight = bone -> mWeights[ n_weight ];
                 
@@ -478,26 +478,32 @@ namespace wonder_rabbit_project
                 glew::c::glVertexAttribPointer( location_of_vs_bone_weights , vertex_buffer_t::count_of_bone_weights_elements , attribute, normalize_off , vertex_buffer_t::size_of_memory, reinterpret_cast<void*>( vertex_buffer_t::memory_offset_of_bone_weights  ) );
                 glew::c::glEnableVertexAttribArray( location_of_vs_bone_weights  );
               }
-              
-              // マテリアルの有効化
-              _material.draw( program_id );
             };
             
             // 三角群描画
             {
               glew::c::glBindVertexArray( _triangle_vao_id );
+              WRP_GLEW_TEST_ERROR
               
               // http://www.opengl.org/sdk/docs/man/html/glBindBuffer.xhtml
               //  GLenum target, glew::gl_type::GLuint buffer
               glew::c::glBindBuffer( GL_ARRAY_BUFFER, _triangle_vb_id );
+              WRP_GLEW_TEST_ERROR
               
               glew::c::glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, _triangle_ib_id );
+              WRP_GLEW_TEST_ERROR
               
               set_vertex_attribute();
+              WRP_GLEW_TEST_ERROR
+              
+              // マテリアルの有効化
+              auto materia_scopes = _material.draw( program_id );
+              WRP_GLEW_TEST_ERROR
               
               // http://www.opengl.org/wiki/GLAPI/glDrawElements
               //  GLenum mode, GLsizei count, GLenum type, const GLvoid* indices
               glew::c::glDrawElements( GL_TRIANGLES, _count_of_indices, GL_UNSIGNED_INT, nullptr );
+              WRP_GLEW_TEST_ERROR
             }
             
             // 後始末

@@ -1,4 +1,4 @@
-u8R"(#version 100
+u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
 
 #ifdef GL_FRAGMENT_PRECISION_HIGH
   precision highp float;
@@ -6,10 +6,24 @@ u8R"(#version 100
   precision mediump float;
 #endif
 
-varying vec3 var_position;
-varying vec4 var_color;
-varying vec3 var_normal;
-varying vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+)" + IN + u8R"( vec3 var_position;
+)" + IN + u8R"( vec4 var_color;
+)" + IN + u8R"( vec3 var_normal;
+)" + IN + u8R"( vec2 var_texcoords[ )" + std::to_string( count_of_textures ) + u8R"( ];
+
+// for omnidirectional shadow mapping
+)" + IN + u8R"( vec3 var_shadow_direction;
+
+// for directional shadow mapping
+//)" + IN + u8R"( vec4 var_shadow_position;
+
+#ifdef GL_EXT_frag_depth
+)" + IN + u8R"( float var_log_z;
+// for directional shadow mapping
+//)" + IN + u8R"( float var_log_z_shadow;
+#endif
+
+)" + OUT_COLOR_DECLARE + u8R"(
 
 uniform vec3 diffuse;
 uniform vec3 ambient;
@@ -24,9 +38,14 @@ uniform float point_light_linear_attenuation0;
 uniform float point_light_quadratic_attenuation0;
 uniform vec3 view_direction;
 uniform float texblends[ )" + std::to_string( count_of_textures ) + u8R"( ];
+uniform float z_log_trick_far;
+const float C = 1.0e-3;
 
-uniform sampler2D sampler;
+uniform samplerCube shadow_sampler;
+uniform sampler2D diffuse_sampler0;
 
+float calc_shadow_ratio_omnidirectional();
+//float calc_shadow_ratio_directional();
 vec3 hsv_add( vec3, vec3 );
 vec4 hsva_add( vec4, vec4 );
 vec3 from_rgb_to_hsv( vec3 );
@@ -81,30 +100,105 @@ void main(void)
   
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( ambient  ) );
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( emissive ) );
-
-  vec3 hsv = from_rgb_to_hsv( gl_FragColor.rgb );
   
   hsva.xyz = vec3
-  ( float(int( hsva.x * 16.0 )) / 16.0
+  ( hsva.x
   , float(int( hsva.y * 16.0 )) / 16.0
-  , float(int( hsva.z * 3.0 )) / 3.0
+  , float(int( hsva.z *  3.0 )) /  3.0
   );
-
-  if ( pow( edge_factor, 4.0 ) < 0.10 )
-    hsva.z *= 0.20;
   
-  gl_FragColor = from_hsva_to_rgba( hsva );
+  // the impl is not good, it enchance to darkness for all plane.
+  //if ( pow( edge_factor, 4.0 ) < 0.10 )
+    //hsva.z *= 0.20;
+  
+  hsva.z *= calc_shadow_ratio_omnidirectional();
+  //hsva.z *= calc_shadow_ratio_directional();
+  
+  )" + OUT_COLOR + u8R"( = from_hsva_to_rgba( hsva );
+#ifdef GL_EXT_frag_depth
+  gl_FragDepth = var_log_z;
+#endif
 }
 
+float calc_shadow_ratio_omnidirectional()
+{
+  float fragment_depth;
+  
+  vec3 n = normalize( var_shadow_direction );
+  vec3 a = abs( n );
+  
+  if      ( a.x > max( a.y, a.z ) )
+    fragment_depth = var_shadow_direction.x;
+  else if ( a.z > max( a.x, a.y ) )
+    fragment_depth = var_shadow_direction.z;
+  else
+    fragment_depth = var_shadow_direction.y;
+  
+  fragment_depth = abs( fragment_depth );
+  
+  float FC = 1.0 / log( z_log_trick_far * C + 1.0 );
+  fragment_depth = log( fragment_depth * C + 1.0 ) * FC;
+  float anti_artifact_bias = 1.0 + 3.0e-3;
+
+  fragment_depth *= anti_artifact_bias;
+  
+#if )" + std::to_string( glsl_version_ge( 300 ) ) + u8R"(
+  float shadow_depth = texture( shadow_sampler, n ).r;
+#else
+  float shadow_depth = textureCube( shadow_sampler, n ).r;
+#endif
+  
+  return ( fragment_depth > shadow_depth ) ? 0.2 : 1.0;
+}
+
+/*
+float calc_shadow_ratio_directional()
+{
+  vec4 shadow_position = var_shadow_position;
+#ifdef GL_EXT_frag_depth
+  shadow_position.z = var_log_z_shadow;
+#endif
+  
+#if )" + std::to_string( glsl_version_lt( 300 ) ) + u8R"(
+  // for legacy environment
+  #define textureProj texture2DProj
+  float anti_artifact_bias = 1.0e-6;
+  float z = shadow_position.z / shadow_position.w;
+#else
+  // for modern environment
+  float anti_artifact_bias = 1.0e-3;
+  float z = shadow_position.z;
+#endif
+  float shadow_multi
+    = 0.20 * textureProj( shadow_sampler, shadow_position ).r
+    + 0.20 * textureProj( shadow_sampler, vec4( shadow_position.xyz + vec3( -1.0e-2,  1.0e-2, -1.0e-2 ), shadow_position.w ) ).r
+    + 0.20 * textureProj( shadow_sampler, vec4( shadow_position.xyz + vec3(  1.0e-2,  1.0e-2,  1.0e-2 ), shadow_position.w ) ).r
+    + 0.20 * textureProj( shadow_sampler, vec4( shadow_position.xyz + vec3( -1.0e-2, -1.0e-2,  1.0e-2 ), shadow_position.w ) ).r
+    + 0.20 * textureProj( shadow_sampler, vec4( shadow_position.xyz + vec3(  1.0e-2, -1.0e-2, -1.0e-2 ), shadow_position.w ) ).r
+    ;
+#ifdef textureProj
+  #undef textureProj
+#endif
+  
+  float delta = max( z - ( shadow_multi - anti_artifact_bias ), 0.0 );
+#ifndef GL_EXT_frag_depth
+  // anti too dilute shadow in linear depth space
+  delta = sqrt( delta );
+#endif
+  delta *= 1.0e+3;
+  
+  return 1.0 - min( delta , 0.80 );
+}
+*/
 
 vec3 hsv_add( vec3 a, vec3 b )
 {
   if ( b.z == 0.0 )
     return a;
   
-  float v_ratio = a.z / b.z;
+  float v_ratio = a.z / (a.z + b.z);
   
-  return vec3( mix( a.x, b.x, v_ratio), mix( a.y, b.y, v_ratio ), a.z + b.z );
+  return vec3( mix( a.x, b.x, v_ratio), mix( a.y, b.y, 1.0 - v_ratio ), a.z + b.z );
 }
 
 vec4 hsva_add( vec4 a, vec4 b )
@@ -157,17 +251,17 @@ vec4 hsva_calc_diffuse()
     if ( texblends[ n ] > 0.0 )
     {
       texblend += texblends[ n ];
-      vec4 sampled_rgba_color = texture2D( sampler, var_texcoords[ n ] );
+      vec4 sampled_rgba_color = texture2D( diffuse_sampler0, var_texcoords[ n ] );
       vec4 current_blend_color = from_rgba_to_hsva( sampled_rgba_color * texblends[ n ] );
       texture_color = hsva_add( texture_color, current_blend_color );
     }
-
+  
   if ( texblend > 0.0 )
   {
     result *= 1.0 - texblend;
     result += texture_color * texblend;
   }
-
+  
   return result;
 }
 

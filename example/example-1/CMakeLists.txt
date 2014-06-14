@@ -48,6 +48,7 @@ if(CMAKE_CXX_COMPILER MATCHES "/em\\+\\+(-[a-zA-Z0-9.])?$")
   set(CMAKE_CXX_FLAGS       "-fcolor-diagnostics ${CMAKE_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS       "-std=c++11 ${CMAKE_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS            "-Wall ${CMAKE_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS          "-Wextra ${CMAKE_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS "-pedantic-errors ${CMAKE_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS_RELEASE        "-O2 -DNDEBUG")
   set(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g")
@@ -68,6 +69,7 @@ else()
     set(CMAKE_CXX_FLAGS       "-fcolor-diagnostics ${CMAKE_CXX_FLAGS}")
     set(CMAKE_CXX_FLAGS       "-std=c++11 ${CMAKE_CXX_FLAGS}")
     set(CMAKE_CXX_FLAGS            "-Wall ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS          "-Wextra ${CMAKE_CXX_FLAGS}")
     set(CMAKE_CXX_FLAGS "-pedantic-errors ${CMAKE_CXX_FLAGS}")
     set(CMAKE_CXX_FLAGS_RELEASE        "-O3 -march=native -DNDEBUG")
     set(CMAKE_CXX_FLAGS_DEBUG          "-O0 -march=native -g")
@@ -79,6 +81,7 @@ else()
     
     set(CMAKE_CXX_FLAGS       "-std=c++11 ${CMAKE_CXX_FLAGS}")
     set(CMAKE_CXX_FLAGS            "-Wall ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS          "-Wextra ${CMAKE_CXX_FLAGS}")
     set(CMAKE_CXX_FLAGS "-pedantic-errors ${CMAKE_CXX_FLAGS}")
     set(CMAKE_CXX_FLAGS_RELEASE        "-O3 -march=native -DNDEBUG")
     set(CMAKE_CXX_FLAGS_DEBUG          "-O0 -march=native -g -pg")
@@ -147,7 +150,7 @@ if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Emscripten")
   add_custom_command(
     TARGET ${TARGET} POST_BUILD
     COMMAND ln -svf ${CMAKE_HOME_DIRECTORY}/assets ${CMAKE_CACHEFILE_DIR}
-    COMMAND ln -svf ${CMAKE_CURRENT_BINARY_DIR}/${TARGET} ${CMAKE_CACHEFILE_DIR}/
+    COMMAND ln -svf ${CMAKE_CURRENT_BINARY_DIR}/${TARGET} ${CMAKE_CACHEFILE_DIR}
   )
 
   if(SUBSYSTEM MATCHES GLFW3)

@@ -18,14 +18,19 @@ try
 {
   std::cout
     << "[Home]/[End] key or mouse [Wheel]: camera distance forward/backward.\n"
-    << "[up]/[left]/[right]/[bottom]: control camera phi and theta.\n"
-    << "[shift] + [Home]/[End] key or mouse [Wheel]: light distance forward/backward.\n"
-    << "[shift] + [up]/[left]/[right]/[bottom]: control light phi and theta.\n"
-    << "[q]/[e]: camera eye auto orbitation on/off."
-    << "[1]: shader program change to Wonderland.Renderer embedded <constant> shader program.\n"
-    << "[2]: shader program change to Wonderland.Renderer embedded <phong> shader program.\n"
-    << "[3]: shader program change to Wonderland.Renderer embedded <cartoon> shader program.\n"
-    << "\n"
+       "[up]/[left]/[right]/[bottom]: control camera phi and theta.\n"
+       "[shift] + [Home]/[End] key or mouse [Wheel]: light distance forward/backward.\n"
+       "[shift] + [up]/[left]/[right]/[bottom]: control light phi and theta.\n"
+       "[q]/[e]: camera eye auto orbitation on/off.\n"
+       "[1]: shader program change to Wonderland.Renderer embedded <constant> shader program.\n"
+       "[2]: shader program change to Wonderland.Renderer embedded <phong> shader program.\n"
+       "[3]: shader program change to Wonderland.Renderer embedded <cartoon> shader program.\n"
+       "[9]/[0]: shadow on/off\n"
+       "\n"
+       "<compiled for>\n"
+       "  OpenGL: " << wonder_rabbit_project::wonderland::renderer::shader::gl_version   << "\n"
+       "  GLSL  : " << wonder_rabbit_project::wonderland::renderer::shader::glsl_version << "\n"
+       "\n"
     ;
   
   using namespace wonder_rabbit_project::wonderland::subsystem;
@@ -35,7 +40,7 @@ try
   constexpr auto screen_width  = 1920 >> 1;
   constexpr auto screen_height = 1080 >> 1;
   
-  auto subsystem = std::make_shared<subsystem_t>();
+  auto subsystem = std::make_shared< subsystem_t >();
   
   auto ips = subsystem -> default_initialize_params();
   ips.put( "width"  , screen_width  );
@@ -44,7 +49,7 @@ try
   ips.put( "samples", 4 ); // FSAA
   subsystem -> initialize( std::move(ips) );
   
-  auto renderer = std::make_shared<renderer_t>();
+  auto renderer = std::make_shared< renderer_t >();
   
   // wonderland.renderer has the standard shader program
   //   effects:
@@ -62,7 +67,7 @@ try
   //  ( you can add/remove default light `{add|remove}_lights( light0, light1, light2, ... )` )
   //  ( and `lights( light0, light1, light2, ... )` to set lights or remove all. )
   auto light0 = renderer -> create_light<point_light_t>();
-  
+
   // load models with assimp currently
   auto model0 = renderer -> create_model( "assets/like_a_cornell_box.x" );
   auto model1 = renderer -> create_model( "assets/vertex-colored-cube.x" );
@@ -70,28 +75,35 @@ try
   
   struct model_instance_state_t
   {
-    decltype(model0)* pmodel = nullptr;
+    decltype(model0)  model;
     animation_state_t animation_state;
     glm::mat4         world_transformation;
   };
   
-  std::array< model_instance_state_t, 9 > model_instance_states;
+  std::array< model_instance_state_t, 10 > model_instance_states;
   
   {
-    model_instance_states[0].pmodel = &model1;
+    model_instance_states[0].model = model0;
     model_instance_states[0].world_transformation
-      = glm::translate( glm::mat4(), glm::vec3( 0.0f, 80.0f, 0.0f ) );
+      = glm::scale( glm::mat4(), glm::vec3( 4.0f ) )
+      ;
+    
+    model_instance_states[1].model = model1;
+    model_instance_states[1].world_transformation
+      = glm::translate( glm::mat4(), glm::vec3( 0.0f, 1.0f, 0.0f ) )
+      * glm::scale( glm::mat4(), glm::vec3( 0.5f ) )
+      ;
       
-    auto animation_names = model2.animation_names();
+    auto animation_names = model2 -> animation_names();
     
     for ( const auto& animation_name : animation_names )
       std::cout << "has animation: " << animation_name << std::endl;
     
-    for ( auto n = 1; n < model_instance_states.size(); ++n )
+    for ( auto n = 2ull; n < model_instance_states.size(); ++n )
     {
       auto& s = model_instance_states[ n ];
       
-      s.pmodel = &model2;
+      s.model = model2;
       
       if ( ! animation_names.empty() )
       {
@@ -99,88 +111,126 @@ try
         s.animation_state.time = animation_state_t::fseconds( float(n) * 19937 );
       }
       
-      s.world_transformation = glm::scale( glm::mat4(), glm::vec3( 25.f ) );
+      s.world_transformation = glm::scale( glm::mat4(), glm::vec3( 1.f ) );
       switch ( n )
-      { case 1: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 1.0f,  0.0f ) ); break;
-        case 2: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 1.0f,  0.0f ) ); break;
-        case 3: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 0.0f,  5.0f ) ); break;
-        case 4: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  0.0f, 1.0f,  5.0f ) ); break;
-        case 5: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 1.0f,  5.0f ) ); break;
-        case 6: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 1.0f, -5.0f ) ); break;
-        case 7: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  0.0f, 0.0f, -5.0f ) ); break;
-        case 8: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 1.0f, -5.0f ) );
+      { case 2: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 1.0f,  0.0f ) ); break;
+        case 3: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 0.0f,  0.0f ) ); break;
+        case 4: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 1.0f,  5.0f ) ); break;
+        case 5: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  0.0f, 1.0f,  5.0f ) ); break;
+        case 6: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 1.0f,  5.0f ) ); break;
+        case 7: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  5.0f, 0.0f, -5.0f ) ); break;
+        case 8: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3(  0.0f, 1.0f, -5.0f ) ); break;
+        case 9: s.world_transformation *= glm::translate( glm::mat4(), glm::vec3( -5.0f, 1.0f, -5.0f ) );
       }
     }
   }
   
   // clear color
-  {
-    const auto color = glm::vec4( 0.8f, 0.8f, 1.0f, 1.0f );
-    renderer -> clear_color( color );
-  }
+  renderer
+    -> clear_color( glm::vec4( 0.8f, 0.8f, 1.0f, 1.0f ) )
+    ;
   
   // projection transformation
-  {
-    const auto fov_y = glm::pi<float>() / 4.0f;
-    constexpr auto screen_aspect_ratio = float( screen_width ) / float( screen_height );
-    constexpr auto near_clip = 1.0e-1f;
-    constexpr auto far_clip  = 1.0e+3f;
-    renderer -> projection_transformation( glm::perspective( fov_y, screen_aspect_ratio, near_clip, far_clip ) );
-  }
+  renderer
+    -> projection()
+      //-> fov_y( glm::pi< float >() / 4.0f )
+      -> fov_y( glm::pi< float >() / 3.0f )
+      -> aspect_ratio( float( screen_width ) / float( screen_height ) )
+//#ifdef EMSCRIPTEN
+      // the environment(WebGL1, GLES2) is not support gl_FragDepth writable.
+      // it cannot use a log depth buffer trick then use small linear clipping range.
+      -> near_clip( 1.0e+0f )
+      -> far_clip ( 3.0e+1f )
+//#else
+      // for default, it can use a log depth buffer trick with gl_FragDepth writable.
+      // then it can use wide clipping range.
+      -> near_clip( 1.0e-1f )
+      -> far_clip ( 1.0e+2f )
+//#endif
+      -> update()
+    ;
   
   subsystem -> update_functors.emplace_front
   ( [ subsystem, renderer
     , &model_instance_states
-    , &light0
-    , &program_constant
-    , &program_phong
-    , &program_cartoon
+    , light0
+    , program_constant
+    , program_phong
+    , program_cartoon
     ]
   {
-    static auto camera_theta = glm::half_pi< float >();
-    static auto camera_phi   = glm::half_pi< float >() * -0.5f;
-    static auto camera_distance = 300.0f;
+    static auto camera_theta           = glm::half_pi< float >();
+    static auto camera_phi             = glm::half_pi< float >() * -0.5f;
+    static auto camera_distance        = 10.0f;
     static auto camera_auto_orbitation = false;
-    static auto light_theta = glm::half_pi< float >();
-    static auto light_phi   = glm::half_pi< float >() * -0.5f;
-    static auto light_distance = 1000.0f;
+    
+    static auto light_theta           = glm::half_pi< float >();
+    static auto light_phi             = glm::half_pi< float >() * -0.5f;
+    static auto light_distance        = 10.0f;
     static auto light_auto_orbitation = false;
     
     for ( auto& model_instance_state : model_instance_states )
       model_instance_state.animation_state += animation_state_t::fseconds( 1.0f / 30.0f );
     
-    const auto wheel = subsystem -> pointing_states_wheel();
+    const auto wheel    = subsystem -> pointing_states_wheel();
     const auto key_home = subsystem -> keyboard_state< key::home >();
     const auto key_end  = subsystem -> keyboard_state< key::end  >();
-    const auto shift = subsystem -> keyboard_state< key::left_shift >() || subsystem -> keyboard_state< key::right_shift >();
+    const auto shift    = subsystem -> keyboard_state< key::left_shift >()
+                       || subsystem -> keyboard_state< key::right_shift >()
+                       ;
+    
+    //const auto pointing_button_0 = subsystem -> pointing_states_button<0>();
+    const auto pointing_button_1 = subsystem -> pointing_states_button<1>();
+    //const auto pointing_button_2 = subsystem -> pointing_states_button<2>();
+    
+    static auto pointing_position_before = subsystem -> pointing_states_position();
+    static auto pointing_position = pointing_position_before;
+    pointing_position = subsystem -> pointing_states_position();
+    const auto pointing_delta = pointing_position - pointing_position_before;
+    pointing_position_before = pointing_position;
+    
+    // TODO: for debug
+    if ( subsystem -> keyboard_state< key::z >() )
+      renderer -> _shadow_save = true;
     
     // camera change
-    if ( wheel.y > 0 or key_home )
-      ( shift ? light_distance : camera_distance ) -= 10.0f;
-    else if ( wheel.y < 0 or key_end )
-      ( shift ? light_distance : camera_distance ) += 10.0f;
+    if      ( wheel.y > 0 or key_home )
+      ( shift ? light_distance : camera_distance ) -= 0.5f;
+    else if ( wheel.y < 0 or key_end  )
+      ( shift ? light_distance : camera_distance ) += 0.5f;
     
     if ( subsystem -> keyboard_state< key::left_arrow >() )
-      ( shift ? light_theta : camera_theta ) -= 0.05f;
+      ( shift ? light_theta : camera_theta ) -= 0.02f;
     if ( subsystem -> keyboard_state< key::right_arrow >() )
-      ( shift ? light_theta : camera_theta ) += 0.05f;
+      ( shift ? light_theta : camera_theta ) += 0.02f;
+    if ( pointing_button_1 and std::abs( pointing_delta.x ) > 0.0f )
+      ( shift ? light_theta : camera_theta ) -= 0.005f * pointing_delta.x;
     if ( subsystem -> keyboard_state< key::up_arrow >() )
-      ( shift ? light_phi : camera_phi ) -= 0.05f;
+      ( shift ? light_phi : camera_phi ) -= 0.02f;
     if ( subsystem -> keyboard_state< key::down_arrow >() )
-      ( shift ? light_phi : camera_phi ) += 0.05f;
+      ( shift ? light_phi : camera_phi ) += 0.02f;
+    if ( pointing_button_1 and std::abs( pointing_delta.y ) > 0.0f )
+      ( shift ? light_phi : camera_phi ) -= 0.005f * pointing_delta.y;
     
-    auto& camera = renderer -> camera();
-    camera.target( { 0.0f, 25.0f, 0.0f } );
-    camera.eye_from_orbit_of_target( camera_theta, camera_phi, camera_distance );
-    camera.up    ( { 0.0f,  1.0f, 0.0f } );
+    renderer -> camera()
+      -> target( { 0.0f, 0.0f, 0.0f } )
+      -> eye_from_orbit_of_target( camera_theta, camera_phi, camera_distance )
+      -> up    ( { 0.0f, 1.0f, 0.0f } )
+      ;
     
     // light change
-    light0.position = ( glm::mat4_cast( glm::quat( glm::vec3( light_phi, light_theta, 0.0f ) ) ) * glm::vec4( 0.0f, 0.0f, light_distance, 1.0f ) ).xyz();
+    light0 -> position = ( glm::mat4_cast( glm::quat( glm::vec3( light_phi, light_theta, 0.0f ) ) ) * glm::vec4( 0.0f, 0.0f, light_distance, 1.0f ) ).xyz();
+    
+    // shadow change
+    if ( subsystem -> keyboard_state< key::_9 >() )
+      renderer -> shadow( true  );
+    if ( subsystem -> keyboard_state< key::_0 >() )
+      renderer -> shadow( false );
     
     // program change
     const auto program_change =
-    [ &renderer, &subsystem ]
-    ( const program_t& program, const key_code_t key, const std::string& name )
+    [ renderer, subsystem ]
+    ( program_t::const_shared_t program, const key_code_t key, const std::string& name )
       -> bool
     {
       if ( ( renderer -> default_program() != program ) and subsystem -> keyboard_state( key ) )
@@ -225,7 +275,6 @@ try
   
   subsystem -> render_functors.emplace_front
   ( [ renderer
-    , &model0
     , &model_instance_states
     ]
   {
@@ -233,17 +282,14 @@ try
     //  1. clear
     //  2. return { flusher(), use_program( p ) }
     //    use default program if call with no parameter.
-    auto rendering_invoker = renderer -> invoke();
+    auto rendering_invoker = renderer -> invoker();
     
     // draw model with world transformation
     //  automatic set
     //   1. uniform(world_view_projection_transformation) if shader program has uniform world_view_projection_transformation
     //   2. uniform(world_transformation) if shader program has uniform world_transformation
-    
-    renderer -> draw( model0 , glm::mat4(), { } );
-    
     for ( const auto& model_instance_state : model_instance_states )
-      renderer -> draw( *model_instance_state.pmodel , model_instance_state.world_transformation, { model_instance_state.animation_state } );
+      renderer -> draw( model_instance_state.model , model_instance_state.world_transformation, { model_instance_state.animation_state } );
   }
   );
   
@@ -257,8 +303,9 @@ try
     before = std::chrono::high_resolution_clock::now();
   }
   );
-  
+
   subsystem -> invoke();
+  
 }
 catch( const std::exception& e )
 { std::cerr << e.what(); return 1; }

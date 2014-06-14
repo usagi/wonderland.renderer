@@ -1,7 +1,11 @@
 #pragma once
 
+#include <type_traits>
+
 #include "../c.hxx"
 #include "../gl_type.hxx"
+
+#include "../../destruct_invoker.hxx"
 
 namespace wonder_rabbit_project
 {
@@ -11,44 +15,81 @@ namespace wonder_rabbit_project
     {
       namespace glew
       {
+        template < typename gl_type::GLenum T_pname, bool T_value >
+        struct enable_impl_t { static inline auto invoke() -> void; };
+        
+        template < typename gl_type::GLenum T_pname >
+        struct enable_impl_t < T_pname, true >
+        { static inline auto invoke() -> void { c::glEnable( T_pname ); } };
+        
+        template < typename gl_type::GLenum T_pname >
+        struct enable_impl_t < T_pname, false >
+        { static inline auto invoke() -> void { c::glDisable( T_pname ); } };
+        
         struct enable_t
         {
           
-          static inline auto blend ( bool enable = true )
+          template < typename gl_type::GLenum T_pname, bool T_value = true >
+          static inline auto enable()
             -> void
+          { enable_impl_t< T_pname, T_value >::invoke(); }
+          
+          template < typename gl_type::GLenum T_pname >
+          static inline auto disable()
+            -> void
+          { enable_impl_t< T_pname, false >::invoke(); }
+          
+          template < typename gl_type::GLenum T_pname >
+          static inline auto enable( gl_type::GLboolean enable )
+            -> void
+          { enable ? c::glEnable( T_pname ) : c::glDisable( T_pname ); }
+          
+          template < class T = void >
+          static inline auto enable( gl_type::GLenum pname, gl_type::GLboolean enable = true )
+            -> void
+          { enable ? c::glEnable( pname ) : c::glDisable( pname ); }
+          
+          template < class T = void >
+          static inline auto disable( gl_type::GLenum pname )
+            -> void
+          { c::glDisable( pname ); }
+          
+          template < typename gl_type::GLenum T_pname, bool T_value = true >
+          static inline auto scoped_enable()
+            -> destruct_invoker_t
           {
-            if( enable )
-              c::glEnable( GL_BLEND );
-            else
-              c::glDisable( GL_BLEND );
+            const auto backup = is_enabled< T_pname >();
+            enable_impl_t< T_pname, T_value >::invoke();
+            return destruct_invoker_t( [ backup ]{ enable< T_pname >( backup ); } );
           }
           
-          static inline auto cull_face ( bool enable = true )
-            -> void
+          template < typename gl_type::GLenum T_pname >
+          static inline auto scoped_enable( gl_type::GLboolean enable )
+            -> destruct_invoker_t
           {
-            if( enable )
-              c::glEnable( GL_CULL_FACE );
-            else
-              c::glDisable( GL_CULL_FACE );
+            const auto backup = is_enabled< T_pname >();
+            enable_t::enable< T_pname >( enable );
+            return destruct_invoker_t( [ backup ]{ enable_t::enable< T_pname >( backup ); } );
           }
           
-          static inline auto debug_output ( bool enable = true )
-            -> void
+          template < class T = void >
+          static inline auto scoped_enable( gl_type::GLenum pname, gl_type::GLboolean enable = true )
+            -> destruct_invoker_t
           {
-            if( enable )
-              c::glEnable( GL_DEBUG_OUTPUT );
-            else
-              c::glDisable( GL_DEBUG_OUTPUT );
+            const auto backup = is_enabled( pname );
+            enable_t::enable( pname, enable );
+            return destruct_invoker_t( [ backup ]{ enable_t::enable( pname, backup ); } );
           }
           
-          static inline auto depth_test ( bool enable = true )
-            -> void
-          {
-            if( enable )
-              c::glEnable( GL_DEPTH_TEST );
-            else
-              c::glDisable( GL_DEPTH_TEST );
-          }
+          template < typename gl_type::GLenum T_pname >
+          static inline auto is_enabled()
+            -> bool
+          { return bool( c::glIsEnabled( T_pname ) ); }
+          
+          template < class T = void >
+          static inline auto is_enabled( typename gl_type::GLenum pname )
+            -> bool
+          { return bool( c::glIsEnabled( pname ) ); }
           
           static inline auto multisample_capability()
             -> bool
@@ -85,6 +126,7 @@ namespace wonder_rabbit_project
           }
           
         };
+        
       }
     }
   }

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <sstream>
+#include <typeinfo>
+
 #define GLM_SWIZZLE
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -37,7 +40,16 @@ namespace wonder_rabbit_project
           template < class T >
           static inline auto uniform( const gl_type::GLuint program_id, const gl_type::GLint location )
             -> T
-          { throw std::logic_error( "uniform<T>: unsupported type T." ); }
+          {
+            std::stringstream message;
+            message
+              << "uniform<T>: unsupported type T."
+                 " T=" << typeid( T ).name() << " "
+                 " program_id=" << program_id << " "
+                 " location=" << location
+              ;
+            throw std::logic_error( message.str() );
+          }
           
           template < class T >
           static inline auto uniform( const gl_type::GLint location )
@@ -207,79 +219,79 @@ namespace wonder_rabbit_project
         // get int series
         template < >
         inline auto uniform_t::uniform< gl_type::GLint >( gl_type::GLuint program_id, gl_type::GLint location )
-        -> gl_type::GLint
+          -> gl_type::GLint
         { gl_type::GLint value; c::glGetUniformiv( program_id, location, &value ); return value; }
         
         template < >
         inline auto uniform_t::uniform< glm::i32vec1 >( gl_type::GLuint program_id, gl_type::GLint location )
-        -> glm::i32vec1
+          -> glm::i32vec1
         { glm::i32vec1 value; c::glGetUniformiv( program_id, location, &value[0] ); return value; }
         
         template < >
         inline auto uniform_t::uniform< glm::i32vec2 >( gl_type::GLuint program_id, gl_type::GLint location )
-        -> glm::i32vec2
+          -> glm::i32vec2
         { glm::i32vec2 value; c::glGetUniformiv( program_id, location, &value[0] ); return value; }
         
         template < >
         inline auto uniform_t::uniform< glm::i32vec3 >( gl_type::GLuint program_id, gl_type::GLint location )
-        -> glm::i32vec3
+          -> glm::i32vec3
         { glm::i32vec3 value; c::glGetUniformiv( program_id, location, &value[0] ); return value; }
         
         template < >
         inline auto uniform_t::uniform< glm::i32vec4 >( gl_type::GLuint program_id, gl_type::GLint location )
-        -> glm::i32vec4
+          -> glm::i32vec4
         { glm::i32vec4 value; c::glGetUniformiv( program_id, location, &value[0] ); return value; }
         
         // get uint series
         template < >
         inline auto uniform_t::uniform< gl_type::GLuint >( gl_type::GLuint program_id, gl_type::GLint location )
-        -> gl_type::GLuint
+          -> gl_type::GLuint
         { gl_type::GLuint value; c::glGetUniformuiv( program_id, location, &value ); return value; }
         
         template < >
         inline auto uniform_t::uniform< glm::u32vec1 >( gl_type::GLuint program_id, gl_type::GLint location )
-        -> glm::u32vec1
+          -> glm::u32vec1
         { glm::u32vec1 value; c::glGetUniformuiv( program_id, location, &value[0] ); return value; }
         
         template < >
         inline auto uniform_t::uniform< glm::u32vec2 >( gl_type::GLuint program_id, gl_type::GLint location )
-        -> glm::u32vec2
+          -> glm::u32vec2
         { glm::u32vec2 value; c::glGetUniformuiv( program_id, location, &value[0] ); return value; }
         
         template < >
         inline auto uniform_t::uniform< glm::u32vec3 >( gl_type::GLuint program_id, gl_type::GLint location )
-        -> glm::u32vec3
+          -> glm::u32vec3
         { glm::u32vec3 value; c::glGetUniformuiv( program_id, location, &value[0] ); return value; }
         
         template < >
         inline auto uniform_t::uniform< glm::u32vec4 >( gl_type::GLuint program_id, gl_type::GLint location )
-        -> glm::u32vec4
+          -> glm::u32vec4
         { glm::u32vec4 value; c::glGetUniformuiv( program_id, location, &value[0] ); return value; }
         
         // get double series
         template < >
         inline auto uniform_t::uniform< gl_type::GLdouble >( gl_type::GLuint program_id, gl_type::GLint location )
-        -> gl_type::GLdouble
+          -> gl_type::GLdouble
         { gl_type::GLdouble value; c::glGetUniformdv( program_id, location, &value ); return value; }
         
         template < >
         inline auto uniform_t::uniform< glm::f64vec1 >( gl_type::GLuint program_id, gl_type::GLint location )
-        -> glm::f64vec1
+          -> glm::f64vec1
         { glm::f64vec1 value; c::glGetUniformdv( program_id, location, &value[0] ); return value; }
         
         template < >
         inline auto uniform_t::uniform< glm::f64vec2 >( gl_type::GLuint program_id, gl_type::GLint location )
-        -> glm::f64vec2
+          -> glm::f64vec2
         { glm::f64vec2 value; c::glGetUniformdv( program_id, location, &value[0] ); return value; }
         
         template < >
         inline auto uniform_t::uniform< glm::f64vec3 >( gl_type::GLuint program_id, gl_type::GLint location )
-        -> glm::f64vec3
+          -> glm::f64vec3
         { glm::f64vec3 value; c::glGetUniformdv( program_id, location, &value[0] ); return value; }
         
         template < >
         inline auto uniform_t::uniform< glm::f64vec4 >( gl_type::GLuint program_id, gl_type::GLint location )
-        -> glm::f64vec4
+          -> glm::f64vec4
         { glm::f64vec4 value; c::glGetUniformdv( program_id, location, &value[0] ); return value; }
       }
     }
