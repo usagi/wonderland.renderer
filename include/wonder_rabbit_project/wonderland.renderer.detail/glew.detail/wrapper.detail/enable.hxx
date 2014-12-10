@@ -78,7 +78,7 @@ namespace wonder_rabbit_project
           {
             const auto backup = is_enabled( pname );
             enable_t::enable( pname, enable );
-            return destruct_invoker_t( [ backup ]{ enable_t::enable( pname, backup ); } );
+            return destruct_invoker_t( [ backup, pname ]{ enable_t::enable( pname, backup ); } );
           }
           
           template < typename gl_type::GLenum T_pname >

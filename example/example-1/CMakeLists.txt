@@ -6,7 +6,7 @@ set(SOURCE main.cxx)
 
 find_file(WONDERLAND_SUBSYSTEM_HXX
   wonder_rabbit_project/wonderland.subsystem.hxx
-  PATHS /usr/include /usr/local/include ~/opt/include
+  PATHS /usr/include /usr/local/include ~/include
 )
 
 if(NOT WONDERLAND_SUBSYSTEM_HXX)
@@ -50,9 +50,9 @@ if(CMAKE_CXX_COMPILER MATCHES "/em\\+\\+(-[a-zA-Z0-9.])?$")
   set(CMAKE_CXX_FLAGS            "-Wall ${CMAKE_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS          "-Wextra ${CMAKE_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS "-pedantic-errors ${CMAKE_CXX_FLAGS}")
-  set(CMAKE_CXX_FLAGS_RELEASE        "-O2 -DNDEBUG")
+  set(CMAKE_CXX_FLAGS_RELEASE        "-O3 -DNDEBUG")
   set(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g")
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g")
 
   set(TARGET "${TARGET}.html")
 
@@ -136,7 +136,19 @@ add_dependencies(${TARGET}
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/wonder_rabbit_project/wonderland.renderer.hxx
 )
 
-if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Emscripten")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Emscripten")
+  if(SUBSYSTEM MATCHES GLFW3)
+    set(CMAKE_CXX_FLAGS "-s USE_GLFW=3 ${CMAKE_CXX_FLAGS}")
+  elseif(SUBSYSTEM MATCHES GLFW2)
+    #set(CMAKE_CXX_FLAGS "-s LEGACY_GL_EMULATION=1 ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "-s USE_GLFW=2 ${CMAKE_CXX_FLAGS}")
+  elseif(SUBSYSTEM MATCHES SDL2)
+    set(CMAKE_CXX_FLAGS "-s USE_SDL=2 ${CMAKE_CXX_FLAGS}")
+  elseif(SUBSYSTEM MATCHES SDL1)
+    set(CMAKE_CXX_FLAGS "-s LEGACY_GL_EMULATION=1 ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "-s USE_SDL=1 ${CMAKE_CXX_FLAGS}")
+  endif()
+else()
   find_package(Threads)
   target_link_libraries(${TARGET} ${CMAKE_THREAD_LIBS_INIT})
   
@@ -159,7 +171,7 @@ if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Emscripten")
     include_directories(${GLFW_INCLUDE_DIRS})
     target_link_libraries(${TARGET} ${GLFW_LIBRARIES})
     target_link_libraries(${TARGET} GL)
-    target_link_libraries(${TARGET} X11 Xrandr Xcursor Xi Xxf86vm)
+    target_link_libraries(${TARGET} X11 Xrandr Xcursor Xi Xxf86vm Xinerama)
   elseif(SUBSYSTEM MATCHES GLFW2)
     find_package(PkgConfig REQUIRED)
     pkg_search_module(GLFW REQUIRED libglfw)

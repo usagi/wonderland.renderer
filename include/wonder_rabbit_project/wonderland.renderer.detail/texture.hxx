@@ -85,7 +85,7 @@ namespace wonder_rabbit_project
         { _viewport = viewport_; }
         
         virtual auto count_of_data_elements()
-          -> const std::size_t
+          -> std::size_t
         { return _viewport[2] * _viewport[3] * _texture_ids.size(); }
         
       };

@@ -137,7 +137,6 @@ namespace wonder_rabbit_project
         )
           -> destruct_invoker_t
         {
-          constexpr auto attachment_ = attachment( glew::texture_t::base_internal_format( T::internal_format ) );
           auto s = shared_from_this();
           bind_texture( texture, texture_target );
           return destruct_invoker_t( [ s ]{ s -> bind_texture< T >( nullptr, GL_TEXTURE_CUBE_MAP ); } );
