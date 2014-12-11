@@ -1,5 +1,7 @@
 u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
 
+#extension GL_EXT_frag_depth : enable
+
 #ifdef GL_FRAGMENT_PRECISION_HIGH
   precision highp float;
 #else
@@ -39,7 +41,7 @@ void main()
   hsva.xyz = hsv_add( hsva.xyz, from_rgb_to_hsv( emissive ) );
   )" + OUT_COLOR + u8R"( = from_hsva_to_rgba( hsva );
 #ifdef GL_EXT_frag_depth
-  gl_FragDepth = var_log_z;
+  gl_FragDepthEXT = var_log_z;
 #endif
 }
 

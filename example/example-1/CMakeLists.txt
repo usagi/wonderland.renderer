@@ -19,6 +19,10 @@ else()
   message(" * found wonderland.subsystem.hxx: ${WONDERLAND_SUBSYSTEM_HXX}")
 endif()
 
+if(NOT SUBSYSTEM)
+  set(SUBSYSTEM GLFW3)
+endif()
+  
 if(SUBSYSTEM MATCHES GLFW3)
   set(CMAKE_CXX_FLAGS "-DWRP_WONDERLAND_SUBSYSTEM_GLFW3 ${CMAKE_CXX_FLAGS}")
 elseif(SUBSYSTEM MATCHES GLFW2)
@@ -33,11 +37,19 @@ if(CMAKE_CXX_COMPILER MATCHES "/em\\+\\+(-[a-zA-Z0-9.])?$")
 
   message(" * C++ compiler: Emscripten")
   
-  if(NOT SUBSYSTEM)
-    set(SUBSYSTEM GLFW3)
-  endif()
-  
   set(CMAKE_CXX_COMPILER_ID "Emscripten")
+  
+  if(SUBSYSTEM MATCHES GLFW3)
+    set(CMAKE_CXX_FLAGS "-s USE_GLFW=3 ${CMAKE_CXX_FLAGS}")
+  elseif(SUBSYSTEM MATCHES GLFW2)
+    #set(CMAKE_CXX_FLAGS "-s LEGACY_GL_EMULATION=1 ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "-s USE_GLFW=2 ${CMAKE_CXX_FLAGS}")
+  elseif(SUBSYSTEM MATCHES SDL2)
+    set(CMAKE_CXX_FLAGS "-s USE_SDL=2 ${CMAKE_CXX_FLAGS}")
+  elseif(SUBSYSTEM MATCHES SDL1)
+    set(CMAKE_CXX_FLAGS "-s LEGACY_GL_EMULATION=1 ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "-s USE_SDL=1 ${CMAKE_CXX_FLAGS}")
+  endif()
   
   set(CMAKE_CXX_FLAGS "--preload-file ${CMAKE_HOME_DIRECTORY}/assets@assets ${CMAKE_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS "-s OUTLINING_LIMIT=160000 ${CMAKE_CXX_FLAGS}")
@@ -57,10 +69,6 @@ if(CMAKE_CXX_COMPILER MATCHES "/em\\+\\+(-[a-zA-Z0-9.])?$")
   set(TARGET "${TARGET}.html")
 
 else()
-
-  if(NOT SUBSYSTEM)
-    set(SUBSYSTEM GLFW3)
-  endif()
 
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     
@@ -136,19 +144,7 @@ add_dependencies(${TARGET}
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/wonder_rabbit_project/wonderland.renderer.hxx
 )
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Emscripten")
-  if(SUBSYSTEM MATCHES GLFW3)
-    set(CMAKE_CXX_FLAGS "-s USE_GLFW=3 ${CMAKE_CXX_FLAGS}")
-  elseif(SUBSYSTEM MATCHES GLFW2)
-    #set(CMAKE_CXX_FLAGS "-s LEGACY_GL_EMULATION=1 ${CMAKE_CXX_FLAGS}")
-    set(CMAKE_CXX_FLAGS "-s USE_GLFW=2 ${CMAKE_CXX_FLAGS}")
-  elseif(SUBSYSTEM MATCHES SDL2)
-    set(CMAKE_CXX_FLAGS "-s USE_SDL=2 ${CMAKE_CXX_FLAGS}")
-  elseif(SUBSYSTEM MATCHES SDL1)
-    set(CMAKE_CXX_FLAGS "-s LEGACY_GL_EMULATION=1 ${CMAKE_CXX_FLAGS}")
-    set(CMAKE_CXX_FLAGS "-s USE_SDL=1 ${CMAKE_CXX_FLAGS}")
-  endif()
-else()
+if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Emscripten")
   find_package(Threads)
   target_link_libraries(${TARGET} ${CMAKE_THREAD_LIBS_INIT})
   

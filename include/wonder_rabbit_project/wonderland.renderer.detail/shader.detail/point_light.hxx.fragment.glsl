@@ -1,6 +1,6 @@
 u8R"(#version )" + std::to_string( glsl_version ) + u8R"(
 
-//#extension GL_EXT_frag_depth : enable
+#extension GL_EXT_frag_depth : enable
 
 #ifdef GL_FRAGMENT_PRECISION_HIGH
   precision highp float;
@@ -22,8 +22,8 @@ void main()
   )" + OUT_COLOR + u8R"( = vec4( var_color * t2, 1.0 );
   
 #ifdef GL_EXT_frag_depth
-  gl_FragDepth = var_log_z;
-# endif
+  gl_FragDepthEXT = var_log_z;
+#endif
 }
 
 )"
